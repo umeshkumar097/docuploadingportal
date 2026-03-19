@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  OPS
+  VALIDATOR
+  TL
+  ADMIN
+}
+
+enum CandidateStatus {
+  PENDING
+  OPS_VERIFIED
+  VALIDATED
+  REJECTED
+  READY
+}
+
+enum DocumentType {
+  PHOTO
+  QUALIFICATION
+  ID_PROOF
+  SIGNATURE
+}
+
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id    String @id @default(cuid())
+  name  String?
+  email String @unique
+  role  Role   @default(OPS)
+}
+
+model Candidate {
+  id           String          @id @default(cuid())
+  token        String          @unique @default(uuid())
+  name         String?
+  employer     String?
+  mobileNumber String?
+  employeeId   String?
+  status       CandidateStatus @default(PENDING)
+  documents    Document[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Document {
+  id              String         @id @default(cuid())
+  candidateId     String
+  candidate       Candidate      @relation(fields: [candidateId], references: [id])
+  type            DocumentType
+  fileUrl         String
+  sizeKB          Int
+  status          DocumentStatus @default(PENDING)
+  rejectionReason String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
