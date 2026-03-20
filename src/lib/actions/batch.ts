@@ -11,6 +11,7 @@ export async function generateReadyBatch() {
     data: { status: "READY" },
   });
 
+  revalidatePath("/dashboard/reports");
   revalidatePath("/dashboard");
   return candidates;
 }

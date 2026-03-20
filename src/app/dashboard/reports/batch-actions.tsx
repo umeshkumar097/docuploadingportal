@@ -4,13 +4,10 @@ import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { generateReadyBatch } from "@/lib/actions/batch";
 import { Download } from "lucide-react";
-import { useSession } from "next-auth/react";
-
-export function BatchActions() {
-  const { data: session } = useSession();
+export function BatchActions({ role }: { role: string }) {
   const [isPending, startTransition] = useTransition();
 
-  if (session?.user?.role !== "ADMIN") return null;
+  if (role !== "ADMIN") return null;
 
   const handleGenerateBatch = () => {
     startTransition(async () => {
