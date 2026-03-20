@@ -7,11 +7,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2, CheckCircle2 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { deleteCandidate } from "@/lib/actions/verification";
 import * as XLSX from "xlsx";
+import { ConfirmationModal } from "./confirmation-modal";
 
 interface CandidateTableProps {
   candidates: any[];
@@ -22,15 +23,35 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+  
+  // Modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [candidateToDelete, setCandidateToDelete] = useState<{id: string, name: string} | null>(null);
+  
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleDeleteCandidate = async (id: string, name: string) => {
-    if (window.confirm(`Are you absolutely sure you want to permanently delete candidate ${name} and all associated files?`)) {
-      try {
-        await deleteCandidate(id);
-      } catch (err) {
-        alert("Failed to delete candidate.");
-        console.error(err);
-      }
+  const handleDeleteClick = (id: string, name: string) => {
+    setCandidateToDelete({ id, name });
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!candidateToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteCandidate(candidateToDelete.id);
+      setIsDeleteModalOpen(false);
+      setCandidateToDelete(null);
+    } catch (err: any) {
+      console.error(err);
+      setIsDeleteModalOpen(false);
+      setErrorMessage(err.message || "Failed to permanently delete candidate. This might be due to active network issues or restricted permissions.");
+      setIsErrorModalOpen(true);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -57,7 +78,6 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
 
     try {
       const selectedCandidates = candidates.filter(c => selectedIds.includes(c.id));
-      alert(`Debug 1: Selected ${selectedCandidates.length} candidate(s).`);
       const zip = new JSZip();
       
       let totalFilesToFetch = 0;
@@ -67,10 +87,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         totalFilesToFetch += c.documents?.length || 0;
       });
 
-      alert(`Debug 2: Total documents identified across candidates: ${totalFilesToFetch}`);
-
       if (totalFilesToFetch === 0) {
-        alert("CRITICAL STOP: Selected candidates have no documents. (Your query hydration did not hot-reload or candidates actually have 0 docs!)");
         setIsExporting(false);
         return;
       }
@@ -110,14 +127,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         }
       }
 
-      alert(`Debug 3: All downloads finished. Initiating compilation of ZIP.`);
       const content = await zip.generateAsync({ type: "blob" });
-      alert(`Debug 4: ZIP Compiled Successfully! Saving as ${masterZipName}...`);
       saveAs(content, masterZipName);
       setSelectedIds([]);
     } catch (error) {
       console.error("ZIP Export failed", error);
-      alert("An error occurred while generating the ZIP archive. Check browser console.");
     } finally {
       setIsExporting(false);
       setExportProgress(0);
@@ -274,7 +288,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                           variant="ghost" 
                           size="icon" 
                           className="rounded-xl hover:bg-red-500/10 text-red-500 transition-all font-bold group"
-                          onClick={() => handleDeleteCandidate(candidate.id, candidate.name || 'Anonymous Candidate')}
+                          onClick={() => handleDeleteClick(candidate.id, candidate.name || 'Anonymous Candidate')}
                           title="Delete Candidate"
                         >
                             <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
@@ -303,6 +317,27 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      <ConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        loading={isDeleting}
+        title="Confirm Deletion"
+        description={`Are you absolutely sure you want to permanently delete candidate ${candidateToDelete?.name}? This action cannot be undone.`}
+        confirmText="Permanently Delete"
+        variant="destructive"
+      />
+
+      <ConfirmationModal 
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        onConfirm={() => setIsErrorModalOpen(false)}
+        title="Operation Failed"
+        description={errorMessage}
+        confirmText="Understood"
+        variant="destructive"
+      />
     </div>
   );
 }
