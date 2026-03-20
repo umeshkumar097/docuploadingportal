@@ -1,20 +1,21 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const prismaClientSingleton = () => {
   const url = process.env.DATABASE_URL;
   console.log("Prisma singleton init: Standard PG Adapter (Prisma 7)");
-  if (!url) {
-    console.error("DATABASE_URL is missing!");
-  }
+  
   const pool = new Pool({ connectionString: url });
   const adapter = new PrismaPg(pool);
-  return new PrismaClient({ adapter });
+  
+  // Use Prisma namespace to avoid named export issues on some build environments
+  const Client = (Prisma as any).PrismaClient;
+  return new Client({ adapter });
 };
 
-let prisma: ReturnType<typeof prismaClientSingleton>;
+let prisma: any;
 
 if (process.env.NODE_ENV === "production") {
   prisma = prismaClientSingleton();
