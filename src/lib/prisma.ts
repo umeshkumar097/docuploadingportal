@@ -13,7 +13,7 @@ const prismaClientSingleton = () => {
 
   try {
     const pool = new Pool({ connectionString: url });
-    const adapter = new PrismaNeon(pool);
+    const adapter = new PrismaNeon(pool as any);
     
     // Use any-casting to bypass resolution issues during strict build phase
     const { PrismaClient } = PrismaClientModule as any;
