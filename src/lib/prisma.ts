@@ -1,22 +1,39 @@
 import "dotenv/config";
 import * as PrismaClientModule from "@prisma/client";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import ws from "ws";
 
-// Next.js 16 / Prisma 7 Singleton
+// Optimize Neon for Vercel Serverless
+neonConfig.webSocketConstructor = ws;
+
+// Next.js 16 / Prisma 7 Singleton with Neon Serverless Adapter
 const prismaClientSingleton = () => {
   const url = process.env.DATABASE_URL;
-  console.log("Prisma singleton init: Standard PG Adapter (Prisma 7)");
   
-  const pool = new Pool({ connectionString: url });
-  const adapter = new PrismaPg(pool as any);
-  
-  // Use any-casting to bypass resolution issues during strict build phase
-  const { PrismaClient } = PrismaClientModule as any;
-  if (!PrismaClient) {
-    throw new Error("PrismaClient not found in @prisma/client module");
+  if (!url) {
+    console.error("CRITICAL: DATABASE_URL is not defined.");
   }
-  return new PrismaClient({ adapter });
+
+  try {
+    const pool = new Pool({ connectionString: url });
+    const adapter = new PrismaNeon(pool);
+    
+    // Use any-casting to bypass resolution issues during strict build phase
+    const { PrismaClient } = PrismaClientModule as any;
+    
+    if (!PrismaClient) {
+      throw new Error("PrismaClient missing");
+    }
+
+    return new PrismaClient({ 
+      adapter,
+      log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    });
+  } catch (err) {
+    console.error("FAILED to initialize Prisma with Neon Adapter:", err);
+    throw err;
+  }
 };
 
 let prisma: any;
