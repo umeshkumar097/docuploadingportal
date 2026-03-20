@@ -57,35 +57,43 @@ export default function Home() {
 
       {/* Hero Content */}
       <main className="relative z-10 w-full max-w-6xl px-6 pt-32 pb-20 text-center flex flex-col items-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-white/10 mb-8 animate-fade-in-up">
-          <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-xs font-medium tracking-widest uppercase text-blue-200/80">
+        {/* Main Background Ambient Glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] bg-blue-500/20 blur-[120px] rounded-full pointer-events-none opacity-50 mix-blend-screen" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none opacity-50 mix-blend-screen" />
+
+        <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.05)] mb-10 animate-fade-in-up hover:bg-white/10 transition-colors">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+          </span>
+          <span className="text-xs font-bold tracking-[0.2em] uppercase text-blue-100">
             Enterprise Document Management
           </span>
         </div>
 
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/40 animate-fade-in-up animation-delay-200 drop-shadow-2xl">
-          CRUXDOC <span className="text-blue-500">PORTAL</span>
+        <h1 className="text-6xl md:text-8xl lg:text-[7.5rem] font-black tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-b from-white via-white/95 to-white/60 animate-fade-in-up animation-delay-200 drop-shadow-2xl leading-[1.1]">
+          CRUXDOC <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 hidden md:inline">PORTAL</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 md:hidden">PORTAL</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-12 leading-relaxed font-light animate-fade-in-up animation-delay-400">
-          The ultra-secure, premium platform for candidate document collection and verification. Designed for speed, built for reliability.
+        <p className="text-lg md:text-2xl text-zinc-400/90 max-w-3xl mx-auto mb-14 leading-relaxed font-light animate-fade-in-up animation-delay-400">
+          The ultra-secure, premium platform for candidate document collection and verification. <span className="text-zinc-200 font-medium">Designed for speed, built for reliability.</span>
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up animation-delay-600 mb-32">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 animate-fade-in-up animation-delay-600 mb-40 relative z-20">
           <Link
             href="/apply"
-            className="w-full sm:w-auto px-10 py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(59,130,246,0.4)] hover:shadow-[0_0_60px_rgba(59,130,246,0.6)]"
+            className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg hover:from-blue-500 hover:to-indigo-500 transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(79,70,229,0.4)] hover:shadow-[0_0_60px_rgba(79,70,229,0.6)] ring-1 ring-white/20"
           >
             Submit Documents
             <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </Link>
           
           <Link
             href="/login"
-            className="w-full sm:w-auto px-10 py-4 rounded-xl glass-card border border-white/10 text-white font-semibold text-lg hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-3"
+            className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl text-white font-semibold text-lg hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl"
           >
             Staff Login
           </Link>
