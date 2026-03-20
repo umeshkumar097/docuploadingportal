@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { uploadDocument } from "@/lib/actions/upload";
-import { Upload, CheckCircle2, AlertCircle, Loader2, FileText } from "lucide-react";
+import { Upload, CheckCircle2, AlertCircle, Loader2, FileText, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
@@ -12,12 +12,14 @@ interface FileUploadProps {
   maxSizeKB: number;
   mandatory?: boolean;
   description?: string;
+  onUploadSuccess?: (type: string) => void;
 }
 
-export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, description }: FileUploadProps) {
+export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, description, onUploadSuccess }: FileUploadProps) {
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const convertToJpeg = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -61,7 +63,9 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
     if (!file) return;
 
     setFileName(file.name);
-    
+    if (file.type.startsWith("image/")) {
+      setPreviewUrl(URL.createObjectURL(file));
+    }
     try {
       setStatus("uploading");
 
@@ -89,6 +93,7 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
 
       await uploadDocument(formData);
       setStatus("success");
+      onUploadSuccess?.(type);
     } catch (error: any) {
       console.error(error);
       setStatus("error");
@@ -130,8 +135,12 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
         <div className="relative z-0 flex flex-col items-center justify-center gap-3">
           {status === "idle" && (
             <>
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Upload className="h-6 w-6" />
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300 overflow-hidden">
+                {type === "PHOTO" ? (
+                  <User className="h-7 w-7 opacity-50" />
+                ) : (
+                  <Upload className="h-6 w-6" />
+                )}
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-bold text-foreground">Select File</p>
@@ -159,8 +168,12 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
 
           {status === "success" && (
             <>
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center animate-in zoom-in duration-300">
-                <FileText className="h-6 w-6" />
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center animate-in zoom-in duration-300 overflow-hidden border border-emerald-500/20">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <FileText className="h-6 w-6" />
+                )}
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-bold text-emerald-600">Verification Ready</p>

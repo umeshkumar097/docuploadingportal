@@ -32,13 +32,14 @@ import {
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  employer: z.string().min(2, "Employer is required"),
-  mobileNumber: z.string().min(10, "Valid mobile number is required"),
+  name: z.string().min(2, "Name as per Proof is required"),
+  employer: z.string().min(2, "Company/Agency is required"),
+  mobileNumber: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits"),
   employeeId: z.string().min(2, "Employee ID is required"),
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
     message: "Please select an ID type",
   }),
+  idNumber: z.string().min(5, "ID Number is required"),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -54,15 +55,24 @@ export function CandidateFormPublic() {
   
   const router = useRouter();
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const [uploadedDocs, setUploadedDocs] = useState<Set<string>>(new Set());
+
+  const handleUploadSuccess = (type: string) => {
+    setUploadedDocs(prev => {
+      const next = new Set(prev);
+      next.add(type);
+      return next;
+    });
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       employer: "",
-      mobileNumber: "",
       employeeId: "",
       idType: undefined as any,
+      idNumber: "",
       originalDegree: false,
     },
   });
@@ -140,6 +150,7 @@ export function CandidateFormPublic() {
               mobileNumber: value.mobileNumber || undefined,
               employeeId: value.employeeId || undefined,
               idType: value.idType || undefined,
+              idNumber: value.idNumber || undefined,
             }),
           });
         } catch (err) {
@@ -178,7 +189,16 @@ export function CandidateFormPublic() {
     form.watch("mobileNumber") && 
     form.watch("employeeId") && 
     form.watch("idType") && 
+    form.watch("idNumber") && 
     form.watch("originalDegree");
+
+  const allDocsUploaded = 
+    uploadedDocs.has("PHOTO") && 
+    uploadedDocs.has("QUALIFICATION") && 
+    uploadedDocs.has("ID_PROOF") && 
+    uploadedDocs.has("SIGNATURE");
+
+  const isFormReady = allFieldsFilled && allDocsUploaded;
 
   if (isInitializing) {
     return (
@@ -268,7 +288,7 @@ export function CandidateFormPublic() {
                 name="name"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Full Name <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Name as per Proof <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
@@ -284,7 +304,7 @@ export function CandidateFormPublic() {
                 name="employer"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Employer <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Company/Agency <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
@@ -353,6 +373,30 @@ export function CandidateFormPublic() {
                   </FormItem>
                 )}
               />
+              {form.watch("idType") && (
+                <FormField
+                  control={form.control}
+                  name="idNumber"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3 animate-in slide-in-from-left duration-300">
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                        {form.watch("idType")} Number <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative group">
+                          <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                          <Input 
+                            placeholder={`Enter ${form.watch("idType")} Number`} 
+                            className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" 
+                            {...field} 
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
           </div>
 
@@ -372,6 +416,7 @@ export function CandidateFormPublic() {
                 label="Photograph" 
                 maxSizeKB={10240} 
                 mandatory={true}
+                onUploadSuccess={handleUploadSuccess}
               />
               <FileUpload 
                 candidateId={candidateId as string} 
@@ -380,34 +425,17 @@ export function CandidateFormPublic() {
                 maxSizeKB={10240} 
                 mandatory={true}
                 description="Provisional proof not valid"
+                onUploadSuccess={handleUploadSuccess}
               />
               
-              {form.watch("idType") === "AADHAAR" ? (
-                <>
-                  <FileUpload 
-                    candidateId={candidateId as string} 
-                    type="ID_PROOF_FRONT" 
-                    label="Aadhaar Front" 
-                    maxSizeKB={10240} 
-                    mandatory={true}
-                  />
-                  <FileUpload 
-                    candidateId={candidateId as string} 
-                    type="ID_PROOF_BACK" 
-                    label="Aadhaar Back" 
-                    maxSizeKB={10240} 
-                    mandatory={true}
-                  />
-                </>
-              ) : (
-                <FileUpload 
-                  candidateId={candidateId as string} 
-                  type="ID_PROOF" 
-                  label={`${form.watch("idType") || "ID"} Proof`} 
-                  maxSizeKB={10240} 
-                  mandatory={true}
-                />
-              )}
+              <FileUpload 
+                candidateId={candidateId as string} 
+                type="ID_PROOF" 
+                label={`${form.watch("idType") === "AADHAAR" ? "Aadhaar Image" : (form.watch("idType") || "ID Proof")}`} 
+                maxSizeKB={10240} 
+                mandatory={true}
+                onUploadSuccess={handleUploadSuccess}
+              />
 
               <FileUpload 
                 candidateId={candidateId as string} 
@@ -415,6 +443,7 @@ export function CandidateFormPublic() {
                 label="Signature" 
                 maxSizeKB={10240} 
                 mandatory={true}
+                onUploadSuccess={handleUploadSuccess}
               />
             </div>
           </div>
@@ -425,20 +454,21 @@ export function CandidateFormPublic() {
                 control={form.control}
                 name="originalDegree"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-4 space-y-0 rounded-[2rem] border-2 border-primary/10 p-6 bg-primary/5 transition-colors hover:bg-primary/10">
+                  <FormItem className="flex flex-row items-start space-x-4 space-y-0 rounded-[2rem] border-2 border-emerald-500/30 p-6 bg-emerald-500/5 transition-colors hover:bg-emerald-500/10 shadow-lg shadow-emerald-500/5">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="h-6 w-6 rounded-lg data-[state=checked]:bg-primary"
+                        className="h-8 w-8 rounded-xl border-2 border-emerald-500/50 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 transition-all cursor-pointer"
                       />
                     </FormControl>
-                    <div className="space-y-1 leading-tight">
-                      <FormLabel className="text-sm font-bold text-foreground cursor-pointer">
+                    <div className="space-y-1.5 leading-tight">
+                      <FormLabel className="text-base font-black text-foreground cursor-pointer flex items-center gap-2">
+                        <ShieldCheck className="h-4 w-4 text-emerald-500" />
                         Crucial Confirmation <span className="text-red-500">*</span>
                       </FormLabel>
-                      <FormDescription className="text-xs font-medium text-muted-foreground">
-                        I hereby solemnly affirm that the degree certificate being uploaded is the <span className="text-primary font-bold underline">Original Document</span> issued by the University, and not a provisional, temporary, or digital copy.
+                      <FormDescription className="text-sm font-bold text-muted-foreground/80">
+                        I hereby solemnly affirm that the degree certificate being uploaded is the <span className="text-emerald-600 font-black underline decoration-2 underline-offset-4">Original Document</span> issued by the University, and not a provisional, temporary, or digital copy.
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -451,14 +481,24 @@ export function CandidateFormPublic() {
                     size="lg"
                     className={`
                         premium-button h-16 px-12 rounded-[2rem] font-black text-lg transition-all
-                        ${allFieldsFilled ? "bg-primary text-primary-foreground shadow-2xl shadow-primary/40" : "bg-muted text-muted-foreground"}
+                        ${isFormReady ? "bg-primary text-primary-foreground shadow-2xl shadow-primary/40" : "bg-muted text-muted-foreground opacity-70"}
                     `}
-                    disabled={!allFieldsFilled || isSubmitting}
+                    disabled={!isFormReady || isSubmitting}
                 >
                     {isSubmitting ? (
                         <div className="flex items-center gap-3">
                             <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                             Finalizing Submission...
+                        </div>
+                    ) : !allFieldsFilled ? (
+                        <div className="flex items-center gap-2">
+                            <User className="h-6 w-6" />
+                            Complete Profile Info
+                        </div>
+                    ) : !allDocsUploaded ? (
+                        <div className="flex items-center gap-2">
+                            <UploadCloud className="h-6 w-6" />
+                            Upload All Documents
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">

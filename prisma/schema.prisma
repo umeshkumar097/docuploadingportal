@@ -66,6 +66,7 @@ model Candidate {
   mobileNumber String?
   employeeId   String?
   idType       IDType?
+  idNumber     String?
   status       CandidateStatus @default(PENDING)
   currentStep  CurrentStep     @default(STARTED)
   lastActiveAt DateTime        @default(now())
