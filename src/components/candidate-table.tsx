@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2, CheckCircle2 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { deleteCandidate } from "@/lib/actions/verification";
+import { deleteCandidate, bulkUpdateCandidateStatus } from "@/lib/actions/verification";
 import * as XLSX from "xlsx";
 import { ConfirmationModal } from "./confirmation-modal";
 
@@ -32,9 +32,27 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [isBulkApproveModalOpen, setIsBulkApproveModalOpen] = useState(false);
+  const [isBulkApproving, setIsBulkApproving] = useState(false);
+
   const handleDeleteClick = (id: string, name: string) => {
     setCandidateToDelete({ id, name });
     setIsDeleteModalOpen(true);
+  };
+
+  const handleBulkApprove = async () => {
+    setIsBulkApproving(true);
+    try {
+      await bulkUpdateCandidateStatus(selectedIds, "READY");
+      setIsBulkApproveModalOpen(false);
+      setSelectedIds([]);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.message || "Failed to approve candidates in bulk.");
+      setIsErrorModalOpen(true);
+    } finally {
+      setIsBulkApproving(false);
+    }
   };
 
   const handleConfirmDelete = async () => {
@@ -194,6 +212,15 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           <div className="flex gap-2">
             {role === "ADMIN" && (
               <Button 
+                onClick={() => setIsBulkApproveModalOpen(true)}
+                className="rounded-xl shadow-lg shadow-emerald-500/10 font-black px-6 bg-emerald-500 hover:bg-emerald-600 text-white transition-all hover:scale-105"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Approve Selected
+              </Button>
+            )}
+            {role === "ADMIN" && (
+              <Button 
                 onClick={handleExportExcel} 
                 className="rounded-xl shadow-lg border-primary/20 font-bold px-6 bg-accent text-accent-foreground hover:bg-accent/80 transition-all"
               >
@@ -327,6 +354,17 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         description={`Are you absolutely sure you want to permanently delete candidate ${candidateToDelete?.name}? This action cannot be undone.`}
         confirmText="Permanently Delete"
         variant="destructive"
+      />
+
+      <ConfirmationModal 
+        isOpen={isBulkApproveModalOpen}
+        onClose={() => setIsBulkApproveModalOpen(false)}
+        onConfirm={handleBulkApprove}
+        loading={isBulkApproving}
+        title="Group Approval"
+        description={`You are about to approve ${selectedIds.length} candidates. This will move them to 'READY' status and include them in synchronized reports.`}
+        confirmText="Approve Selected"
+        variant="success"
       />
 
       <ConfirmationModal 
