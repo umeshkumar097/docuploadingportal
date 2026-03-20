@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Shield, Lock, FileCheck, Server, Trash2 } from "lucide-react";
+import { AnimatedBackground } from "@/components/animated-background";
 
 const securityFeatures = [
   {
@@ -43,17 +43,8 @@ const securityFeatures = [
 export default function Home() {
   return (
     <div className="relative min-h-screen flex flex-col items-center overflow-x-hidden bg-black text-white selection:bg-blue-500/30">
-      {/* Premium Background */}
-      <div className="fixed inset-0 z-0">
-        <Image
-          src="/hero-bg.png"
-          alt="Premium Background"
-          fill
-          className="object-cover opacity-50 scale-105 animate-pulse-slow object-top"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black" />
-      </div>
+      {/* Premium Live Animated Background */}
+      <AnimatedBackground />
 
       {/* Hero Content */}
       <main className="relative z-10 w-full max-w-6xl px-6 pt-32 pb-20 text-center flex flex-col items-center">
