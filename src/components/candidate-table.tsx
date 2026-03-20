@@ -163,6 +163,21 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         docStatus[doc.type] = doc.status;
       });
 
+      const getFriendlyStatus = (status: string | undefined, typeLabel: string = "") => {
+        if (!status) return "Not Uploaded";
+        if (status === "PENDING") return typeLabel ? `Uploaded (${typeLabel})` : "Uploaded";
+        if (status === "VERIFIED") return "Verified";
+        if (status === "REJECTED") return "Rejected";
+        return status;
+      };
+
+      // Special handling for Aadhaar (Front/Back)
+      let idProofFinal = getFriendlyStatus(docStatus["ID_PROOF"]);
+      if (idProofFinal === "Not Uploaded" && (docStatus["ID_PROOF_FRONT"] || docStatus["ID_PROOF_BACK"])) {
+        const primaryStatus = docStatus["ID_PROOF_FRONT"] || docStatus["ID_PROOF_BACK"];
+        idProofFinal = getFriendlyStatus(primaryStatus, "Aadhaar");
+      }
+
       return {
         "Registration Date": new Date(c.createdAt).toLocaleString(),
         "Candidate Name": c.name || "Anonymous",
@@ -171,10 +186,10 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         "Employee ID": c.employeeId || "N/A",
         "ID Type": c.idType || "N/A",
         "Status": c.status,
-        "Photo": docStatus["PHOTO"] || "Not Uploaded",
-        "Qualification": docStatus["QUALIFICATION"] || "Not Uploaded",
-        "ID Proof": docStatus["ID_PROOF"] || (docStatus["ID_PROOF_FRONT"] ? "Aadhaar Uploaded" : "Not Uploaded"),
-        "Signature": docStatus["SIGNATURE"] || "Not Uploaded",
+        "Photo": getFriendlyStatus(docStatus["PHOTO"]),
+        "Qualification": getFriendlyStatus(docStatus["QUALIFICATION"]),
+        "ID Proof": idProofFinal,
+        "Signature": getFriendlyStatus(docStatus["SIGNATURE"]),
       };
     });
 
