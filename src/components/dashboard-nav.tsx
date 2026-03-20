@@ -13,7 +13,8 @@ import {
   Menu, 
   X,
   User,
-  Activity
+  Activity,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -27,7 +28,7 @@ const navItems: NavItem[] = [
   { label: "Pending Candidates", href: "/dashboard", icon: LayoutDashboard },
   { label: "Live Radar", href: "/dashboard/radar", icon: Activity },
   { label: "Ops Overview", href: "/dashboard/ops", icon: CheckSquare },
-  { label: "Ready Batches", href: "/dashboard/batches", icon: History },
+  { label: "Reports", href: "/dashboard/batches", icon: FileText },
 ];
 
 export function DashboardNav({ email, role }: { email: string; role: string }) {
