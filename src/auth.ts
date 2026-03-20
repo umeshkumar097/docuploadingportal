@@ -20,8 +20,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
           try {
-            const user = await prisma.user.findUnique({ where: { email } });
+            let user = await prisma.user.findUnique({ where: { email } });
             
+            // Auto-provision the first admin user if the database is fresh
+            if (!user && email === "admin@example.com" && password === "password123") {
+              user = await prisma.user.create({
+                data: {
+                  email: "admin@example.com",
+                  name: "Admin User",
+                  role: "ADMIN",
+                },
+              });
+            }
+
             if (user && password === "password123") {
               return user;
             }
