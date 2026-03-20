@@ -113,10 +113,10 @@ export default function Home() {
              {securityFeatures.map((feature, idx) => (
                 <div 
                   key={idx} 
-                  className={`glass-card p-8 rounded-[2rem] border border-white/5 hover:border-white/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 relative overflow-hidden group ${idx === 3 ? "lg:col-span-1 lg:col-start-2 lg:-ml-1/2" : ""} ${idx === 4 ? "lg:col-span-1" : ""}`}
+                  className={`bg-black/40 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 hover:border-white/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(59,130,246,0.15)] hover:bg-black/60 relative overflow-hidden group ${idx === 3 ? "lg:col-span-1 lg:col-start-2 lg:-ml-1/2" : ""} ${idx === 4 ? "lg:col-span-1" : ""}`}
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className={`w-14 h-14 rounded-2xl ${feature.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
+                    <div className={`w-14 h-14 rounded-2xl ${feature.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 ring-1 ring-white/5`}>
                         <feature.icon className={`h-7 w-7 ${feature.color}`} />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-3 tracking-tight">{feature.title}</h3>
@@ -130,10 +130,15 @@ export default function Home() {
       </main>
 
       {/* Footer Decoration */}
-      <div className="relative z-10 w-full py-8 border-t border-white/5 mt-auto">
-        <p className="text-[10px] md:text-xs tracking-widest uppercase font-bold text-zinc-600 text-center">
-          &copy; 2026 CruxDoc Technology &bull; Secure &middot; Fast &middot; Premium
-        </p>
+      <div className="relative z-10 w-full py-8 border-t border-white/5 mt-auto bg-black/50 backdrop-blur-md">
+        <div className="flex flex-col items-center justify-center gap-2">
+            <p className="text-[10px] md:text-xs tracking-widest uppercase font-bold text-zinc-600 text-center">
+              &copy; {new Date().getFullYear()} CruxDoc Technology &bull; Secure &middot; Fast &middot; Premium
+            </p>
+            <p className="text-[10px] tracking-widest uppercase font-bold text-zinc-600 text-center">
+              Developed by <a href="https://aiclex.in" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-400 transition-colors">Aiclex Technologies</a>
+            </p>
+        </div>
       </div>
     </div>
   );
