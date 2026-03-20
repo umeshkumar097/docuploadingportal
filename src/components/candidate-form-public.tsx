@@ -203,6 +203,32 @@ export function CandidateFormPublic() {
     );
   }
 
+  if (!candidateId) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-6 mt-12 animate-in fade-in duration-500 relative z-10">
+        <div className="w-24 h-24 bg-red-500/10 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-red-500/20">
+            <ShieldCheck className="h-10 w-10 text-red-500 animate-pulse" />
+        </div>
+        <div>
+            <h2 className="text-2xl font-black text-foreground mb-3">Database Synchronization Error</h2>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+              We were unable to secure a connection session to our cloud servers. This means your form data cannot be safely saved.
+            </p>
+        </div>
+        <Button 
+            onClick={() => {
+                localStorage.removeItem("cruxdoc_token");
+                localStorage.removeItem("cruxdoc_id");
+                window.location.reload();
+            }} 
+            className="rounded-xl px-10 h-12 font-bold shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105"
+        >
+            Attempt Secure Reconnection
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full space-y-12 pb-20 mt-12">
       {/* Header */}
