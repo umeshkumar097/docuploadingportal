@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
+import { CandidateTable } from "@/components/candidate-table";
 import { 
   Users, 
   Clock, 
@@ -85,71 +85,7 @@ export default async function DashboardPage() {
               </Button>
           </div>
 
-          <div className="glass-card rounded-3xl overflow-hidden">
-            <Table>
-              <TableHeader className="bg-accent/30">
-                <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest pl-8">Candidate</TableHead>
-                  <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Employer</TableHead>
-                  <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-center">Status</TableHead>
-                  <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-center">Docs</TableHead>
-                  <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest pr-8 text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {candidates.map((candidate: any) => (
-                  <TableRow key={candidate.id} className="hover:bg-accent/30 transition-colors border-accent/20">
-                    <TableCell className="py-6 pl-8">
-                      <div className="flex flex-col">
-                          <span className="font-bold text-foreground text-sm">{candidate.name || "N/A"}</span>
-                          <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{candidate.id}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-6 font-medium text-sm text-muted-foreground">{candidate.employer || "N/A"}</TableCell>
-                    <TableCell className="py-6 text-center">
-                      <div className="flex justify-center">
-                          <Badge 
-                              variant="secondary"
-                              className={`
-                                  font-bold px-3 py-1 rounded-full text-[10px] uppercase tracking-wider
-                                  ${candidate.status === "PENDING" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"}
-                              `}
-                          >
-                            {candidate.status === "PENDING" ? "Pending" : "Verified"}
-                          </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-6 text-center">
-                      <span className="text-sm font-bold text-foreground">
-                          {candidate._count.documents} <span className="text-muted-foreground font-normal">/ 4</span>
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-6 pr-8 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                          <CopyButton token={candidate.token} />
-                          <Link href={`/dashboard/candidate/${candidate.id}`}>
-                          <Button variant="ghost" size="sm" className="rounded-xl hover:bg-primary/10 hover:text-primary transition-all font-bold group">
-                              Details
-                              <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                          </Button>
-                          </Link>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {candidates.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-40 text-center animate-in fade-in zoom-in duration-500">
-                      <div className="flex flex-col items-center justify-center space-y-3">
-                          <AlertCircle className="h-10 w-10 text-muted-foreground animate-bounce" />
-                          <p className="text-muted-foreground font-bold tracking-tight">No submissions found yet.</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <CandidateTable candidates={candidates} />
         </div>
       </div>
     );

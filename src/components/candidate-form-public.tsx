@@ -70,16 +70,22 @@ export function CandidateFormPublic() {
         const storedId = localStorage.getItem("cruxdoc_id");
         
         if (storedToken && storedId) {
-          setToken(storedToken);
-          setCandidateId(storedId);
-          setIsInitializing(false);
-          
-          // Trigger immediate heartbeat to show they returned
-          fetch(`/api/candidate/${storedToken}/heartbeat`, { 
+          // Validate if this session still exists in the database
+          const pingRes = await fetch(`/api/candidate/${storedToken}/heartbeat`, { 
             method: "POST", 
             body: JSON.stringify({ step: "STARTED" }) 
-          }).catch(console.error);
-          return;
+          });
+          
+          if (pingRes.ok) {
+            setToken(storedToken);
+            setCandidateId(storedId);
+            setIsInitializing(false);
+            return;
+          } else {
+            // Stale or deleted testing session
+            localStorage.removeItem("cruxdoc_token");
+            localStorage.removeItem("cruxdoc_id");
+          }
         }
 
         // Create new anonymous session
