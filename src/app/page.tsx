@@ -35,10 +35,10 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up animation-delay-600">
           <Link
-            href="/login"
-            className="w-full sm:w-auto px-10 py-4 rounded-xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(255,255,255,0.2)]"
+            href="/apply"
+            className="w-full sm:w-auto px-10 py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(59,130,246,0.4)]"
           >
-            Access Portal
+            Submit Documents
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
@@ -46,9 +46,9 @@ export default function Home() {
           
           <Link
             href="/login"
-            className="w-full sm:w-auto px-10 py-4 rounded-xl glass-card border border-white/10 text-white font-semibold text-lg hover:bg-white/10 transition-all active:scale-95"
+            className="w-full sm:w-auto px-10 py-4 rounded-xl glass-card border border-white/10 text-white font-semibold text-lg hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-3"
           >
-            Learn More
+            Staff Login
           </Link>
         </div>
       </main>
