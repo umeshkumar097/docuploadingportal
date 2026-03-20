@@ -82,7 +82,20 @@ export default function LiveRadarPage() {
             const lastActive = new Date(candidate.lastActiveAt);
             const isVeryStuck = Date.now() - lastActive.getTime() > 5 * 60 * 1000; // 5 mins
             const uploadedTypes = candidate.documents?.map((d: any) => d.type) || [];
-            const completionPercentage = (uploadedTypes.length / 4) * 100;
+            
+            // Logic to handle Aadhaar (2 docs) vs others (1 doc)
+            const idDocCount = (uploadedTypes.includes("ID_PROOF") ? 1 : 0) + 
+                              (uploadedTypes.includes("ID_PROOF_FRONT") ? 1 : 0) + 
+                              (uploadedTypes.includes("ID_PROOF_BACK") ? 1 : 0);
+            
+            // Normalizing to a 4-doc checklist (Photo, Qual, ID, Sign)
+            // Even if Aadhaar has 2, it counts as "ID Proof done" for the 4-check UI
+            const effectiveDocCount = (uploadedTypes.includes("PHOTO") ? 1 : 0) +
+                                    (uploadedTypes.includes("QUALIFICATION") ? 1 : 0) +
+                                    (idDocCount >= 1 ? 1 : 0) +
+                                    (uploadedTypes.includes("SIGNATURE") ? 1 : 0);
+
+            const completionPercentage = (effectiveDocCount / 4) * 100;
             const phoneNumberRaw = candidate.mobileNumber?.replace(/\D/g, "");
 
             return (
@@ -124,7 +137,14 @@ export default function LiveRadarPage() {
                   
                   <div className="grid grid-cols-4 gap-2">
                     {REQUIRED_DOCS.map((doc) => {
-                      const isUploaded = uploadedTypes.includes(doc.type);
+                      let isUploaded = false;
+                      if (doc.type === "ID_PROOF") {
+                        isUploaded = uploadedTypes.includes("ID_PROOF") || 
+                                     (uploadedTypes.includes("ID_PROOF_FRONT") && uploadedTypes.includes("ID_PROOF_BACK"));
+                      } else {
+                        isUploaded = uploadedTypes.includes(doc.type);
+                      }
+                      
                       return (
                         <div 
                           key={doc.type} 
