@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { updateCandidateStatus, updateDocumentStatus } from "@/lib/actions/verification";
+import { updateCandidateStatus, updateDocumentStatus, deleteDocument } from "@/lib/actions/verification";
 import { auth } from "@/auth";
 import { CopyButton } from "@/components/copy-button";
 import { 
@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   Building2,
   Phone,
-  CreditCard
+  CreditCard,
+  Trash2
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -169,26 +170,40 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                 </div>
 
                 <div className="p-6 mt-auto">
-                    {role === "VALIDATOR" && (
-                      <div className="flex gap-3 justify-center">
-                         <form action={async () => {
-                           "use server";
-                           await updateDocumentStatus(doc.id, "VERIFIED");
-                         }}>
-                            <Button size="sm" className="h-10 w-20 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border-emerald-500/20 transition-all font-bold group">
-                                <CheckCircle2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                            </Button>
-                         </form>
-                         <form action={async () => {
-                           "use server";
-                           await updateDocumentStatus(doc.id, "REJECTED", "Incomplete or Blur");
-                         }}>
-                            <Button size="sm" variant="ghost" className="h-10 w-20 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white border-destructive/20 transition-all font-bold group">
-                                <XSquare className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                            </Button>
-                         </form>
-                      </div>
-                    )}
+                    <div className="flex gap-3 justify-center">
+                        {role === "VALIDATOR" && (
+                          <>
+                            <form action={async () => {
+                              "use server";
+                              await updateDocumentStatus(doc.id, "VERIFIED");
+                            }}>
+                                <Button size="sm" className="h-10 w-16 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border-emerald-500/20 transition-all font-bold group">
+                                    <CheckCircle2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                </Button>
+                            </form>
+                            <form action={async () => {
+                              "use server";
+                              await updateDocumentStatus(doc.id, "REJECTED", "Incomplete or Blur");
+                            }}>
+                                <Button size="sm" variant="ghost" className="h-10 w-16 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white border-destructive/20 transition-all font-bold group">
+                                    <XSquare className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                </Button>
+                            </form>
+                          </>
+                        )}
+                        
+                        {/* Only Admin and Ops can permanently delete a corrupted document */}
+                        {(role === "ADMIN" || role === "OPS") && (
+                            <form action={async () => {
+                              "use server";
+                              await deleteDocument(doc.id, candidate.id);
+                            }}>
+                                <Button size="sm" variant="ghost" className="h-10 w-16 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white border-red-500/20 transition-all font-bold group" title="Delete corrupted document to allow re-upload">
+                                    <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                </Button>
+                            </form>
+                        )}
+                    </div>
                 </div>
               </div>
             </div>

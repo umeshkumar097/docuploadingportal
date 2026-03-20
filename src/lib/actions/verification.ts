@@ -11,7 +11,7 @@ export async function updateCandidateStatus(id: string, status: CandidateStatus)
     where: { id },
     data: { status },
   });
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
 }
 
 export async function updateDocumentStatus(
@@ -23,5 +23,20 @@ export async function updateDocumentStatus(
     where: { id },
     data: { status, rejectionReason },
   });
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
+}
+
+export async function deleteDocument(documentId: string, candidateId: string) {
+  // Delete the incorrect document
+  await prisma.document.delete({
+    where: { id: documentId },
+  });
+  
+  // Revert the candidate's status to PENDING so they can re-upload
+  await prisma.candidate.update({
+    where: { id: candidateId },
+    data: { status: "PENDING" }
+  });
+
+  revalidatePath("/dashboard", "layout");
 }
