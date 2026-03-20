@@ -43,6 +43,7 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
 
     try {
       const selectedCandidates = candidates.filter(c => selectedIds.includes(c.id));
+      alert(`Debug 1: Selected ${selectedCandidates.length} candidate(s).`);
       const zip = new JSZip();
       
       let totalFilesToFetch = 0;
@@ -52,14 +53,14 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
         totalFilesToFetch += c.documents?.length || 0;
       });
 
+      alert(`Debug 2: Total documents identified across candidates: ${totalFilesToFetch}`);
+
       if (totalFilesToFetch === 0) {
-        alert("Selected candidates have no uploaded documents.");
+        alert("CRITICAL STOP: Selected candidates have no documents. (Your query hydration did not hot-reload or candidates actually have 0 docs!)");
         setIsExporting(false);
         return;
       }
 
-      // If only 1 candidate selected, ZIP name = employeeId.zip
-      // If multiple, ZIP name = Date.zip, and we make folders inside.
       const isSingle = selectedCandidates.length === 1;
       const masterZipName = isSingle 
         ? `${selectedCandidates[0].employeeId || selectedCandidates[0].id}.zip`
@@ -67,24 +68,18 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
 
       for (const candidate of selectedCandidates) {
         const candidateIdentifier = candidate.employeeId || candidate.id;
-        
-        // If single candidate, use master zip directly. If bulk, create a new zip for this candidate.
         const candidateZip = isSingle ? zip : new JSZip();
         
         if (!candidate.documents) continue;
 
         for (const doc of candidate.documents) {
           try {
-            // Fetch raw file buffer through our CORS-bypassing proxy
             const res = await fetch(`/api/export/proxy?url=${encodeURIComponent(doc.fileUrl)}`);
             if (!res.ok) throw new Error("Proxy fetch failed");
             
             const blob = await res.blob();
-            
-            // Extract extension from URL, default to .jpg if unknown
             const urlParts = doc.fileUrl.split('.');
             const ext = urlParts.length > 1 ? urlParts.pop() : "jpg";
-            
             const fileName = `${doc.type}.${ext}`;
             candidateZip.file(fileName, blob);
             
@@ -95,19 +90,20 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
           }
         }
 
-        // If it's a bulk export, generate the candidate's personal ZIP and add it to the master ZIP
         if (!isSingle) {
             const candidateZipBlob = await candidateZip.generateAsync({ type: "blob" });
             zip.file(`${candidateIdentifier}.zip`, candidateZipBlob);
         }
       }
 
+      alert(`Debug 3: All downloads finished. Initiating compilation of ZIP.`);
       const content = await zip.generateAsync({ type: "blob" });
+      alert(`Debug 4: ZIP Compiled Successfully! Saving as ${masterZipName}...`);
       saveAs(content, masterZipName);
-      setSelectedIds([]); // Clear selection after export
+      setSelectedIds([]);
     } catch (error) {
       console.error("ZIP Export failed", error);
-      alert("An error occurred while generating the ZIP archive.");
+      alert("An error occurred while generating the ZIP archive. Check browser console.");
     } finally {
       setIsExporting(false);
       setExportProgress(0);
