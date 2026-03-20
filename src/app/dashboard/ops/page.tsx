@@ -19,7 +19,10 @@ export default async function OpsVerificationPage() {
   try {
     // Ops team only needs to see PENDING candidates
     const candidates = await prisma.candidate.findMany({
-      where: { status: "PENDING" },
+      where: { 
+        status: "PENDING",
+        name: { not: null }
+      },
       orderBy: { createdAt: "desc" },
       include: { 
         documents: true,

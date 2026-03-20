@@ -19,7 +19,10 @@ export default async function BackendValidationPage() {
   try {
     // Validation team only needs to see OPS_VERIFIED candidates
     const candidates = await prisma.candidate.findMany({
-      where: { status: "OPS_VERIFIED" },
+      where: { 
+        status: "OPS_VERIFIED",
+        name: { not: null }
+      },
       orderBy: { createdAt: "desc" },
       include: { 
         documents: true,

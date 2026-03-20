@@ -20,6 +20,9 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   try {
     const candidates = await prisma.candidate.findMany({
+      where: {
+        name: { not: null }
+      },
       orderBy: { createdAt: "desc" },
       include: { 
         documents: true,
