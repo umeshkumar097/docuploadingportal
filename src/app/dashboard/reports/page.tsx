@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import { CandidateTable } from "@/components/candidate-table";
 import { Database } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -14,17 +15,21 @@ export default async function ReportsPage() {
         status: "READY",
         name: { not: null }
       },
-      take: 10,
+      orderBy: { updatedAt: "desc" },
+      include: { 
+        documents: true,
+        _count: { select: { documents: true } } 
+      },
     });
 
     return (
-      <div className="p-20">
-        <h1 className="text-4xl font-black">Reports Diagnostic Phase 2</h1>
-        <p className="mt-4 text-muted-foreground">Session Role: {role}</p>
-        <p className="mt-2 text-muted-foreground">Candidates Found: {candidates.length}</p>
-        <pre className="mt-8 p-4 bg-muted rounded-xl text-xs overflow-auto max-h-96">
-          {JSON.stringify(candidates, null, 2)}
-        </pre>
+      <div className="p-20 space-y-10">
+        <div>
+          <h1 className="text-4xl font-black">Reports Diagnostic Phase 3 (Table)</h1>
+          <p className="mt-4 text-muted-foreground">Session Role: {role}</p>
+        </div>
+
+        <CandidateTable candidates={candidates} role={role} />
       </div>
     );
   } catch (err: any) {
