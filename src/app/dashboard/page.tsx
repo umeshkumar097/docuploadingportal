@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/copy-button";
 import { 
   Users, 
   Clock, 
@@ -120,12 +121,15 @@ export default async function DashboardPage() {
                     </span>
                   </TableCell>
                   <TableCell className="py-6 pr-8 text-right">
-                    <Link href={`/dashboard/candidate/${candidate.id}`}>
-                      <Button variant="ghost" size="sm" className="rounded-xl hover:bg-primary/10 hover:text-primary transition-all font-bold group">
-                        Details
-                        <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                      </Button>
-                    </Link>
+                    <div className="flex items-center justify-end gap-2">
+                        <CopyButton token={candidate.token} />
+                        <Link href={`/dashboard/candidate/${candidate.id}`}>
+                        <Button variant="ghost" size="sm" className="rounded-xl hover:bg-primary/10 hover:text-primary transition-all font-bold group">
+                            Details
+                            <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                        </Button>
+                        </Link>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

@@ -14,6 +14,12 @@ export const proxy = auth((req: any) => {
     }
   }
 
+  if (nextUrl.pathname.startsWith("/login")) {
+    if (isLoggedIn) {
+      return Response.redirect(new URL("/dashboard", nextUrl));
+    }
+  }
+
   return;
 });
 

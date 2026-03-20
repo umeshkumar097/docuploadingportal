@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { updateCandidateStatus, updateDocumentStatus } from "@/lib/actions/verification";
 import { auth } from "@/auth";
+import { CopyButton } from "@/components/copy-button";
 import { 
   User, 
   ArrowLeft, 
@@ -89,7 +90,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
       </div>
 
       {/* Info Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="glass-card p-6 rounded-3xl flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
                   <Building2 className="h-6 w-6" />
@@ -116,6 +117,18 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Employee ID</p>
                   <p className="text-base font-bold text-foreground">{candidate.employeeId || "N/A"}</p>
               </div>
+          </div>
+          <div className="glass-card p-6 rounded-3xl flex items-center justify-between border-primary/20 bg-primary/5">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                    <ExternalLink className="h-6 w-6" />
+                </div>
+                <div>
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Submission Link</p>
+                    <p className="text-xs font-medium text-muted-foreground">Ready to share</p>
+                </div>
+              </div>
+              <CopyButton token={candidate.token} variant="default" size="icon" />
           </div>
       </div>
 
