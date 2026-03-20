@@ -39,7 +39,7 @@ const formSchema = z.object({
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
     message: "Please select an ID type",
   }),
-  idNumber: z.string().min(5, "ID Number is required"),
+  idNumber: z.string().optional(),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -189,7 +189,6 @@ export function CandidateFormPublic() {
     form.watch("mobileNumber") && 
     form.watch("employeeId") && 
     form.watch("idType") && 
-    form.watch("idNumber") && 
     form.watch("originalDegree");
 
   const allDocsUploaded = 
@@ -288,7 +287,7 @@ export function CandidateFormPublic() {
                 name="name"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Name as per Proof <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Name as per ID Proof <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
@@ -380,13 +379,13 @@ export function CandidateFormPublic() {
                   render={({ field }) => (
                     <FormItem className="space-y-3 animate-in slide-in-from-left duration-300">
                       <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                        {form.watch("idType")} Number <span className="text-red-500">*</span>
+                        {form.watch("idType")} Number
                       </FormLabel>
                       <FormControl>
                         <div className="relative group">
                           <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
                           <Input 
-                            placeholder={`Enter ${form.watch("idType")} Number`} 
+                            placeholder={`Enter ${form.watch("idType")} Number (Optional)`} 
                             className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" 
                             {...field} 
                           />
@@ -418,15 +417,20 @@ export function CandidateFormPublic() {
                 mandatory={true}
                 onUploadSuccess={handleUploadSuccess}
               />
-              <FileUpload 
-                candidateId={candidateId as string} 
-                type="QUALIFICATION" 
-                label="Qualification Proof" 
-                maxSizeKB={10240} 
-                mandatory={true}
-                description="Provisional proof not valid"
-                onUploadSuccess={handleUploadSuccess}
-              />
+              <div className="relative">
+                <FileUpload 
+                  candidateId={candidateId as string} 
+                  type="QUALIFICATION" 
+                  label="Qualification Proof" 
+                  maxSizeKB={10240} 
+                  mandatory={true}
+                  onUploadSuccess={handleUploadSuccess}
+                />
+                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500 text-[10px] font-black tracking-tighter text-white uppercase animate-pulse shadow-lg shadow-red-500/20">
+                  <AlertCircle className="h-3 w-3" />
+                  Provisional Proof Not Valid
+                </div>
+              </div>
               
               <FileUpload 
                 candidateId={candidateId as string} 
@@ -454,21 +458,21 @@ export function CandidateFormPublic() {
                 control={form.control}
                 name="originalDegree"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-4 space-y-0 rounded-[2rem] border-2 border-emerald-500/30 p-6 bg-emerald-500/5 transition-colors hover:bg-emerald-500/10 shadow-lg shadow-emerald-500/5">
+                  <FormItem className="flex flex-row items-start space-x-5 space-y-0 rounded-[2.5rem] border-2 border-emerald-500/40 p-8 bg-emerald-500/10 transition-all hover:border-emerald-500/60 shadow-xl shadow-emerald-500/5">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="h-8 w-8 rounded-xl border-2 border-emerald-500/50 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 transition-all cursor-pointer"
+                        className="h-10 w-10 mt-1 rounded-[12px] border-2 border-emerald-500/50 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-transparent transition-all cursor-pointer shadow-lg shadow-emerald-500/20"
                       />
                     </FormControl>
-                    <div className="space-y-1.5 leading-tight">
-                      <FormLabel className="text-base font-black text-foreground cursor-pointer flex items-center gap-2">
-                        <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                        Crucial Confirmation <span className="text-red-500">*</span>
+                    <div className="space-y-2 leading-snug">
+                      <FormLabel className="text-lg font-black text-emerald-950 cursor-pointer flex items-center gap-2">
+                        <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                        Crucial Confirmation <span className="text-red-600">*</span>
                       </FormLabel>
-                      <FormDescription className="text-sm font-bold text-muted-foreground/80">
-                        I hereby solemnly affirm that the degree certificate being uploaded is the <span className="text-emerald-600 font-black underline decoration-2 underline-offset-4">Original Document</span> issued by the University, and not a provisional, temporary, or digital copy.
+                      <FormDescription className="text-sm md:text-base font-bold text-emerald-900/80 leading-relaxed">
+                        I hereby solemnly affirm that the degree certificate being uploaded is the <span className="text-emerald-700 font-black underline decoration-2 underline-offset-4 bg-emerald-200/50 px-1 rounded">Original Document</span> issued by the University, and not a provisional, temporary, or digital copy.
                       </FormDescription>
                     </div>
                   </FormItem>
