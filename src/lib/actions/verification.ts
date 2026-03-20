@@ -1,7 +1,9 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { CandidateStatus, DocumentStatus } from "@prisma/client";
+// Force local types to avoid Prisma export issues on Vercel
+type CandidateStatus = "PENDING" | "OPS_VERIFIED" | "VALIDATED" | "REJECTED" | "READY";
+type DocumentStatus = "PENDING" | "VERIFIED" | "REJECTED";
 import { revalidatePath } from "next/cache";
 
 export async function updateCandidateStatus(id: string, status: CandidateStatus) {

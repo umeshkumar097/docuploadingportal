@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { DocumentType } from "@prisma/client";
+// Force local type to avoid Prisma export issues on Vercel
+type DocumentType = "PHOTO" | "QUALIFICATION" | "ID_PROOF" | "SIGNATURE";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const s3 = new S3Client({

@@ -19,7 +19,7 @@ export default async function SubmitPage({ params }: { params: Promise<{ token: 
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/Users/aiclex/.gemini/antigravity/brain/9c0e040f-5e69-45fa-ba50-555f135200c7/premium_bg_1773979450161.png"
+          src="/premium-bg.png"
           alt="Background"
           fill
           className="object-cover scale-105 blur-[2px]"
