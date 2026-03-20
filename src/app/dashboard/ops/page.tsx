@@ -21,7 +21,10 @@ export default async function OpsVerificationPage() {
     const candidates = await prisma.candidate.findMany({
       where: { status: "PENDING" },
       orderBy: { createdAt: "desc" },
-      include: { _count: { select: { documents: true } } },
+      include: { 
+        documents: true,
+        _count: { select: { documents: true } } 
+      },
     });
 
     const pendingCount = candidates.length;

@@ -21,7 +21,10 @@ export default async function BackendValidationPage() {
     const candidates = await prisma.candidate.findMany({
       where: { status: "OPS_VERIFIED" },
       orderBy: { createdAt: "desc" },
-      include: { _count: { select: { documents: true } } },
+      include: { 
+        documents: true,
+        _count: { select: { documents: true } } 
+      },
     });
 
     const pendingCount = candidates.length;
