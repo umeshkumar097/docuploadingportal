@@ -164,8 +164,23 @@ export default async function DashboardPage() {
           The dashboard failed to connect to your database. Please check your <code className="bg-muted px-1 rounded text-red-500">DATABASE_URL</code> in Vercel.
         </p>
         <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 font-mono text-xs text-left max-w-2xl w-full border border-red-500/10 overflow-auto">
-          <p className="text-red-500 font-bold mb-1">Diagnostic Info:</p>
-          <pre className="whitespace-pre-wrap">{err.stack || String(err)}</pre>
+          <p className="text-red-500 font-bold mb-2 uppercase tracking-tighter">Environment Snapshot:</p>
+          <div className="grid grid-cols-2 gap-2 mb-4 text-[10px]">
+            <div className="bg-black/20 p-2 rounded-lg">
+                <span className="text-muted-foreground">DATABASE_URL:</span>
+                <span className={process.env.DATABASE_URL ? "text-emerald-500 ml-2" : "text-red-500 ml-2 animate-pulse"}>
+                    {process.env.DATABASE_URL ? "DETECTED ✅" : "NOT FOUND ❌"}
+                </span>
+            </div>
+            <div className="bg-black/20 p-2 rounded-lg">
+                <span className="text-muted-foreground">AUTH_SECRET:</span>
+                <span className={process.env.AUTH_SECRET ? "text-emerald-500 ml-2" : "text-amber-500 ml-2"}>
+                    {process.env.AUTH_SECRET ? "DETECTED ✅" : "MISSING ⚠️"}
+                </span>
+            </div>
+          </div>
+          <p className="text-red-500 font-bold mb-1">Stack Trace:</p>
+          <pre className="whitespace-pre-wrap opacity-60">{err.stack || String(err)}</pre>
         </div>
         <Button variant="outline" className="mt-8 rounded-xl font-bold border-red-500/20 hover:bg-red-500/10 text-red-600">
           Try Reloading
