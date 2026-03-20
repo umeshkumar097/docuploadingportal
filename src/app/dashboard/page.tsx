@@ -20,8 +20,8 @@ export default async function DashboardPage() {
   });
 
   const totalCandidates = candidates.length;
-  const pendingCandidates = candidates.filter(c => c.status === "PENDING").length;
-  const completedCandidates = candidates.filter(c => c.status === "READY_FOR_BATCH").length;
+  const pendingCandidates = candidates.filter((c: any) => c.status === "PENDING").length;
+  const completedCandidates = candidates.filter((c: any) => c.status === "READY_FOR_BATCH").length;
 
   const stats = [
     { label: "Total Candidates", value: totalCandidates, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -55,7 +55,7 @@ export default async function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
+        {stats.map((stat: any, i: number) => (
           <div key={i} className="glass-card p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
             <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} w-fit mb-4 group-hover:scale-110 transition-transform`}>
               <stat.icon className="h-6 w-6" />
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {candidates.map((candidate) => (
+              {candidates.map((candidate: any) => (
                 <TableRow key={candidate.id} className="hover:bg-accent/30 transition-colors border-accent/20">
                   <TableCell className="py-6 pl-8">
                     <div className="flex flex-col">
