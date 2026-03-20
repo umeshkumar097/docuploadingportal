@@ -14,6 +14,8 @@ const getPrisma = () => {
   } else {
     // Aggressively sanitize accidentally pasted quotes in Vercel UI
     url = url.replace(/^["']/, "").replace(/["']$/, "");
+    // Silence the node:10333 pg-connection-string Warning for upcoming v9.0 updates
+    url = url.replace(/sslmode=require/, "sslmode=verify-full");
   }
 
   try {
