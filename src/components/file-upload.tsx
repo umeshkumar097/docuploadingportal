@@ -10,9 +10,10 @@ interface FileUploadProps {
   type: string;
   label: string;
   maxSizeKB: number;
+  mandatory?: boolean;
 }
 
-export function FileUpload({ candidateId, type, label, maxSizeKB }: FileUploadProps) {
+export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory }: FileUploadProps) {
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
@@ -47,7 +48,10 @@ export function FileUpload({ candidateId, type, label, maxSizeKB }: FileUploadPr
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between px-1">
-        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</label>
+        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center">
+            {label}
+            {mandatory && <span className="text-red-500 ml-1 text-sm leading-none">*</span>}
+        </label>
         {status === "success" && (
             <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3" /> Ready

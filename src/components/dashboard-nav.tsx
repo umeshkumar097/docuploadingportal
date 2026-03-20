@@ -11,7 +11,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  User
+  User,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +24,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Pending Candidates", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Live Radar", href: "/dashboard/radar", icon: Activity },
   { label: "Ops Verification", href: "/dashboard/ops", icon: CheckSquare },
   { label: "Backend Validation", href: "/dashboard/validation", icon: ClipboardCheck },
   { label: "Ready Batches", href: "/dashboard/batches", icon: History },

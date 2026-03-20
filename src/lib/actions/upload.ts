@@ -60,6 +60,15 @@ export async function uploadDocument(formData: FormData) {
     },
   });
 
+  // Track activity
+  await prisma.candidate.update({
+    where: { id: candidateId },
+    data: {
+      lastActiveAt: new Date(),
+      currentStep: "UPLOADING_DOCS"
+    }
+  });
+
   return document;
 }
 
