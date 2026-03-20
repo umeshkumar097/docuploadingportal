@@ -72,7 +72,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                     "use server";
                     await updateCandidateStatus(candidate.id, "OPS_VERIFIED");
                 }}>
-                    <Button size="lg" className="rounded-2xl h-14 px-8 font-black shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground group">
+                    <Button type="submit" size="lg" className="rounded-2xl h-14 px-8 font-black shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground group">
                         <ShieldCheck className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                         Verify Documents Received
                     </Button>
@@ -83,7 +83,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                     "use server";
                     await updateCandidateStatus(candidate.id, "VALIDATED");
                 }}>
-                    <Button size="lg" className="rounded-2xl h-14 px-8 font-black shadow-xl shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white group">
+                    <Button type="submit" size="lg" className="rounded-2xl h-14 px-8 font-black shadow-xl shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white group">
                         <CheckCircle2 className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                         Final Approval
                     </Button>
@@ -177,7 +177,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                               "use server";
                               await updateDocumentStatus(doc.id, "VERIFIED");
                             }}>
-                                <Button size="sm" className="h-10 w-16 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border-emerald-500/20 transition-all font-bold group">
+                                <Button type="submit" size="sm" className="h-10 w-16 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border-emerald-500/20 transition-all font-bold group">
                                     <CheckCircle2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
                                 </Button>
                             </form>
@@ -185,7 +185,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                               "use server";
                               await updateDocumentStatus(doc.id, "REJECTED", "Incomplete or Blur");
                             }}>
-                                <Button size="sm" variant="ghost" className="h-10 w-16 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white border-destructive/20 transition-all font-bold group">
+                                <Button type="submit" size="sm" variant="ghost" className="h-10 w-16 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white border-destructive/20 transition-all font-bold group">
                                     <XSquare className="h-4 w-4 group-hover:scale-110 transition-transform" />
                                 </Button>
                             </form>
@@ -198,7 +198,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                               "use server";
                               await deleteDocument(doc.id, candidate.id);
                             }}>
-                                <Button size="sm" variant="ghost" className="h-10 w-16 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white border-red-500/20 transition-all font-bold group" title="Delete corrupted document to allow re-upload">
+                                <Button type="submit" size="sm" variant="ghost" className="h-10 w-16 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white border-red-500/20 transition-all font-bold group" title="Delete corrupted document to allow re-upload">
                                     <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
                                 </Button>
                             </form>
