@@ -15,6 +15,8 @@ import {
   Database
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   try {
     const candidates = await prisma.candidate.findMany({
@@ -165,7 +167,7 @@ export default async function DashboardPage() {
           <p className="text-red-500 font-bold mb-1">Diagnostic Info:</p>
           <pre className="whitespace-pre-wrap">{err.stack || String(err)}</pre>
         </div>
-        <Button onClick={() => window.location.reload()} variant="outline" className="mt-8 rounded-xl font-bold border-red-500/20 hover:bg-red-500/10 text-red-600">
+        <Button variant="outline" className="mt-8 rounded-xl font-bold border-red-500/20 hover:bg-red-500/10 text-red-600">
           Try Reloading
         </Button>
       </div>

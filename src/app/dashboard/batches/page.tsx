@@ -31,6 +31,8 @@ export function BatchActions() {
   );
 }
 
+export const dynamic = "force-dynamic";
+
 export default function BatchesPage() {
   return (
     <div className="space-y-6">

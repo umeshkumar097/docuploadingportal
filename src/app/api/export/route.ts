@@ -1,5 +1,7 @@
 import { exportToExcel } from "@/lib/excel-export";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const buffer = await exportToExcel();
 

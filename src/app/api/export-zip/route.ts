@@ -1,5 +1,7 @@
 import { generateBatchZip } from "@/lib/zip-export";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const buffer = await generateBatchZip();
 
