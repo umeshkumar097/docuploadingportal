@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { 
   LayoutDashboard, 
   CheckSquare, 
@@ -105,12 +106,14 @@ export function DashboardNav({ email, role }: { email: string; role: string }) {
             </div>
           </div>
           
-          <form action="/api/auth/signout" method="POST">
-             <Button variant="ghost" className="w-full justify-start gap-4 h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 px-4 group">
+             <Button 
+                variant="ghost" 
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="w-full justify-start gap-4 h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 px-4 group"
+             >
                 <LogOut className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
                 <span className="font-bold">Logout</span>
              </Button>
-          </form>
         </div>
       </aside>
     </>
