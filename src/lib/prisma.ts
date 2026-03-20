@@ -9,7 +9,7 @@ const prismaClientSingleton = () => {
   console.log("Prisma singleton init: Standard PG Adapter (Prisma 7)");
   
   const pool = new Pool({ connectionString: url });
-  const adapter = new PrismaPg(pool);
+  const adapter = new PrismaPg(pool as any);
   
   // Use any-casting to bypass resolution issues during strict build phase
   const { PrismaClient } = PrismaClientModule as any;
