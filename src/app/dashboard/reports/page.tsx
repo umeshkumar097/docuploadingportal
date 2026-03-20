@@ -20,7 +20,7 @@ export default async function ReportsPage() {
       where: { name: { not: null } }
     });
 
-    const getCount = (status: string) => statusCounts.find(s => s.status === status)?._count._all || 0;
+    const getCount = (status: string) => statusCounts.find((s: any) => s.status === status)?._count._all || 0;
 
     // Fetch only READY candidates for the reports table
     const candidates = await prisma.candidate.findMany({

@@ -3,7 +3,7 @@
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 // Force local type to avoid Prisma export issues on Vercel
-type DocumentType = "PHOTO" | "QUALIFICATION" | "ID_PROOF" | "SIGNATURE";
+type DocumentType = "PHOTO" | "QUALIFICATION" | "ID_PROOF" | "SIGNATURE" | "ID_PROOF_FRONT" | "ID_PROOF_BACK";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const s3 = new S3Client({
@@ -15,11 +15,13 @@ const s3 = new S3Client({
   },
 });
 
-const MAX_FILE_SIZES = {
-  PHOTO: 20 * 1024, // 20KB
-  QUALIFICATION: 201 * 1024, // 201KB
-  ID_PROOF: 25 * 1024, // 25KB
-  SIGNATURE: 20 * 1024, // 20KB
+const MAX_FILE_SIZES: Record<string, number> = {
+  PHOTO: 10 * 1024 * 1024,
+  QUALIFICATION: 10 * 1024 * 1024,
+  ID_PROOF: 10 * 1024 * 1024,
+  ID_PROOF_FRONT: 10 * 1024 * 1024,
+  ID_PROOF_BACK: 10 * 1024 * 1024,
+  SIGNATURE: 10 * 1024 * 1024,
 };
 
 export async function uploadDocument(formData: FormData) {
