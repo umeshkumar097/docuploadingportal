@@ -40,3 +40,17 @@ export async function deleteDocument(documentId: string, candidateId: string) {
 
   revalidatePath("/dashboard", "layout");
 }
+
+export async function deleteCandidate(candidateId: string) {
+  // Clean up relational documents first to avoid constraint exceptions
+  await prisma.document.deleteMany({
+    where: { candidateId }
+  });
+
+  // Obliterate the candidate record
+  await prisma.candidate.delete({
+    where: { id: candidateId }
+  });
+
+  revalidatePath("/dashboard", "layout");
+}

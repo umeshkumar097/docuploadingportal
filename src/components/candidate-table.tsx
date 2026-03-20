@@ -7,9 +7,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertCircle, ChevronRight, FileArchive, Loader2 } from "lucide-react";
+import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { deleteCandidate } from "@/lib/actions/verification";
 
 interface CandidateTableProps {
   candidates: any[];
@@ -19,6 +20,17 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+
+  const handleDeleteCandidate = async (id: string, name: string) => {
+    if (window.confirm(`Are you absolutely sure you want to permanently delete candidate ${name} and all associated files?`)) {
+      try {
+        await deleteCandidate(id);
+      } catch (err) {
+        alert("Failed to delete candidate.");
+        console.error(err);
+      }
+    }
+  };
 
   const toggleSelectAll = () => {
     if (selectedIds.length === candidates.length) {
@@ -199,6 +211,15 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
                 <TableCell className="py-6 pr-8 text-right">
                   <div className="flex items-center justify-end gap-2">
                       <CopyButton token={candidate.token} />
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="rounded-xl hover:bg-red-500/10 text-red-500 transition-all font-bold group"
+                        onClick={() => handleDeleteCandidate(candidate.id, candidate.name || 'Anonymous Candidate')}
+                        title="Delete Candidate"
+                      >
+                          <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                      </Button>
                       <Link href={`/dashboard/candidate/${candidate.id}`}>
                       <Button variant="ghost" size="sm" className="rounded-xl hover:bg-primary/10 hover:text-primary transition-all font-bold group">
                           Details
