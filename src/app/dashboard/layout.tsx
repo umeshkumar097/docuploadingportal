@@ -13,7 +13,7 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const role = session.user.role;
+  const role = session.user.role || "OPS";
   const email = session.user.email || "Admin User";
 
   return (
