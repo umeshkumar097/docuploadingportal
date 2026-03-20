@@ -1,4 +1,3 @@
-import "dotenv/config";
 import * as PrismaClientModule from "@prisma/client";
 import { Pool } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
@@ -12,8 +11,12 @@ const getPrisma = () => {
 
   if (!url) {
     console.warn("WARNING: DATABASE_URL is not defined in environment variables. Database operations will fail if executed.");
-  } else if (url.includes("channel_binding=require")) {
-    url = url.replace(/channel_binding=require&?/, "").replace(/\?$/, "");
+  } else {
+    // Aggressively sanitize accidentally pasted quotes in Vercel UI
+    url = url.replace(/^["']/, "").replace(/["']$/, "");
+    if (url.includes("channel_binding=require")) {
+      url = url.replace(/channel_binding=require&?/, "").replace(/\?$/, "");
+    }
   }
 
   try {
