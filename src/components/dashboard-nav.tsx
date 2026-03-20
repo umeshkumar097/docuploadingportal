@@ -28,7 +28,7 @@ const navItems: NavItem[] = [
   { label: "Pending Candidates", href: "/dashboard", icon: LayoutDashboard },
   { label: "Live Radar", href: "/dashboard/radar", icon: Activity },
   { label: "Ops Overview", href: "/dashboard/ops", icon: CheckSquare },
-  { label: "Reports", href: "/dashboard/batches", icon: FileText },
+  { label: "Reports", href: "/dashboard/reports", icon: FileText },
 ];
 
 export function DashboardNav({ email, role }: { email: string; role: string }) {
