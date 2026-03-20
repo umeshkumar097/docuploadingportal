@@ -11,12 +11,14 @@ import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2 } from "lucide-
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { deleteCandidate } from "@/lib/actions/verification";
+import * as XLSX from "xlsx";
 
 interface CandidateTableProps {
   candidates: any[];
+  role: string;
 }
 
-export function CandidateTable({ candidates }: CandidateTableProps) {
+export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
@@ -122,6 +124,51 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
     }
   };
 
+  const handleExportExcel = () => {
+    const data = candidates.map(c => {
+      const docStatus: any = {};
+      c.documents?.forEach((doc: any) => {
+        docStatus[doc.type] = doc.status;
+      });
+
+      return {
+        "Registration Date": new Date(c.createdAt).toLocaleString(),
+        "Candidate Name": c.name || "Anonymous",
+        "Employer": c.employer || "N/A",
+        "Mobile": c.mobileNumber || "N/A",
+        "Employee ID": c.employeeId || "N/A",
+        "ID Type": c.idType || "N/A",
+        "Status": c.status,
+        "Photo": docStatus["PHOTO"] || "Not Uploaded",
+        "Qualification": docStatus["QUALIFICATION"] || "Not Uploaded",
+        "ID Proof": docStatus["ID_PROOF"] || (docStatus["ID_PROOF_FRONT"] ? "Aadhaar Uploaded" : "Not Uploaded"),
+        "Signature": docStatus["SIGNATURE"] || "Not Uploaded",
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
+    
+    // Set column widths
+    const wscols = [
+      { wch: 25 }, // Date
+      { wch: 25 }, // Name
+      { wch: 20 }, // Employer
+      { wch: 15 }, // Mobile
+      { wch: 15 }, // Emp ID
+      { wch: 15 }, // ID Type
+      { wch: 15 }, // Status
+      { wch: 15 }, // Photo
+      { wch: 15 }, // Qual
+      { wch: 20 }, // ID Proof
+      { wch: 15 }, // Sig
+    ];
+    worksheet["!cols"] = wscols;
+
+    XLSX.writeFile(workbook, `Candidates-Report-${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   return (
     <div className="space-y-4">
       {/* Table Actions ToolBar */}
@@ -130,23 +177,34 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
           <p className="font-bold text-primary ml-2">
             {selectedIds.length} candidate{selectedIds.length > 1 ? "s" : ""} selected for export
           </p>
-          <Button 
-            onClick={handleExportZip} 
-            disabled={isExporting}
-            className="rounded-xl shadow-lg shadow-primary/30 font-bold px-6 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {isExporting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Packing ZIP ({exportProgress}%)...
-              </>
-            ) : (
-              <>
+          <div className="flex gap-2">
+            {role === "ADMIN" && (
+              <Button 
+                onClick={handleExportExcel} 
+                className="rounded-xl shadow-lg border-primary/20 font-bold px-6 bg-accent text-accent-foreground hover:bg-accent/80 transition-all"
+              >
                 <FileArchive className="h-4 w-4 mr-2" />
-                Export to ZIP
-              </>
+                Export to Excel
+              </Button>
             )}
-          </Button>
+            <Button 
+              onClick={handleExportZip} 
+              disabled={isExporting}
+              className="rounded-xl shadow-lg shadow-primary/30 font-bold px-6 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105"
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Packing ZIP ({exportProgress}%)...
+                </>
+              ) : (
+                <>
+                  <FileArchive className="h-4 w-4 mr-2" />
+                  Export to ZIP
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -208,18 +266,20 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
                       {candidate._count?.documents || candidate.documents?.length || 0} <span className="text-muted-foreground font-normal">/ 4</span>
                   </span>
                 </TableCell>
-                <TableCell className="py-6 pr-8 text-right">
+                 <TableCell className="py-6 pr-8 text-right">
                   <div className="flex items-center justify-end gap-2">
                       <CopyButton token={candidate.token} />
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="rounded-xl hover:bg-red-500/10 text-red-500 transition-all font-bold group"
-                        onClick={() => handleDeleteCandidate(candidate.id, candidate.name || 'Anonymous Candidate')}
-                        title="Delete Candidate"
-                      >
-                          <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                      </Button>
+                      {role === "ADMIN" && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="rounded-xl hover:bg-red-500/10 text-red-500 transition-all font-bold group"
+                          onClick={() => handleDeleteCandidate(candidate.id, candidate.name || 'Anonymous Candidate')}
+                          title="Delete Candidate"
+                        >
+                            <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                        </Button>
+                      )}
                       <Link href={`/dashboard/candidate/${candidate.id}`}>
                       <Button variant="ghost" size="sm" className="rounded-xl hover:bg-primary/10 hover:text-primary transition-all font-bold group">
                           Details

@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button";
 import { generateReadyBatch } from "@/lib/actions/batch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Download, Package } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export function BatchActions() {
+  const { data: session } = useSession();
   const [isPending, startTransition] = useTransition();
+
+  if (session?.user?.role !== "ADMIN") return null;
 
   const handleGenerateBatch = () => {
     startTransition(async () => {
@@ -51,12 +55,14 @@ export default function BatchesPage() {
           <p className="text-sm text-slate-500 max-w-sm text-center mt-1">
             Once candidates are marked as READY, you can generate a structured ZIP file containing their documents and data.
           </p>
-          <a href="/api/export-zip">
-            <Button variant="secondary" className="mt-6">
-              <Download className="mr-2 h-4 w-4" />
-              Download Final ZIP
-            </Button>
-          </a>
+          {useSession().data?.user?.role === "ADMIN" && (
+            <a href="/api/export-zip">
+              <Button variant="secondary" className="mt-6">
+                <Download className="mr-2 h-4 w-4" />
+                Download Final ZIP
+              </Button>
+            </a>
+          )}
         </CardContent>
       </Card>
     </div>

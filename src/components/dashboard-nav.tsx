@@ -26,8 +26,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Pending Candidates", href: "/dashboard", icon: LayoutDashboard },
   { label: "Live Radar", href: "/dashboard/radar", icon: Activity },
-  { label: "Ops Verification", href: "/dashboard/ops", icon: CheckSquare },
-  { label: "Backend Validation", href: "/dashboard/validation", icon: ClipboardCheck },
+  { label: "Ops Overview", href: "/dashboard/ops", icon: CheckSquare },
   { label: "Ready Batches", href: "/dashboard/batches", icon: History },
 ];
 
@@ -75,6 +74,8 @@ export function DashboardNav({ email, role }: { email: string; role: string }) {
 
         <nav className="flex-1 p-6 space-y-2 mt-4">
           {navItems.map((item) => {
+            // Logic: Hide certain items if Role is strictly limited (if any)
+            // For now, we just show the base 4 items to everyone as per request
             const isActive = pathname === item.href;
             return (
               <Link

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { CandidateTable } from "@/components/candidate-table";
+import { auth } from "@/auth";
 import { 
   Users, 
   Clock, 
@@ -31,6 +32,8 @@ export default async function OpsVerificationPage() {
     });
 
     const pendingCount = candidates.length;
+    const session = await auth();
+    const role = session?.user?.role || "OPS";
 
     return (
       <div className="space-y-10">
@@ -38,7 +41,7 @@ export default async function OpsVerificationPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h2 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl flex items-center gap-4">
-              Ops <span className="text-primary/80">Verification</span>
+              Ops <span className="text-primary/80">Overview</span>
             </h2>
             <p className="text-muted-foreground mt-2 text-lg">
               Action required: Verify uploaded structural documents for {pendingCount} candidates.
@@ -64,7 +67,7 @@ export default async function OpsVerificationPage() {
               </div>
           </div>
 
-          <CandidateTable candidates={candidates} />
+          <CandidateTable candidates={candidates} role={role} />
         </div>
       </div>
     );

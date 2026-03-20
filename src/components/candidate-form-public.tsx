@@ -26,7 +26,8 @@ import {
   UploadCloud,
   CheckCircle2,
   FileText,
-  Loader2
+  Loader2,
+  ChevronRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -35,6 +36,9 @@ const formSchema = z.object({
   employer: z.string().min(2, "Employer is required"),
   mobileNumber: z.string().min(10, "Valid mobile number is required"),
   employeeId: z.string().min(2, "Employee ID is required"),
+  idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
+    required_error: "Please select an ID type",
+  }),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -58,6 +62,7 @@ export function CandidateFormPublic() {
       employer: "",
       mobileNumber: "",
       employeeId: "",
+      idType: undefined as any,
       originalDegree: false,
     },
   });
@@ -134,6 +139,7 @@ export function CandidateFormPublic() {
               employer: value.employer || undefined,
               mobileNumber: value.mobileNumber || undefined,
               employeeId: value.employeeId || undefined,
+              idType: value.idType || undefined,
             }),
           });
         } catch (err) {
@@ -171,6 +177,7 @@ export function CandidateFormPublic() {
     form.watch("employer") && 
     form.watch("mobileNumber") && 
     form.watch("employeeId") && 
+    form.watch("idType") && 
     form.watch("originalDegree");
 
   if (isInitializing) {
@@ -320,6 +327,32 @@ export function CandidateFormPublic() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="idType"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Type of ID Proof <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <div className="relative group">
+                        <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors pointer-events-none" />
+                        <select 
+                          {...field}
+                          className="w-full pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium appearance-none cursor-pointer"
+                        >
+                          <option value="" disabled selected>Select ID Type</option>
+                          <option value="PAN">PAN Card</option>
+                          <option value="AADHAAR">Aadhaar Card</option>
+                          <option value="DL">Driving License</option>
+                          <option value="PASSPORT">Passport</option>
+                        </select>
+                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 rotate-90 pointer-events-none" />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
 
@@ -333,22 +366,56 @@ export function CandidateFormPublic() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[
-                { type: "PHOTO", label: "Photograph", size: "20KB", icon: User },
-                { type: "QUALIFICATION", label: "Qualification", size: "201KB", icon: FileText },
-                { type: "ID_PROOF", label: "ID Proof", size: "25KB", icon: CreditCard },
-                { type: "SIGNATURE", label: "Signature", size: "20KB", icon: CheckCircle2 },
-              ].map((doc) => (
-                <div key={doc.type} className="group">
+              <FileUpload 
+                candidateId={candidateId as string} 
+                type="PHOTO" 
+                label="Photograph (Max 20KB)" 
+                maxSizeKB={20} 
+                mandatory={true}
+              />
+              <FileUpload 
+                candidateId={candidateId as string} 
+                type="QUALIFICATION" 
+                label="Qualification Proof (Max 201KB)" 
+                maxSizeKB={201} 
+                mandatory={true}
+                description="Provisional proof not valid"
+              />
+              
+              {form.watch("idType") === "AADHAAR" ? (
+                <>
                   <FileUpload 
                     candidateId={candidateId as string} 
-                    type={doc.type as any} 
-                    label={`${doc.label} (Max ${doc.size})`} 
-                    maxSizeKB={parseInt(doc.size)} 
+                    type="ID_PROOF_FRONT" 
+                    label="Aadhaar Front (Max 25KB)" 
+                    maxSizeKB={25} 
                     mandatory={true}
                   />
-                </div>
-              ))}
+                  <FileUpload 
+                    candidateId={candidateId as string} 
+                    type="ID_PROOF_BACK" 
+                    label="Aadhaar Back (Max 25KB)" 
+                    maxSizeKB={25} 
+                    mandatory={true}
+                  />
+                </>
+              ) : (
+                <FileUpload 
+                  candidateId={candidateId as string} 
+                  type="ID_PROOF" 
+                  label={`${form.watch("idType") || "ID"} Proof (Max 25KB)`} 
+                  maxSizeKB={25} 
+                  mandatory={true}
+                />
+              )}
+
+              <FileUpload 
+                candidateId={candidateId as string} 
+                type="SIGNATURE" 
+                label="Signature (Max 20KB)" 
+                maxSizeKB={20} 
+                mandatory={true}
+              />
             </div>
           </div>
 

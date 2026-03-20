@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { CandidateTable } from "@/components/candidate-table";
+import { auth } from "@/auth";
 import { 
   Users, 
   Clock, 
@@ -32,7 +33,7 @@ export default async function DashboardPage() {
 
     const totalCandidates = candidates.length;
     const pendingCandidates = candidates.filter((c: any) => c.status === "PENDING").length;
-    const completedCandidates = candidates.filter((c: any) => c.status === "READY_FOR_BATCH").length;
+    const completedCandidates = candidates.filter((c: any) => c.status === "READY").length;
 
     const stats = [
       { label: "Total Candidates", value: totalCandidates, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -40,6 +41,9 @@ export default async function DashboardPage() {
       { label: "Ready for Batch", value: completedCandidates, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
       { label: "Success Rate", value: "94%", icon: TrendingUp, color: "text-violet-500", bg: "bg-violet-500/10" },
     ];
+
+    const session = await auth();
+    const role = session?.user?.role || "OPS";
 
     return (
       <div className="space-y-10">
@@ -91,7 +95,7 @@ export default async function DashboardPage() {
               </Button>
           </div>
 
-          <CandidateTable candidates={candidates} />
+          <CandidateTable candidates={candidates} role={role} />
         </div>
       </div>
     );

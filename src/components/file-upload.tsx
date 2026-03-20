@@ -11,26 +11,72 @@ interface FileUploadProps {
   label: string;
   maxSizeKB: number;
   mandatory?: boolean;
+  description?: string;
 }
 
-export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory }: FileUploadProps) {
+export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, description }: FileUploadProps) {
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
 
+  const convertToJpeg = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Failed to get canvas context"));
+            return;
+          }
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error("Canvas toBlob failed"));
+            },
+            "image/jpeg",
+            0.8
+          );
+        };
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file) return;
 
     setFileName(file.name);
-    if (file.size > maxSizeKB * 1024) {
-      setStatus("error");
-      setErrorMessage(`Too large. Max ${maxSizeKB}KB.`);
-      return;
-    }
-
+    
     try {
       setStatus("uploading");
+
+      // 1. Mandatory JPEG Conversion for all images
+      if (file.type.startsWith("image/")) {
+        console.log(`Converting ${file.name} to JPEG...`);
+        const jpegBlob = await convertToJpeg(file);
+        // Create a new File object from the blob to keep the name but change extension
+        const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+        file = new File([jpegBlob], newName, { type: "image/jpeg" });
+        setFileName(newName);
+      }
+
+      // 2. Size Validation (post-conversion)
+      if (file.size > maxSizeKB * 1024) {
+        setStatus("error");
+        setErrorMessage(`Too large. Max ${maxSizeKB}KB.`);
+        return;
+      }
+
       const formData = new FormData();
       formData.append("candidateId", candidateId);
       formData.append("type", type);
@@ -84,7 +130,12 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory }: F
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-bold text-foreground">Select File</p>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">PDF or Image up to {maxSizeKB}KB</p>
+                <div className="flex flex-col">
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">PDF or Image up to {maxSizeKB}KB</p>
+                  {description && (
+                    <p className="text-[10px] text-primary font-bold uppercase tracking-tight mt-1">{description}</p>
+                  )}
+                </div>
               </div>
             </>
           )}

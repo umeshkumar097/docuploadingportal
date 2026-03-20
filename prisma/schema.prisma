@@ -26,7 +26,16 @@ enum DocumentType {
   PHOTO
   QUALIFICATION
   ID_PROOF
+  ID_PROOF_FRONT
+  ID_PROOF_BACK
   SIGNATURE
+}
+
+enum IDType {
+  PAN
+  AADHAAR
+  DL
+  PASSPORT
 }
 
 enum DocumentStatus {
@@ -56,6 +65,7 @@ model Candidate {
   employer     String?
   mobileNumber String?
   employeeId   String?
+  idType       IDType?
   status       CandidateStatus @default(PENDING)
   currentStep  CurrentStep     @default(STARTED)
   lastActiveAt DateTime        @default(now())

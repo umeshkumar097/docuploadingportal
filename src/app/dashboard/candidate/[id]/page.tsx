@@ -67,27 +67,27 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
         </div>
 
         <div className="flex items-center gap-3">
-            {role === "OPS" && candidate.status === "PENDING" && (
-                <form action={async () => {
-                    "use server";
-                    await updateCandidateStatus(candidate.id, "OPS_VERIFIED");
-                }}>
-                    <Button type="submit" size="lg" className="rounded-2xl h-14 px-8 font-black shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground group">
-                        <ShieldCheck className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                        Verify Documents Received
-                    </Button>
-                </form>
-            )}
-            {role === "VALIDATOR" && candidate.status === "OPS_VERIFIED" && (
-                <form action={async () => {
-                    "use server";
-                    await updateCandidateStatus(candidate.id, "VALIDATED");
-                }}>
-                    <Button type="submit" size="lg" className="rounded-2xl h-14 px-8 font-black shadow-xl shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white group">
-                        <CheckCircle2 className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                        Final Approval
-                    </Button>
-                </form>
+            {role === "ADMIN" && candidate.status === "PENDING" && (
+                <div className="flex gap-2">
+                    <form action={async () => {
+                        "use server";
+                        await updateCandidateStatus(candidate.id, "READY");
+                    }}>
+                        <Button type="submit" size="lg" className="rounded-2xl h-14 px-8 font-black shadow-xl shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white group">
+                            <CheckCircle2 className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                            Approve Candidate
+                        </Button>
+                    </form>
+                    <form action={async () => {
+                        "use server";
+                        await updateCandidateStatus(candidate.id, "REJECTED");
+                    }}>
+                        <Button type="submit" size="lg" variant="ghost" className="rounded-2xl h-14 px-8 font-black border-2 border-red-500/20 text-red-500 hover:bg-red-500/10 group">
+                            <XSquare className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                            Reject Candidate
+                        </Button>
+                    </form>
+                </div>
             )}
         </div>
       </div>
@@ -171,7 +171,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
 
                 <div className="p-6 mt-auto">
                     <div className="flex gap-3 justify-center">
-                        {role === "VALIDATOR" && (
+                        {role === "ADMIN" && (
                           <>
                             <form action={async () => {
                               "use server";
@@ -192,8 +192,8 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                           </>
                         )}
                         
-                        {/* Only Admin and Ops can permanently delete a corrupted document */}
-                        {(role === "ADMIN" || role === "OPS") && (
+                        {/* Only Admin can permanently delete a corrupted document */}
+                        {role === "ADMIN" && (
                             <form action={async () => {
                               "use server";
                               await deleteDocument(doc.id, candidate.id);
