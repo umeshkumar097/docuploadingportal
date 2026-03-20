@@ -5,10 +5,16 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 
 // Next.js 16 / Prisma 7 Singleton with Neon Serverless Adapter
 const prismaClientSingleton = () => {
-  const url = process.env.DATABASE_URL;
+  let url = process.env.DATABASE_URL;
   
   if (!url) {
     console.error("CRITICAL: DATABASE_URL is not defined in environment variables.");
+  } else {
+    // Sanitize Neon strings that might have problematic parameters for serverless SSL
+    if (url.includes("channel_binding=require")) {
+      console.log("Sanitizing Neon connection string: Removing channel_binding for serverless compatibility.");
+      url = url.replace(/channel_binding=require&?/, "").replace(/\?$/, "");
+    }
   }
 
   try {
