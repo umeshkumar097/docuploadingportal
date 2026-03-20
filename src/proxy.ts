@@ -5,7 +5,7 @@ const { auth } = NextAuth(authConfig);
 
 // Next.js 16 Proxy Convention
 export function proxy(req: any) {
-  return auth((req: any) => {
+  return auth(req, (req: any) => {
     const isLoggedIn = !!req.auth;
     const { nextUrl } = req;
 
@@ -16,7 +16,7 @@ export function proxy(req: any) {
     }
 
     return;
-  })(req);
+  });
 }
 
 export const config = {
