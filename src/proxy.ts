@@ -1,21 +1,22 @@
-import NextAuth from "next-auth";
-import authConfig from "./auth.config";
+import { auth } from "@/auth";
 
-const { auth } = NextAuth(authConfig);
-
-// Next.js 16 Proxy Convention using NextAuth v5 wrapper
+// Next.js 16 Proxy Convention using the unified Auth instance
 export const proxy = auth((req: any) => {
   const isLoggedIn = !!req.auth;
   const { nextUrl } = req;
 
+  // Protect dashboard routes
   if (nextUrl.pathname.startsWith("/dashboard")) {
     if (!isLoggedIn) {
+      console.log("Unauthenticated access to dashboard. Redirecting to /login.");
       return Response.redirect(new URL("/login", nextUrl));
     }
   }
 
+  // Redirect logged-in users away from the login page
   if (nextUrl.pathname.startsWith("/login")) {
     if (isLoggedIn) {
+      console.log("Authenticated user on login page. Redirecting to /dashboard.");
       return Response.redirect(new URL("/dashboard", nextUrl));
     }
   }
