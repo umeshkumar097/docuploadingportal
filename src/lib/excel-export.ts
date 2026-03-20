@@ -6,7 +6,7 @@ export async function exportToExcel() {
     include: { documents: true },
   });
 
-  const data = candidates.map((c) => ({
+  const data = candidates.map((c: any) => ({
     ID: c.id,
     Name: c.name,
     Employer: c.employer,
@@ -14,10 +14,10 @@ export async function exportToExcel() {
     "Employee ID": c.employeeId,
     Status: c.status,
     "Docs Count": c.documents.length,
-    "Photo Status": c.documents.find((d) => d.type === "PHOTO")?.status || "N/A",
-    "Qualification Status": c.documents.find((d) => d.type === "QUALIFICATION")?.status || "N/A",
-    "ID Proof Status": c.documents.find((d) => d.type === "ID_PROOF")?.status || "N/A",
-    "Signature Status": c.documents.find((d) => d.type === "SIGNATURE")?.status || "N/A",
+    "Photo Status": c.documents.find((d: any) => d.type === "PHOTO")?.status || "N/A",
+    "Qualification Status": c.documents.find((d: any) => d.type === "QUALIFICATION")?.status || "N/A",
+    "ID Proof Status": c.documents.find((d: any) => d.type === "ID_PROOF")?.status || "N/A",
+    "Signature Status": c.documents.find((d: any) => d.type === "SIGNATURE")?.status || "N/A",
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(data);
