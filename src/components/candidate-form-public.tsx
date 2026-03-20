@@ -37,7 +37,7 @@ const formSchema = z.object({
   mobileNumber: z.string().min(10, "Valid mobile number is required"),
   employeeId: z.string().min(2, "Employee ID is required"),
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
-    errorMap: () => ({ message: "Please select an ID type" }),
+    message: "Please select an ID type",
   }),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
