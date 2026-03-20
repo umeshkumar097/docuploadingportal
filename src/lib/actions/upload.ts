@@ -3,6 +3,16 @@
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { DocumentType } from "@prisma/client";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+const s3 = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
 
 const MAX_FILE_SIZES = {
   PHOTO: 20 * 1024, // 20KB
@@ -10,13 +20,6 @@ const MAX_FILE_SIZES = {
   ID_PROOF: 25 * 1024, // 25KB
   SIGNATURE: 20 * 1024, // 20KB
 };
-
-const uploadSchema = z.object({
-  candidateId: z.string(),
-  type: z.nativeEnum(DocumentType),
-  fileSize: z.number(),
-  fileData: z.string(), // Base64 or Blob URL placeholder
-});
 
 export async function uploadDocument(formData: FormData) {
   const candidateId = formData.get("candidateId") as string;
@@ -32,9 +35,20 @@ export async function uploadDocument(formData: FormData) {
     throw new Error(`File size for ${type} must be less than ${MAX_FILE_SIZES[type] / 1024}KB`);
   }
 
-  // Mock Upload to Cloud Storage
-  // In reality, this would use Vercel Blob or AWS S3
-  const fileUrl = `https://storage.placeholder.com/${candidateId}/${type}-${file.name}`;
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const fileName = `${candidateId}/${type}-${Date.now()}-${file.name}`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: fileName,
+      Body: buffer,
+      ContentType: file.type,
+    })
+  );
+
+  const fileUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
 
   const document = await prisma.document.create({
     data: {
@@ -47,3 +61,4 @@ export async function uploadDocument(formData: FormData) {
 
   return document;
 }
+

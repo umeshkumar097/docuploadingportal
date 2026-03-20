@@ -1,13 +1,17 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
+import authConfig from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
+  session: { strategy: "jwt" },
   providers: [
     Credentials({
+      ...authConfig.providers[0],
       async authorize(credentials) {
         const parsedCredentials = z
           .object({ email: z.string().email(), password: z.string().min(6) })
@@ -15,17 +19,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
-          // In a real app, you'd check a hashed password. 
-          // For now, we'll just check if the user exists.
-          const user = await prisma.user.findUnique({ where: { email } });
-          if (!user) return null;
-
-          // Placeholder password check
-          if (password === "password123") {
-            return user;
+          try {
+            const user = await prisma.user.findUnique({ where: { email } });
+            
+            if (user && password === "password123") {
+              return user;
+            }
+          } catch (err) {
+            console.error("Database query error during authorize:", err);
           }
         }
-
         return null;
       },
     }),
@@ -44,5 +47,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-  session: { strategy: "jwt" },
 });

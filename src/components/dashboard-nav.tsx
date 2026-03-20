@@ -1,0 +1,116 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { 
+  LayoutDashboard, 
+  CheckSquare, 
+  ClipboardCheck, 
+  History, 
+  LogOut, 
+  Menu, 
+  X,
+  User
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: any;
+}
+
+const navItems: NavItem[] = [
+  { label: "Pending Candidates", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Ops Verification", href: "/dashboard/ops", icon: CheckSquare },
+  { label: "Backend Validation", href: "/dashboard/validation", icon: ClipboardCheck },
+  { label: "Ready Batches", href: "/dashboard/batches", icon: History },
+];
+
+export function DashboardNav({ email, role }: { email: string; role: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  return (
+    <>
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between p-4 bg-background border-b sticky top-0 z-30">
+        <h1 className="font-bold text-xl text-primary tracking-tight">CruxDoc</h1>
+        <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-72 bg-card border-r flex flex-col transition-transform duration-300 transform
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:relative lg:translate-x-0
+      `}>
+        <div className="p-8 border-b">
+          <Link href="/dashboard" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center text-primary-foreground font-bold group-hover:scale-110 transition-transform">
+              C
+            </div>
+            <div>
+              <h1 className="font-bold text-xl tracking-tight">CruxDoc</h1>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em]">
+                {role} Portal
+              </p>
+            </div>
+          </Link>
+        </div>
+
+        <nav className="flex-1 p-6 space-y-2 mt-4">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={`
+                  flex items-center gap-3 p-4 rounded-2xl transition-all duration-200 group
+                  ${isActive 
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" 
+                    : "hover:bg-accent text-muted-foreground hover:text-foreground hover:translate-x-1"}
+                `}
+              >
+                <item.icon className={`h-5 w-5 ${isActive ? "text-primary-foreground" : "group-hover:text-primary transition-colors"}`} />
+                <span className="text-sm font-semibold">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-6 border-t mt-auto">
+          <div className="bg-accent/50 rounded-2xl p-4 mb-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <User className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-foreground truncate">{email}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{role}</p>
+            </div>
+          </div>
+          
+          <form action="/api/auth/signout" method="POST">
+             <Button variant="ghost" className="w-full justify-start gap-4 h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 px-4 group">
+                <LogOut className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                <span className="font-bold">Logout</span>
+             </Button>
+          </form>
+        </div>
+      </aside>
+    </>
+  );
+}
