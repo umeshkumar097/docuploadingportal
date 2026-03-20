@@ -1,6 +1,6 @@
 import * as PrismaClientModule from "@prisma/client";
-import { Pool } from "@neondatabase/serverless";
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 let _prismaInstance: any = null;
 
@@ -14,15 +14,12 @@ const getPrisma = () => {
   } else {
     // Aggressively sanitize accidentally pasted quotes in Vercel UI
     url = url.replace(/^["']/, "").replace(/["']$/, "");
-    if (url.includes("channel_binding=require")) {
-      url = url.replace(/channel_binding=require&?/, "").replace(/\?$/, "");
-    }
   }
 
   try {
     const pool = new Pool({ connectionString: url });
     // @ts-ignore - bypassing type checking for adapter interface in dynamic environments
-    const adapter = new PrismaNeon(pool);
+    const adapter = new PrismaPg(pool);
     
     // @ts-ignore
     const { PrismaClient } = PrismaClientModule;
@@ -38,10 +35,11 @@ const getPrisma = () => {
 
     return _prismaInstance;
   } catch (err: any) {
-    console.error("FAILED to initialize Prisma with Neon Serverless Adapter:", err);
+    console.error("FAILED to initialize Prisma with pg Adapter:", err);
     throw err;
   }
 };
+
 
 const prisma = new Proxy({} as any, {
   get(target, prop) {
