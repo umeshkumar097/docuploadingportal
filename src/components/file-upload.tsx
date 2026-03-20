@@ -51,6 +51,11 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
     });
   };
 
+  const formatSize = (kb: number) => {
+    if (kb >= 1024) return `${(kb / 1024).toFixed(0)}MB`;
+    return `${kb}KB`;
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     let file = e.target.files?.[0];
     if (!file) return;
@@ -73,7 +78,7 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
       // 2. Size Validation (post-conversion)
       if (file.size > maxSizeKB * 1024) {
         setStatus("error");
-        setErrorMessage(`Too large. Max ${maxSizeKB}KB.`);
+        setErrorMessage(`Too large. Max ${formatSize(maxSizeKB)}.`);
         return;
       }
 
@@ -131,7 +136,7 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
               <div className="space-y-1">
                 <p className="text-sm font-bold text-foreground">Select File</p>
                 <div className="flex flex-col">
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">PDF or Image up to {maxSizeKB}KB</p>
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">PDF or Image up to {formatSize(maxSizeKB)}</p>
                   {description && (
                     <p className="text-[10px] text-primary font-bold uppercase tracking-tight mt-1">{description}</p>
                   )}

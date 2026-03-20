@@ -369,15 +369,15 @@ export function CandidateFormPublic() {
               <FileUpload 
                 candidateId={candidateId as string} 
                 type="PHOTO" 
-                label="Photograph (Max 20KB)" 
-                maxSizeKB={20} 
+                label="Photograph" 
+                maxSizeKB={10240} 
                 mandatory={true}
               />
               <FileUpload 
                 candidateId={candidateId as string} 
                 type="QUALIFICATION" 
-                label="Qualification Proof (Max 201KB)" 
-                maxSizeKB={201} 
+                label="Qualification Proof" 
+                maxSizeKB={10240} 
                 mandatory={true}
                 description="Provisional proof not valid"
               />
@@ -387,15 +387,15 @@ export function CandidateFormPublic() {
                   <FileUpload 
                     candidateId={candidateId as string} 
                     type="ID_PROOF_FRONT" 
-                    label="Aadhaar Front (Max 25KB)" 
-                    maxSizeKB={25} 
+                    label="Aadhaar Front" 
+                    maxSizeKB={10240} 
                     mandatory={true}
                   />
                   <FileUpload 
                     candidateId={candidateId as string} 
                     type="ID_PROOF_BACK" 
-                    label="Aadhaar Back (Max 25KB)" 
-                    maxSizeKB={25} 
+                    label="Aadhaar Back" 
+                    maxSizeKB={10240} 
                     mandatory={true}
                   />
                 </>
@@ -403,8 +403,8 @@ export function CandidateFormPublic() {
                 <FileUpload 
                   candidateId={candidateId as string} 
                   type="ID_PROOF" 
-                  label={`${form.watch("idType") || "ID"} Proof (Max 25KB)`} 
-                  maxSizeKB={25} 
+                  label={`${form.watch("idType") || "ID"} Proof`} 
+                  maxSizeKB={10240} 
                   mandatory={true}
                 />
               )}
@@ -412,8 +412,8 @@ export function CandidateFormPublic() {
               <FileUpload 
                 candidateId={candidateId as string} 
                 type="SIGNATURE" 
-                label="Signature (Max 20KB)" 
-                maxSizeKB={20} 
+                label="Signature" 
+                maxSizeKB={10240} 
                 mandatory={true}
               />
             </div>
