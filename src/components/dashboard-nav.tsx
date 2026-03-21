@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
   { label: "Godeye", href: "/dashboard/godeye", icon: Building2, superAdminOnly: true },
 ];
 
-export function DashboardNav({ email, role }: { email: string; role: string }) {
+export function DashboardNav({ email, role, vendorName }: { email: string; role: string; vendorName?: string | null }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
@@ -107,9 +107,13 @@ export function DashboardNav({ email, role }: { email: string; role: string }) {
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
               <User className="h-5 w-5" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-foreground truncate">{email}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{role}</p>
+            <div className="flex flex-col">
+                <span className="text-sm font-bold text-foreground truncate max-w-[150px]">{email}</span>
+                <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest flex items-center gap-1">
+                    {role === "VENDOR" ? vendorName : role}
+                    <div className="w-1 h-1 rounded-full bg-primary/40" />
+                    {role === "VENDOR" ? "VENDOR" : "PORTAL"}
+                </span>
             </div>
           </div>
           

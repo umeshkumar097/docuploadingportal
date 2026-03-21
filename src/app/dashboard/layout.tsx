@@ -19,10 +19,11 @@ export default async function DashboardLayout({
 
     const role = session.user.role || "OPS";
     const email = session.user.email || "Admin User";
+    const vendorName = (session.user as any).vendorName || null;
 
     return (
       <div className="flex flex-col lg:flex-row h-screen premium-gradient">
-        <DashboardNav email={email} role={role} />
+        <DashboardNav email={email} role={role} vendorName={vendorName} />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto px-4 py-8 md:px-8 md:py-10">

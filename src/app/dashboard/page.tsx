@@ -71,10 +71,10 @@ export default async function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h2 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-              Dashboard <span className="text-primary/80">Overview</span>
+              {role === "VENDOR" ? vendorName : "Dashboard"} <span className="text-primary/80">Overview</span>
             </h2>
             <p className="text-muted-foreground mt-2 text-lg">
-              Monitor and manage candidate document submissions in real-time.
+              {role === "VENDOR" ? `Partner portal for ${vendorName} candidate tracking.` : "Monitor and manage candidate document submissions in real-time."}
             </p>
           </div>
           <div className="flex items-center gap-3">
