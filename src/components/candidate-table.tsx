@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2, CheckCircle2 } from "lucide-react";
+import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2, CheckCircle2, Search, Filter, Download } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { deleteCandidate } from "@/lib/actions/verification";
 import * as XLSX from "xlsx";
 import { ConfirmationModal } from "./confirmation-modal";
+import { Input } from "@/components/ui/input";
 
 interface CandidateTableProps {
   candidates: any[];
@@ -31,6 +32,29 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Search and Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [companyFilter, setCompanyFilter] = useState("all");
+
+  const uniqueCompanies = useMemo(() => {
+    const companies = candidates.map(c => c.employer).filter(Boolean);
+    return Array.from(new Set(companies)).sort();
+  }, [candidates]);
+
+  const filteredCandidates = useMemo(() => {
+    return candidates.filter(c => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = 
+        (c.name?.toLowerCase().includes(q)) ||
+        (c.employeeId?.toLowerCase().includes(q)) ||
+        (c.mobileNumber?.includes(searchQuery));
+      
+      const matchesCompany = companyFilter === "all" || c.employer === companyFilter;
+      
+      return matchesSearch && matchesCompany;
+    });
+  }, [candidates, searchQuery, companyFilter]);
 
   const handleDeleteClick = (id: string, name: string) => {
     setCandidateToDelete({ id, name });
@@ -56,10 +80,10 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === candidates.length) {
+    if (selectedIds.length === filteredCandidates.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(candidates.map(c => c.id));
+      setSelectedIds(filteredCandidates.map(c => c.id));
     }
   };
 
@@ -77,7 +101,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
     setExportProgress(0);
 
     try {
-      const selectedCandidates = candidates.filter(c => selectedIds.includes(c.id));
+      const selectedCandidates = filteredCandidates.filter(c => selectedIds.includes(c.id));
       const zip = new JSZip();
       
       let totalFilesToFetch = 0;
@@ -139,7 +163,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   };
 
   const handleExportExcel = () => {
-    const data = candidates.map(c => {
+    const candidatesToExport = selectedIds.length > 0 
+      ? filteredCandidates.filter(c => selectedIds.includes(c.id))
+      : filteredCandidates;
+
+    const data = candidatesToExport.map(c => {
       const docStatus: any = {};
       c.documents?.forEach((doc: any) => {
         docStatus[doc.type] = doc.status;
@@ -193,11 +221,54 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
     ];
     worksheet["!cols"] = wscols;
 
-    XLSX.writeFile(workbook, `Candidates-Report-${new Date().toISOString().split('T')[0]}.xlsx`);
+    const filename = companyFilter !== "all" 
+      ? `${companyFilter}-Report-${new Date().toISOString().split('T')[0]}.xlsx`
+      : `Candidates-Report-${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    XLSX.writeFile(workbook, filename);
   };
 
-  return (
-    <div className="space-y-4">
+  return (    <div className="space-y-6">
+      {/* Search and Filters Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between pb-2">
+        <div className="relative w-full md:w-96 group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Input 
+            placeholder="Search by Name, Emp ID, or Mobile..." 
+            className="pl-10 h-12 rounded-2xl bg-accent/20 border-accent/30 focus:bg-background transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          {role === "ADMIN" && (
+            <div className="relative flex-1 md:flex-none">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <select
+                className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 min-w-[200px]"
+                value={companyFilter}
+                onChange={(e) => setCompanyFilter(e.target.value)}
+              >
+                <option value="all">All Companies</option>
+                {uniqueCompanies.map(company => (
+                  <option key={company} value={company}>{company}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          <Button 
+            variant="outline" 
+            onClick={handleExportExcel}
+            className="h-12 rounded-2xl px-6 font-bold border-accent/30 hover:bg-primary hover:text-primary-foreground transition-all gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export Filtered Excel
+          </Button>
+        </div>
+      </div>
+
       {/* Table Actions ToolBar */}
       {selectedIds.length > 0 && (
         <div className="bg-primary/10 border-2 border-primary/20 rounded-2xl p-4 flex items-center justify-between animate-in slide-in-from-bottom-2 fade-in duration-300">
@@ -242,7 +313,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
             <TableRow className="hover:bg-transparent border-none">
               <TableHead className="w-[50px] pl-6 py-5">
                 <Checkbox 
-                  checked={candidates.length > 0 && selectedIds.length === candidates.length} 
+                  checked={filteredCandidates.length > 0 && selectedIds.length === filteredCandidates.length} 
                   onCheckedChange={toggleSelectAll} 
                   aria-label="Select all"
                   className="translate-y-[2px]"
@@ -255,7 +326,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {candidates.map((candidate: any) => (
+            {filteredCandidates.map((candidate: any) => (
               <TableRow key={candidate.id} className="hover:bg-accent/30 transition-colors border-accent/20">
                 <TableCell className="pl-6 py-6">
                   <Checkbox 
@@ -301,7 +372,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 </TableCell>
               </TableRow>
             ))}
-            {candidates.length === 0 && (
+            {filteredCandidates.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="h-40 text-center animate-in fade-in zoom-in duration-500">
                   <div className="flex flex-col items-center justify-center space-y-3">
