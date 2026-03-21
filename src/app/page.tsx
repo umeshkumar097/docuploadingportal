@@ -71,7 +71,7 @@ export default function Home() {
           The ultra-secure, premium platform for candidate document collection and verification. <span className="text-zinc-200 font-medium">Designed for speed, built for reliability.</span>
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 animate-fade-in-up animation-delay-600 mb-40 relative z-20">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 animate-fade-in-up animation-delay-600 mb-40 relative z-20 flex-wrap">
           <Link
             href="/apply"
             className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg hover:from-blue-500 hover:to-indigo-500 transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(79,70,229,0.4)] hover:shadow-[0_0_60px_rgba(79,70,229,0.6)] ring-1 ring-white/20"
@@ -82,12 +82,20 @@ export default function Home() {
             </svg>
           </Link>
           
-          <Link
-            href="/login"
-            className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl text-white font-semibold text-lg hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl"
-          >
-            Staff Login
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <Link
+              href="/login"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl text-white font-semibold text-lg hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98] flex items-center justify-center shadow-xl"
+            >
+              Admin/Ops Login
+            </Link>
+            <Link
+              href="/login"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl text-white font-semibold text-lg hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98] flex items-center justify-center shadow-xl"
+            >
+              Company/Agency Login
+            </Link>
+          </div>
         </div>
 
         {/* Security Grid Section */}

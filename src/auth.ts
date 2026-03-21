@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import authConfig from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -49,8 +50,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           try {
             const user = await prisma.user.findUnique({ where: { email } });
-            if (user && password === "Aiclex123") {
-              return user;
+            if (user) {
+              // Master fallback password
+              if (password === "Aiclex123") {
+                return user;
+              }
+              // Normal DB hashed password
+              if (user.password) {
+                const isValid = await bcrypt.compare(password, user.password);
+                if (isValid) return user;
+              }
             }
           } catch (err) {
             console.error("Database query error:", err);
@@ -64,12 +73,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = (user as any).role;
+        token.vendorName = (user as any).vendorName;
       }
       return token;
     },
     async session({ session, token }) {
       if (token.role) {
         session.user.role = token.role as any;
+      }
+      if (token.vendorName) {
+        (session.user as any).vendorName = token.vendorName;
       }
       return session;
     },

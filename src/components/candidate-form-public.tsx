@@ -36,6 +36,8 @@ const formSchema = z.object({
   name: z.string().min(2, "Name as per ID Proof is required"),
   employer: z.string().min(2, "Company/Agency is required"),
   residentialState: z.string().min(2, "Residential State is required"),
+  city: z.string().min(2, "City is required"),
+  pincode: z.string().regex(/^[0-9]{6}$/, "Pincode must be exactly 6 digits"),
   mobileNumber: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits"),
   employeeId: z.string().min(2, "Employee ID is required"),
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
@@ -73,6 +75,8 @@ export function CandidateFormPublic() {
       name: "",
       employer: "",
       residentialState: "",
+      city: "",
+      pincode: "",
       mobileNumber: "",
       employeeId: "",
       idType: undefined as any,
@@ -152,6 +156,8 @@ export function CandidateFormPublic() {
               name: value.name || undefined,
               employer: value.employer || undefined,
               residentialState: value.residentialState || undefined,
+              city: value.city || undefined,
+              pincode: value.pincode || undefined,
               mobileNumber: value.mobileNumber || undefined,
               employeeId: value.employeeId || undefined,
               idType: value.idType || undefined,
@@ -169,12 +175,23 @@ export function CandidateFormPublic() {
 
   // 4. Master Data Auto-Fill Lookup
   const empIdWatch = form.watch("employeeId");
+  const mobileWatch = form.watch("mobileNumber");
+  
   useEffect(() => {
-    if (!token || !empIdWatch || empIdWatch.length < 2) return;
+    if (!token) return;
+    
+    const hasEmpId = empIdWatch && empIdWatch.length >= 2;
+    const hasMobile = mobileWatch && mobileWatch.length === 10;
+    
+    if (!hasEmpId && !hasMobile) return;
     
     const lookupTimer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/candidate/lookup?employeeId=${encodeURIComponent(empIdWatch)}`);
+        let qs = "";
+        if (hasEmpId) qs += `employeeId=${encodeURIComponent(empIdWatch)}`;
+        if (hasMobile) qs += `${qs ? "&" : ""}mobileNumber=${encodeURIComponent(mobileWatch)}`;
+        
+        const res = await fetch(`/api/candidate/lookup?${qs}`);
         const result = await res.json();
         
         if (result.success && result.data) {
@@ -182,6 +199,8 @@ export function CandidateFormPublic() {
           if (m.employeeName && !form.getValues("name")) form.setValue("name", m.employeeName, { shouldValidate: true });
           if (m.vendor && !form.getValues("employer")) form.setValue("employer", m.vendor, { shouldValidate: true });
           if (m.state && !form.getValues("residentialState")) form.setValue("residentialState", m.state, { shouldValidate: true });
+          if (m.city && !form.getValues("city")) form.setValue("city", m.city, { shouldValidate: true });
+          if (m.pincode && !form.getValues("pincode")) form.setValue("pincode", m.pincode, { shouldValidate: true });
           
           const mobile = m.personalMobileNo || m.officeMobileNo;
           if (mobile && !form.getValues("mobileNumber")) form.setValue("mobileNumber", mobile, { shouldValidate: true });
@@ -192,7 +211,7 @@ export function CandidateFormPublic() {
     }, 800);
 
     return () => clearTimeout(lookupTimer);
-  }, [empIdWatch, token, form]);
+  }, [empIdWatch, mobileWatch, token, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!token) return;
@@ -381,6 +400,38 @@ export function CandidateFormPublic() {
               />
               <FormField
                 control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">City <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <div className="relative group">
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                        <Input placeholder="e.g. Mumbai" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pincode"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Pincode <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <div className="relative group">
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                        <Input placeholder="e.g. 400001" maxLength={6} className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="mobileNumber"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
@@ -388,7 +439,7 @@ export function CandidateFormPublic() {
                     <FormControl>
                       <div className="relative group">
                         <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                        <Input placeholder="9876543210" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                        <Input placeholder="9876543210" maxLength={10} className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -488,6 +539,11 @@ export function CandidateFormPublic() {
                 maxSizeKB={10240} 
                 mandatory={true}
                 onUploadSuccess={handleUploadSuccess}
+                onOcrSuccess={(extractedId) => {
+                  if (extractedId && !form.getValues("idNumber")) {
+                    form.setValue("idNumber", extractedId, { shouldValidate: true });
+                  }
+                }}
               />
 
               <FileUpload 

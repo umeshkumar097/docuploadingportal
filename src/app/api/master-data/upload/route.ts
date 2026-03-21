@@ -6,9 +6,12 @@ import * as XLSX from "xlsx";
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    const role = session?.user?.role as any;
+    if (!session || (role !== "ADMIN" && role !== "VENDOR")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const vendorNameLimit = role === "VENDOR" ? (session.user as any).vendorName : null;
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -41,9 +44,11 @@ export async function POST(req: NextRequest) {
       officeMobileNo: String(row["Office Mobile No"] || "").trim(),
       personalMobileNo: String(row["Personal Mobile No"] || "").trim(),
       whatsappNo: String(row["Whatsapp No"] || "").trim(),
-      vendor: String(row["Vendor"] || "").trim(),
+      vendor: vendorNameLimit ? vendorNameLimit : String(row["Vendor"] || "").trim(),
       region2: String(row["Region 2"] || "").trim(),
       location2: String(row["Location2"] || "").trim(),
+      city: String(row["City"] || "").trim(),
+      pincode: String(row["Pincode"] || "").trim(),
       draBatch: String(row["DRA Batch"] || "").trim(),
     })).filter(row => row.employeeId);
 

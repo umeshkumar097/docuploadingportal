@@ -9,7 +9,8 @@ export const metadata = {
 export default async function MasterDataPage() {
   const session = await auth();
 
-  if (!session || session.user?.role !== "ADMIN") {
+  const role = session?.user?.role as any;
+  if (!session || (role !== "ADMIN" && role !== "VENDOR")) {
     redirect("/dashboard");
   }
 

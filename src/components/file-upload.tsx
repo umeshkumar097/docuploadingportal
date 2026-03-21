@@ -4,6 +4,7 @@ import { useState } from "react";
 import { uploadDocument } from "@/lib/actions/upload";
 import { Upload, CheckCircle2, AlertCircle, Loader2, FileText, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Tesseract from "tesseract.js";
 
 interface FileUploadProps {
   candidateId: string;
@@ -13,9 +14,10 @@ interface FileUploadProps {
   mandatory?: boolean;
   description?: string;
   onUploadSuccess?: (type: string) => void;
+  onOcrSuccess?: (extractedText: string) => void;
 }
 
-export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, description, onUploadSuccess }: FileUploadProps) {
+export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, description, onUploadSuccess, onOcrSuccess }: FileUploadProps) {
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
@@ -95,6 +97,27 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
       formData.append("candidateId", candidateId);
       formData.append("type", type);
       formData.append("file", file);
+
+      // 3. Initiate Autonomous OCR in Background
+      if (onOcrSuccess) {
+        Tesseract.recognize(file, "eng")
+          .then((result: any) => {
+            const { text } = result.data;
+            console.log("[OCR Raw Extraction]:", text);
+            // Valid PAN format: 5 Letters, 4 Numbers, 1 Letter
+            const panMatch = text.match(/[A-Z]{5}[0-9]{4}[A-Z]{1}/);
+            if (panMatch) return onOcrSuccess(panMatch[0]);
+
+            // Valid Aadhaar format: 12 digits (often spaced 4-4-4)
+            const aadhaarMatch = text.match(/\b\d{4}\s?\d{4}\s?\d{4}\b/);
+            if (aadhaarMatch) return onOcrSuccess(aadhaarMatch[0].replace(/\s/g, ""));
+
+            // Valid DL Format (approximate Indian standard)
+            const dlMatch = text.match(/[A-Z]{2}[-\s]?[0-9]{2}[-\s]?[0-9]{11}/);
+            if (dlMatch) return onOcrSuccess(dlMatch[0].replace(/[-\s]/g, ""));
+          })
+          .catch((err: any) => console.error("[OCR Engine Error]:", err));
+      }
 
       await uploadDocument(formData);
       setStatus("success");

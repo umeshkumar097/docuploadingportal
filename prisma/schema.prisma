@@ -12,6 +12,7 @@ enum Role {
   VALIDATOR
   TL
   ADMIN
+  VENDOR
 }
 
 enum CandidateStatus {
@@ -46,9 +47,11 @@ enum DocumentStatus {
 
 model User {
   id    String @id @default(cuid())
-  name  String?
-  email String @unique
-  role  Role   @default(OPS)
+  name       String?
+  email      String @unique
+  role       Role   @default(OPS)
+  vendorName String?
+  password   String?
 }
 
 enum CurrentStep {
@@ -64,6 +67,8 @@ model Candidate {
   name             String?
   employer         String?
   residentialState String?
+  city             String?
+  pincode          String?
   mobileNumber     String?
   employeeId       String?
   idType       IDType?
@@ -107,6 +112,8 @@ model MasterEmployee {
   vendor                String?
   region2               String?
   location2             String?
+  city                  String?
+  pincode               String?
   draBatch              String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

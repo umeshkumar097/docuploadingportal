@@ -5,13 +5,19 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const employeeId = searchParams.get("employeeId");
+    const mobileNumber = searchParams.get("mobileNumber");
 
-    if (!employeeId) {
-      return NextResponse.json({ error: "Employee ID is required" }, { status: 400 });
+    if (!employeeId && !mobileNumber) {
+      return NextResponse.json({ error: "Employee ID or Mobile Number is required" }, { status: 400 });
     }
 
-    const employeeData = await prisma.masterEmployee.findUnique({
-      where: { employeeId },
+    const employeeData = await prisma.masterEmployee.findFirst({
+      where: {
+        OR: [
+          ...(employeeId ? [{ employeeId }] : []),
+          ...(mobileNumber ? [{ personalMobileNo: mobileNumber }, { officeMobileNo: mobileNumber }] : [])
+        ]
+      }
     });
 
     if (!employeeData) {

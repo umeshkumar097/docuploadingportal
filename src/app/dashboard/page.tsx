@@ -20,10 +20,17 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   try {
+    const session = await auth();
+    const role = session?.user?.role || "OPS";
+    const vendorName = (session?.user as any)?.vendorName;
+
+    const whereClause: any = { name: { not: null } };
+    if (role === "VENDOR" && vendorName) {
+      whereClause.employer = vendorName;
+    }
+
     const candidates = await prisma.candidate.findMany({
-      where: {
-        name: { not: null }
-      },
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       include: { 
         documents: true,
@@ -41,9 +48,6 @@ export default async function DashboardPage() {
       { label: "Ready for Batch", value: completedCandidates, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
       { label: "Success Rate", value: "94%", icon: TrendingUp, color: "text-violet-500", bg: "bg-violet-500/10" },
     ];
-
-    const session = await auth();
-    const role = session?.user?.role || "OPS";
 
     return (
       <div className="space-y-10">
