@@ -29,10 +29,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: "Pending Candidates", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Live Radar", href: "/dashboard/radar", icon: Activity, hideFromVendor: true },
-  { label: "Ops Overview", href: "/dashboard/ops", icon: CheckSquare, hideFromVendor: true },
-  { label: "Reports", href: "/dashboard/reports", icon: FileText },
+  { label: "Candidates Workspace", href: "/dashboard", icon: LayoutDashboard },
   { label: "Master Data", href: "/dashboard/master-data", icon: Database },
   { label: "Godeye", href: "/dashboard/godeye", icon: Building2, adminOnly: true },
 ];

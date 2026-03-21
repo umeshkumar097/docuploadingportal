@@ -147,10 +147,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
 
       const getFriendlyStatus = (status: string | undefined, typeLabel: string = "") => {
         if (!status) return "Not Uploaded";
-        if (status === "PENDING") return typeLabel ? `Uploaded (${typeLabel})` : "Uploaded";
-        if (status === "VERIFIED") return "Verified";
-        if (status === "REJECTED") return "Rejected";
-        return status;
+        return typeLabel ? `Uploaded (${typeLabel})` : "Uploaded";
       };
 
       // Special handling for Aadhaar (Front/Back)
@@ -169,7 +166,6 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         "Employee ID": c.employeeId || "N/A",
         "ID Type": c.idType || "N/A",
         "ID Number": c.idNumber || "N/A",
-        "Status": c.status,
         "Photo": getFriendlyStatus(docStatus["PHOTO"]),
         "Qualification": getFriendlyStatus(docStatus["QUALIFICATION"]),
         "ID Proof": idProofFinal,
@@ -190,7 +186,6 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       { wch: 15 }, // Mobile
       { wch: 15 }, // Emp ID
       { wch: 15 }, // ID Type
-      { wch: 15 }, // Status
       { wch: 15 }, // Photo
       { wch: 15 }, // Qual
       { wch: 20 }, // ID Proof
@@ -255,7 +250,6 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
               </TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest pl-2">Candidate</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Employer</TableHead>
-              <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-center">Status</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-center">Docs</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest pr-8 text-right">Action</TableHead>
             </TableRow>
@@ -278,21 +272,6 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="py-6 font-medium text-sm text-muted-foreground">{candidate.employer || "N/A"}</TableCell>
-                <TableCell className="py-6 text-center">
-                  <div className="flex justify-center">
-                      <Badge 
-                          variant="secondary"
-                          className={`
-                              font-bold px-3 py-1 rounded-full text-[10px] uppercase tracking-wider
-                              ${candidate.status === "PENDING" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : 
-                                candidate.status === "READY" ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
-                                "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"}
-                          `}
-                      >
-                        {candidate.status}
-                      </Badge>
-                  </div>
-                </TableCell>
                 <TableCell className="py-6 text-center">
                   <span className="text-sm font-bold text-foreground">
                       {candidate._count?.documents || candidate.documents?.length || 0} <span className="text-muted-foreground font-normal">/ 4</span>

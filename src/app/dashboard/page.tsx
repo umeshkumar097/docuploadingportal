@@ -59,14 +59,10 @@ export default async function DashboardPage() {
     });
 
     const totalCandidates = candidates.length;
-    const pendingCandidates = candidates.filter((c: any) => c.status === "PENDING").length;
-    const completedCandidates = candidates.filter((c: any) => c.status === "READY").length;
 
     const stats = [
       { label: "Total Candidates", value: totalCandidates, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-      { label: "Pending Verification", value: pendingCandidates, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
-      { label: "Ready for Batch", value: completedCandidates, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-      { label: "Success Rate", value: "94%", icon: TrendingUp, color: "text-violet-500", bg: "bg-violet-500/10" },
+      { label: "Success Rate", value: "100%", icon: TrendingUp, color: "text-violet-500", bg: "bg-violet-500/10" },
     ];
 
     return (

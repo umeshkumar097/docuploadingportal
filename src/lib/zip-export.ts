@@ -9,7 +9,7 @@ export async function generateBatchZip(role?: string, vendorName?: string) {
   const excelBuffer = await exportToExcel(role, vendorName);
   zip.file("candidates_mis.xlsx", excelBuffer);
 
-  const whereClause: any = { status: "READY", name: { not: null } };
+  const whereClause: any = { name: { not: null } };
   
   if (role === "VENDOR") {
     if (vendorName) {
