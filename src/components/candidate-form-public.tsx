@@ -540,8 +540,11 @@ export function CandidateFormPublic() {
                 mandatory={true}
                 onUploadSuccess={handleUploadSuccess}
                 onOcrSuccess={(extractedId) => {
-                  if (extractedId && !form.getValues("idNumber")) {
-                    form.setValue("idNumber", extractedId, { shouldValidate: true });
+                  if (extractedId) {
+                    const currentId = form.getValues("idNumber");
+                    if (currentId !== extractedId) {
+                      form.setValue("idNumber", extractedId, { shouldValidate: true });
+                    }
                   }
                 }}
               />

@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
   { label: "Ops Overview", href: "/dashboard/ops", icon: CheckSquare, hideFromVendor: true },
   { label: "Reports", href: "/dashboard/reports", icon: FileText },
   { label: "Master Data", href: "/dashboard/master-data", icon: Database },
-  { label: "Vendors", href: "/dashboard/vendors", icon: Building2, adminOnly: true },
+  { label: "Godeye", href: "/dashboard/godeye", icon: Building2, adminOnly: true },
 ];
 
 export function DashboardNav({ email, role }: { email: string; role: string }) {
