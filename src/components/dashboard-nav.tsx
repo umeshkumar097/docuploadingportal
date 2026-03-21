@@ -15,7 +15,8 @@ import {
   User,
   Activity,
   FileText,
-  Database
+  Database,
+  Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -24,14 +25,16 @@ interface NavItem {
   href: string;
   icon: any;
   adminOnly?: boolean;
+  hideFromVendor?: boolean;
 }
 
 const navItems: NavItem[] = [
   { label: "Pending Candidates", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Live Radar", href: "/dashboard/radar", icon: Activity },
-  { label: "Ops Overview", href: "/dashboard/ops", icon: CheckSquare },
+  { label: "Live Radar", href: "/dashboard/radar", icon: Activity, hideFromVendor: true },
+  { label: "Ops Overview", href: "/dashboard/ops", icon: CheckSquare, hideFromVendor: true },
   { label: "Reports", href: "/dashboard/reports", icon: FileText },
-  { label: "Master Data", href: "/dashboard/master-data", icon: Database, adminOnly: true },
+  { label: "Master Data", href: "/dashboard/master-data", icon: Database },
+  { label: "Vendors", href: "/dashboard/vendors", icon: Building2, adminOnly: true },
 ];
 
 export function DashboardNav({ email, role }: { email: string; role: string }) {
@@ -79,6 +82,7 @@ export function DashboardNav({ email, role }: { email: string; role: string }) {
         <nav className="flex-1 p-6 space-y-2 mt-4">
           {navItems.map((item) => {
             if (item.adminOnly && role !== "ADMIN") return null;
+            if (item.hideFromVendor && role === "VENDOR") return null;
             const isActive = pathname === item.href;
             return (
               <Link

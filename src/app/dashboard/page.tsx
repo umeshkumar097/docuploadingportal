@@ -25,8 +25,28 @@ export default async function DashboardPage() {
     const vendorName = (session?.user as any)?.vendorName;
 
     const whereClause: any = { name: { not: null } };
-    if (role === "VENDOR" && vendorName) {
-      whereClause.employer = vendorName;
+    
+    if (role === "VENDOR") {
+      if (vendorName) {
+        const vName = vendorName.toUpperCase();
+        const baseSearch = vendorName.substring(0, 4); 
+
+        whereClause.OR = [
+          { employer: { contains: vendorName, mode: "insensitive" } },
+          { employer: { contains: baseSearch, mode: "insensitive" } }
+        ];
+
+        if (vName.includes("TVS")) {
+          whereClause.OR.push({ employer: { contains: "TVS", mode: "insensitive" } });
+        }
+        if (vName.includes("BOB") || vName.includes("BARODA")) {
+          whereClause.OR.push({ employer: { contains: "BOB", mode: "insensitive" } });
+          whereClause.OR.push({ employer: { contains: "Baroda", mode: "insensitive" } });
+        }
+      } else {
+        // Immediate failure block if vendorName isn't in session to prevent leakage
+        whereClause.id = "force-empty-result-security";
+      }
     }
 
     const candidates = await prisma.candidate.findMany({

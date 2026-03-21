@@ -1,9 +1,14 @@
+import { auth } from "@/auth";
 import { exportToExcel } from "@/lib/excel-export";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const buffer = await exportToExcel();
+  const session = await auth();
+  const role = session?.user?.role || "OPS";
+  const vendorName = (session?.user as any)?.vendorName;
+
+  const buffer = await exportToExcel(role, vendorName);
 
   return new Response(new Uint8Array(buffer), {
     headers: {
