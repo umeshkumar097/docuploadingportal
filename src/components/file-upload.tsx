@@ -63,9 +63,14 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
     if (!file) return;
 
     setFileName(file.name);
-    if (file.type.startsWith("image/")) {
-      setPreviewUrl(URL.createObjectURL(file));
+    
+    if (!file.type.startsWith("image/")) {
+      setStatus("error");
+      setErrorMessage("Please capture or select an image.");
+      return;
     }
+
+    setPreviewUrl(URL.createObjectURL(file));
     try {
       setStatus("uploading");
 
@@ -129,7 +134,7 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           onChange={handleFileChange}
           disabled={status === "uploading"}
-          accept="image/*,.pdf"
+          accept="image/*"
         />
 
         <div className="relative z-0 flex flex-col items-center justify-center gap-3">
@@ -145,7 +150,7 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
               <div className="space-y-1">
                 <p className="text-sm font-bold text-foreground">Select File</p>
                 <div className="flex flex-col">
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">PDF or Image up to {formatSize(maxSizeKB)}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">Camera or Image up to {formatSize(maxSizeKB)}</p>
                   {description && (
                     <p className="text-[10px] text-primary font-bold uppercase tracking-tight mt-1">{description}</p>
                   )}
