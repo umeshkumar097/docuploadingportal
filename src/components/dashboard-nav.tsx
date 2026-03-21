@@ -25,13 +25,14 @@ interface NavItem {
   href: string;
   icon: any;
   adminOnly?: boolean;
+  superAdminOnly?: boolean;
   hideFromVendor?: boolean;
 }
 
 const navItems: NavItem[] = [
   { label: "Candidates Workspace", href: "/dashboard", icon: LayoutDashboard },
   { label: "Master Data", href: "/dashboard/master-data", icon: Database },
-  { label: "Godeye", href: "/dashboard/godeye", icon: Building2, adminOnly: true },
+  { label: "Godeye", href: "/dashboard/godeye", icon: Building2, superAdminOnly: true },
 ];
 
 export function DashboardNav({ email, role }: { email: string; role: string }) {
@@ -78,7 +79,8 @@ export function DashboardNav({ email, role }: { email: string; role: string }) {
 
         <nav className="flex-1 p-6 space-y-2 mt-4">
           {navItems.map((item) => {
-            if (item.adminOnly && role !== "ADMIN") return null;
+            if (item.adminOnly && role !== "ADMIN" && role !== "SUPERADMIN") return null;
+            if (item.superAdminOnly && role !== "SUPERADMIN") return null;
             if (item.hideFromVendor && role === "VENDOR") return null;
             const isActive = pathname === item.href;
             return (
