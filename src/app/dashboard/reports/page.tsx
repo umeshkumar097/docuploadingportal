@@ -12,21 +12,46 @@ export default async function ReportsPage() {
   try {
     const session = await auth();
     const role = session?.user?.role || "OPS";
+    const vendorName = (session?.user as any)?.vendorName;
+
+    const baseWhereClause: any = { name: { not: null } };
+    
+    if (role === "VENDOR") {
+      if (vendorName) {
+        const vName = vendorName.toUpperCase();
+        const baseSearch = vendorName.substring(0, 4); 
+
+        baseWhereClause.OR = [
+          { employer: { contains: vendorName, mode: "insensitive" } },
+          { employer: { contains: baseSearch, mode: "insensitive" } }
+        ];
+
+        if (vName.includes("TVS")) {
+          baseWhereClause.OR.push({ employer: { contains: "TVS", mode: "insensitive" } });
+        }
+        if (vName.includes("BOB") || vName.includes("BARODA")) {
+          baseWhereClause.OR.push({ employer: { contains: "BOB", mode: "insensitive" } });
+          baseWhereClause.OR.push({ employer: { contains: "Baroda", mode: "insensitive" } });
+        }
+      } else {
+        baseWhereClause.id = "force-empty-result-security";
+      }
+    }
 
     // Fetch all statuses for the status breakdown
     const statusCounts = await prisma.candidate.groupBy({
       by: ['status'],
       _count: { _all: true },
-      where: { name: { not: null } }
+      where: baseWhereClause
     });
 
     const getCount = (status: string) => statusCounts.find((s: any) => s.status === status)?._count._all || 0;
 
     // Fetch only READY candidates for the reports table
     const candidates = await prisma.candidate.findMany({
-      where: { 
-        status: "READY",
-        name: { not: null }
+      where: {
+        ...baseWhereClause,
+        status: "READY"
       },
       orderBy: { updatedAt: "desc" },
       include: { 
