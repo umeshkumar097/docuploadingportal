@@ -151,6 +151,7 @@ export function CandidateFormPublic() {
             body: JSON.stringify({
               name: value.name || undefined,
               employer: value.employer || undefined,
+              residentialState: value.residentialState || undefined,
               mobileNumber: value.mobileNumber || undefined,
               employeeId: value.employeeId || undefined,
               idType: value.idType || undefined,
@@ -165,6 +166,33 @@ export function CandidateFormPublic() {
 
     return () => subscription.unsubscribe();
   }, [form.watch, token]);
+
+  // 4. Master Data Auto-Fill Lookup
+  const empIdWatch = form.watch("employeeId");
+  useEffect(() => {
+    if (!token || !empIdWatch || empIdWatch.length < 2) return;
+    
+    const lookupTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/candidate/lookup?employeeId=${encodeURIComponent(empIdWatch)}`);
+        const result = await res.json();
+        
+        if (result.success && result.data) {
+          const m = result.data;
+          if (m.employeeName && !form.getValues("name")) form.setValue("name", m.employeeName, { shouldValidate: true });
+          if (m.vendor && !form.getValues("employer")) form.setValue("employer", m.vendor, { shouldValidate: true });
+          if (m.state && !form.getValues("residentialState")) form.setValue("residentialState", m.state, { shouldValidate: true });
+          
+          const mobile = m.personalMobileNo || m.officeMobileNo;
+          if (mobile && !form.getValues("mobileNumber")) form.setValue("mobileNumber", mobile, { shouldValidate: true });
+        }
+      } catch (err) {
+        console.error("Lookup error", err);
+      }
+    }, 800);
+
+    return () => clearTimeout(lookupTimer);
+  }, [empIdWatch, token, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!token) return;
@@ -289,6 +317,22 @@ export function CandidateFormPublic() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <FormField
                 control={form.control}
+                name="employeeId"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Employee ID <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <div className="relative group">
+                        <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                        <Input placeholder="EMP123" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
@@ -345,22 +389,6 @@ export function CandidateFormPublic() {
                       <div className="relative group">
                         <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
                         <Input placeholder="9876543210" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="employeeId"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Employee ID <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <div className="relative group">
-                        <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                        <Input placeholder="EMP123" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />

@@ -89,3 +89,26 @@ model Document {
   updatedAt       DateTime       @updatedAt
 }
 
+model MasterEmployee {
+  id                    String   @id @default(cuid())
+  employeeId            String   @unique
+  employeeName          String?
+  state                 String?
+  reportingManagerId    String?
+  reportingManagerName  String?
+  reportingManagerGroup String?
+  skipLevelManagerId    String?
+  skipLevelManagerName  String?
+  activeStatus          String?
+  email                 String?
+  officeMobileNo        String?
+  personalMobileNo      String?
+  whatsappNo            String?
+  vendor                String?
+  region2               String?
+  location2             String?
+  draBatch              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
