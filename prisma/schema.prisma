@@ -61,10 +61,11 @@ enum CurrentStep {
 model Candidate {
   id           String          @id @default(cuid())
   token        String          @unique @default(uuid())
-  name         String?
-  employer     String?
-  mobileNumber String?
-  employeeId   String?
+  name             String?
+  employer         String?
+  residentialState String?
+  mobileNumber     String?
+  employeeId       String?
   idType       IDType?
   idNumber     String?
   status       CandidateStatus @default(PENDING)

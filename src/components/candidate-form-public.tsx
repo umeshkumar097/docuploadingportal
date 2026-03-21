@@ -33,8 +33,9 @@ import {
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name as per Proof is required"),
+  name: z.string().min(2, "Name as per ID Proof is required"),
   employer: z.string().min(2, "Company/Agency is required"),
+  residentialState: z.string().min(2, "Residential State is required"),
   mobileNumber: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits"),
   employeeId: z.string().min(2, "Employee ID is required"),
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
@@ -71,6 +72,8 @@ export function CandidateFormPublic() {
     defaultValues: {
       name: "",
       employer: "",
+      residentialState: "",
+      mobileNumber: "",
       employeeId: "",
       idType: undefined as any,
       idNumber: "",
@@ -187,6 +190,7 @@ export function CandidateFormPublic() {
   const allFieldsFilled = 
     form.watch("name") && 
     form.watch("employer") && 
+    form.watch("residentialState") && 
     form.watch("mobileNumber") && 
     form.watch("employeeId") && 
     form.watch("idType") && 
@@ -309,6 +313,22 @@ export function CandidateFormPublic() {
                       <div className="relative group">
                         <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
                         <Input placeholder="Tech Corp" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="residentialState"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Residential State <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <div className="relative group">
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                        <Input placeholder="e.g. Maharashtra" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />

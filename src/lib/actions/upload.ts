@@ -53,6 +53,14 @@ export async function uploadDocument(formData: FormData) {
 
   const fileUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
 
+  // Wipe previous record of the same type to prevent multiple uploads of the same doc
+  await prisma.document.deleteMany({
+    where: {
+      candidateId,
+      type
+    }
+  });
+
   const document = await prisma.document.create({
     data: {
       candidateId,
