@@ -23,24 +23,61 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const convertToJpeg = (file: File): Promise<Blob> => {
+  const checkIsGrayscale = (ctx: CanvasRenderingContext2D, width: number, height: number): boolean => {
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+    let totalVariance = 0;
+    const sampleSize = 1000; // Sample 1000 pixels for performance
+    const step = Math.max(1, Math.floor(data.length / (4 * sampleSize)));
+
+    for (let i = 0; i < data.length; i += 4 * step) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      // Variance between channels
+      const variance = Math.abs(r - g) + Math.abs(g - b) + Math.abs(b - r);
+      totalVariance += variance;
+    }
+
+    const avgVariance = totalVariance / sampleSize;
+    console.log("[Color Analysis] Avg Variance:", avgVariance);
+    return avgVariance < 15; // Threshold for B&W/Grayscale
+  };
+
+  const processImage = (file: File): Promise<{ blob: Blob; isGrayscale: boolean }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
+          // Scale down for analysis if too large
+          const maxDim = 1200;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                  height = (maxDim / width) * height;
+                  width = maxDim;
+              } else {
+                  width = (maxDim / height) * width;
+                  height = maxDim;
+              }
+          }
+          canvas.width = width;
+          canvas.height = height;
           const ctx = canvas.getContext("2d");
           if (!ctx) {
             reject(new Error("Failed to get canvas context"));
             return;
           }
-          ctx.drawImage(img, 0, 0);
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const isGrayscale = checkIsGrayscale(ctx, width, height);
+
           canvas.toBlob(
             (blob) => {
-              if (blob) resolve(blob);
+              if (blob) resolve({ blob, isGrayscale });
               else reject(new Error("Canvas toBlob failed"));
             },
             "image/jpeg",
@@ -76,13 +113,19 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
     try {
       setStatus("uploading");
 
-      // 1. Mandatory JPEG Conversion for all images
+      // 1. Image Processing: JPEG Conversion + Color Analysis
       if (file.type.startsWith("image/")) {
-        console.log(`Converting ${file.name} to JPEG...`);
-        const jpegBlob = await convertToJpeg(file);
-        // Create a new File object from the blob to keep the name but change extension
+        console.log(`Processing ${file.name}...`);
+        const { blob, isGrayscale } = await processImage(file);
+        
+        if (isGrayscale) {
+          setStatus("error");
+          setErrorMessage("Upload Rejected - Please upload an original coloured copy. Black & White copies are not accepted.");
+          return;
+        }
+
         const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
-        file = new File([jpegBlob], newName, { type: "image/jpeg" });
+        file = new File([blob], newName, { type: "image/jpeg" });
         setFileName(newName);
       }
 
@@ -174,6 +217,7 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
                 <p className="text-sm font-bold text-foreground">Select File</p>
                 <div className="flex flex-col">
                   <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">Camera or Image up to {formatSize(maxSizeKB)}</p>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight mt-1">Note: Only Original Coloured Copies Accepted</p>
                   {description && (
                     <p className="text-[10px] text-primary font-bold uppercase tracking-tight mt-1">{description}</p>
                   )}
