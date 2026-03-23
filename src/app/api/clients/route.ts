@@ -5,7 +5,8 @@ import { auth } from "@/auth";
 export async function GET() {
   try {
     const session = await auth();
-    if (session?.user?.role !== "SUPERADMIN") {
+    const role = session?.user?.role;
+    if (role !== "SUPERADMIN" && role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
