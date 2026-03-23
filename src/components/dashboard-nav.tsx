@@ -34,7 +34,6 @@ const navItems: NavItem[] = [
   { label: "Candidates Workspace", href: "/dashboard", icon: LayoutDashboard },
   { label: "Master Data", href: "/dashboard/master-data", icon: Database },
   { label: "Clients", href: "/dashboard/godeye?tab=clients", icon: Globe, adminOnly: true },
-  { label: "Godeye", href: "/dashboard/godeye", icon: Building2, superAdminOnly: true },
 ];
 
 export function DashboardNav({ email, role, vendorName }: { email: string; role: string; vendorName?: string | null }) {

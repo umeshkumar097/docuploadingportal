@@ -28,9 +28,9 @@ export default async function VendorsPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-3xl font-black text-foreground tracking-tight">Godeye Control Center</h1>
+        <h1 className="text-3xl font-black text-foreground tracking-tight">Organization Management</h1>
         <p className="text-muted-foreground mt-2 font-medium">
-          Manage Vendors and Clients. Generate unique application links and oversee multi-tenant configurations.
+          Manage your Vendors, Client Application Links, and project phases from a centralized dashboard.
         </p>
       </div>
       

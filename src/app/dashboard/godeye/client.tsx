@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, UserPlus, Building2, Mail, Lock, Link, Plus, Globe, Copy, CheckCircle } from "lucide-react";
+import { Loader2, UserPlus, Building2, Mail, Lock, Link as LinkIcon, Plus, Globe, Copy, CheckCircle, Edit2, Trash2, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
 export function VendorManagementClient({ initialVendors, initialClients, role }: { initialVendors: any[], initialClients: any[], role: string }) {
@@ -32,6 +33,13 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
   const [clientSlug, setClientSlug] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Edit Vendor State
+  const [editingVendor, setEditingVendor] = useState<any>(null);
+  const [editEmail, setEditEmail] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editVendorName, setEditVendorName] = useState("");
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
   const handleCreateVendor = async () => {
     if (!email || !password || !vendorName) {
       setMessage("All fields are required.");
@@ -58,6 +66,44 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
       setMessage(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateVendor = async () => {
+    if (!editingVendor) return;
+    setLoading(true);
+    setMessage("");
+    try {
+      const res = await fetch(`/api/vendors/${editingVendor.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: editEmail, password: editPassword, vendorName: editVendorName }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setVendors(vendors.map(v => v.id === editingVendor.id ? data.vendor : v));
+      setEditingVendor(null);
+      setMessage("Vendor updated successfully!");
+    } catch (err: any) {
+      setMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteVendor = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this vendor? This action cannot be undone.")) return;
+    setIsDeleting(id);
+    try {
+      const res = await fetch(`/api/vendors/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      setVendors(vendors.filter(v => v.id !== id));
+      setMessage("Vendor deleted successfully!");
+    } catch (err: any) {
+      setMessage(err.message);
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -176,7 +222,35 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black uppercase">
                         {v.vendorName?.substring(0,2) || "VD"}
                       </div>
-                      <Badge variant="secondary" className="text-[8px] tracking-tight">VENDOR</Badge>
+                      <div className="flex gap-1">
+                        {role === "SUPERADMIN" && (
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 rounded-lg hover:bg-primary/10 text-primary"
+                              onClick={() => {
+                                setEditingVendor(v);
+                                setEditEmail(v.email);
+                                setEditVendorName(v.vendorName);
+                                setEditPassword("");
+                              }}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 rounded-lg hover:bg-red-500/10 text-red-500"
+                              disabled={isDeleting === v.id}
+                              onClick={() => handleDeleteVendor(v.id)}
+                            >
+                              {isDeleting === v.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                            </Button>
+                          </>
+                        )}
+                        <Badge variant="secondary" className="text-[8px] tracking-tight">VENDOR</Badge>
+                      </div>
                     </div>
                     <h3 className="font-bold text-foreground text-lg truncate">{v.vendorName || "Unknown Vendor"}</h3>
                     <p className="text-muted-foreground text-sm flex items-center gap-2 mt-1 truncate">
@@ -207,7 +281,7 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
                 <div className="space-y-3">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Unique Link Slug</label>
                   <div className="relative group">
-                    <Link className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                    <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
                     <Input placeholder="tvs-credit" value={clientSlug} onChange={e => setClientSlug(e.target.value)} className="pl-12 h-12 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 font-medium" />
                   </div>
                   <p className="text-[10px] text-muted-foreground ml-1 font-medium italic">Final link will be: {typeof window !== 'undefined' ? window.location.origin : ''}/apply/{clientSlug || 'slug'}</p>
@@ -249,7 +323,11 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
                         </div>
                         <Badge variant="outline" className="border-primary/20 text-primary uppercase text-[8px] px-2 py-0.5">ACTIVE LINK</Badge>
                       </div>
-                      <h3 className="font-bold text-foreground text-xl mb-1">{c.name}</h3>
+                      <Link href={`/dashboard/clients/${c.id}`} className="hover:opacity-80 transition-opacity">
+                        <h3 className="font-bold text-foreground text-xl mb-1 flex items-center gap-2">
+                          {c.name} <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </h3>
+                      </Link>
                       <p className="text-muted-foreground text-xs mb-4">Click below to copy your unique application link.</p>
                       
                       <Button 
@@ -275,6 +353,51 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
             )}
           </div>
         </>
+      )}
+
+      {/* Edit Vendor Modal */}
+      {editingVendor && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-card w-full max-w-md rounded-3xl p-8 shadow-2xl border border-primary/10 animate-in zoom-in-95 duration-300">
+            <h2 className="text-2xl font-black tracking-tight mb-2">Edit Vendor Credentials</h2>
+            <p className="text-muted-foreground text-sm mb-6 font-medium font-inter tracking-tight">Updating information for <span className="text-primary font-bold">{editingVendor.vendorName}</span></p>
+            
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Company Name</label>
+                <div className="relative group">
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
+                  <Input value={editVendorName} onChange={(e) => setEditVendorName(e.target.value)} className="pl-12 h-14 rounded-2xl bg-accent/20 border-none focus-visible:ring-2 focus-visible:ring-primary/40 font-bold tracking-tight" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Email Address</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
+                  <Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="pl-12 h-14 rounded-2xl bg-accent/20 border-none focus-visible:ring-2 focus-visible:ring-primary/40 font-bold tracking-tight" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">New Password (Optional)</label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
+                  <Input type="password" placeholder="Leave empty to keep current" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} className="pl-12 h-14 rounded-2xl bg-accent/20 border-none focus-visible:ring-2 focus-visible:ring-primary/40 font-bold tracking-tight" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 mt-8">
+              <Button variant="ghost" onClick={() => setEditingVendor(null)} className="h-14 flex-1 rounded-2xl font-bold tracking-tight hover:bg-accent">
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateVendor} disabled={loading} className="h-14 flex-1 rounded-2xl font-black tracking-tight bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:scale-[1.02]">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
