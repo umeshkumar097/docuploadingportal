@@ -62,7 +62,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [isNominated, setIsNominated] = useState<boolean | null>(null);
+  const [nominationStatus, setNominationStatus] = useState<"idle" | "verifying" | "nominated" | "blocked">("idle");
   const [lookupError, setLookupError] = useState<string | null>(null);
   
   const router = useRouter();
@@ -187,49 +187,61 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   
   useEffect(() => {
     if (!token) return;
-    setIsNominated(null); // Immediate reset on change
-    setLookupError(null);
+    
     const hasEmpId = empIdWatch && empIdWatch.length >= 2;
     const hasMobile = mobileWatch && mobileWatch.length === 10;
+    
     if (!hasEmpId && !hasMobile) {
-      setIsNominated(null);
+      setNominationStatus("idle");
       setLookupError(null);
       return;
     }
+
+    setNominationStatus("verifying");
+    const abortController = new AbortController();
+
     const lookupTimer = setTimeout(async () => {
       try {
         let qs = "";
         if (hasEmpId) qs += `employeeId=${encodeURIComponent(empIdWatch)}`;
         if (hasMobile) qs += `${qs ? "&" : ""}mobileNumber=${encodeURIComponent(mobileWatch)}`;
-        const res = await fetch(`/api/candidate/lookup?${qs}`);
+        
+        const res = await fetch(`/api/candidate/lookup?${qs}`, { signal: abortController.signal });
         const result = await res.json();
         
         if (result.success && result.data) {
           const m = result.data;
-          setIsNominated(true);
+          setNominationStatus("nominated");
           setLookupError(null);
+          
           if (m.employeeName && !form.getValues("name")) form.setValue("name", m.employeeName, { shouldValidate: true });
           if (m.vendor && !form.getValues("employer")) form.setValue("employer", m.vendor, { shouldValidate: true });
           if (m.state && !form.getValues("residentialState")) form.setValue("residentialState", m.state, { shouldValidate: true });
           if (m.city && !form.getValues("city")) form.setValue("city", m.city, { shouldValidate: true });
           if (m.pincode && !form.getValues("pincode")) form.setValue("pincode", m.pincode, { shouldValidate: true });
           if (m.phase) form.setValue("phase", m.phase, { shouldValidate: true });
+          
           const mobile = m.personalMobileNo || m.officeMobileNo;
           if (mobile && !form.getValues("mobileNumber")) form.setValue("mobileNumber", mobile, { shouldValidate: true });
         } else {
-          setIsNominated(false);
+          setNominationStatus("blocked");
           setLookupError("You are not nominated for this batch.");
         }
-      } catch (err) {
-        setIsNominated(false);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        setNominationStatus("blocked");
         setLookupError("You are not nominated for this batch.");
       }
     }, 800);
-    return () => clearTimeout(lookupTimer);
+
+    return () => {
+      clearTimeout(lookupTimer);
+      abortController.abort();
+    };
   }, [empIdWatch, mobileWatch, token, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!token || isNominated !== true) return;
+    if (!token || nominationStatus !== "nominated") return;
     setIsSubmitting(true);
     try {
       await fetch(`/api/candidate/${token}/heartbeat`, {
@@ -262,7 +274,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
     uploadedDocs.has("ID_PROOF") && 
     uploadedDocs.has("SIGNATURE");
 
-  const isFormReady = allFieldsFilled && allDocsUploaded && isNominated === true;
+  const isFormReady = allFieldsFilled && allDocsUploaded && nominationStatus === "nominated";
 
   if (isInitializing) {
     return (
@@ -332,7 +344,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 <h3 className="text-xl font-bold uppercase tracking-tight">Identity Verification</h3>
             </div>
 
-            {isNominated === false && lookupError && (
+            {nominationStatus === "blocked" && lookupError && (
               <div className="bg-red-500/10 border-2 border-red-500/20 rounded-2xl p-6 flex items-center gap-4 animate-in slide-in-from-top duration-500">
                 <div className="w-12 h-12 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20">
                   <AlertCircle className="h-6 w-6" />
@@ -341,6 +353,13 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   <h4 className="font-black text-red-600 uppercase tracking-wider">{lookupError}</h4>
                   <p className="text-xs text-red-500/80 font-bold uppercase tracking-tight italic">Please check your details and try again.</p>
                 </div>
+              </div>
+            )}
+
+            {nominationStatus === "verifying" && (
+              <div className="bg-primary/5 border-2 border-primary/10 rounded-2xl p-4 flex items-center gap-3 animate-pulse">
+                <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                <p className="text-xs font-bold text-primary uppercase tracking-widest">Verifying nomination details...</p>
               </div>
             )}
             
@@ -380,7 +399,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             </div>
           </div>
 
-          <div className={`space-y-10 transition-all duration-700 ${isNominated === true ? "opacity-100 scale-100" : "opacity-20 blur-sm pointer-events-none scale-[0.98]"}`}>
+          <div className={`space-y-10 transition-all duration-700 ${nominationStatus === "nominated" ? "opacity-100 scale-100" : "opacity-20 blur-sm pointer-events-none scale-[0.98]"}`}>
             <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8">
               <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-xl bg-primary/10 text-primary">
@@ -502,7 +521,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     disabled={!isFormReady || isSubmitting}
                     className={`h-20 px-16 rounded-[2.5rem] font-black text-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${isFormReady ? "bg-primary text-primary-foreground shadow-primary/40" : "bg-muted text-muted-foreground opacity-50"}`}
                 >
-                  {isSubmitting ? "Finalizing..." : isNominated === false ? "Not Nominated" : "Finalize Submission"}
+                  {isSubmitting ? "Finalizing..." : nominationStatus === "blocked" ? "Not Nominated" : "Finalize Submission"}
                 </Button>
               </div>
             </div>
