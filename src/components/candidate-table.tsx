@@ -49,7 +49,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   }, [candidates]);
 
   const filteredCandidates = useMemo(() => {
-    return candidates.filter(c => {
+    return candidates.filter((c: any) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch = 
         (c.name?.toLowerCase().includes(q)) ||
