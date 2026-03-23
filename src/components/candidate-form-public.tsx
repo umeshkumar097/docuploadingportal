@@ -216,11 +216,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           if (mobile && !form.getValues("mobileNumber")) form.setValue("mobileNumber", mobile, { shouldValidate: true });
         } else {
           setIsNominated(false);
-          setLookupError("YOUR NOT NONATED FOR THIS BATCH");
+          setLookupError("You are not nominated for this batch.");
         }
       } catch (err) {
         setIsNominated(false);
-        setLookupError("YOUR NOT NONATED FOR THIS BATCH");
+        setLookupError("You are not nominated for this batch.");
       }
     }, 800);
     return () => clearTimeout(lookupTimer);
