@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, UserPlus, Building2, Mail, Lock, Link, Plus, Globe, Copy, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function VendorManagementClient({ initialVendors, initialClients }: { initialVendors: any[], initialClients: any[] }) {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  
   const [activeTab, setActiveTab] = useState<"vendors" | "clients">("vendors");
+
+  useEffect(() => {
+    if (tabParam === "clients") {
+      setActiveTab("clients");
+    } else if (tabParam === "vendors") {
+      setActiveTab("vendors");
+    }
+  }, [tabParam]);
   const [vendors, setVendors] = useState(initialVendors);
   const [clients, setClients] = useState(initialClients);
   const [email, setEmail] = useState("");

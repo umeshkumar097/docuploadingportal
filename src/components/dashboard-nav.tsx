@@ -16,7 +16,8 @@ import {
   Activity,
   FileText,
   Database,
-  Building2
+  Building2,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -32,6 +33,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Candidates Workspace", href: "/dashboard", icon: LayoutDashboard },
   { label: "Master Data", href: "/dashboard/master-data", icon: Database },
+  { label: "Clients", href: "/dashboard/godeye?tab=clients", icon: Globe, superAdminOnly: true },
   { label: "Godeye", href: "/dashboard/godeye", icon: Building2, superAdminOnly: true },
 ];
 
