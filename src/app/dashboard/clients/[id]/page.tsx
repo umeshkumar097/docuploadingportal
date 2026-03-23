@@ -80,7 +80,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">Completion Rate</p>
                     <p className="text-xl font-black text-foreground">
                         {candidates.length > 0 
-                            ? `${Math.round((candidates.filter(c => c._count.documents >= 4).length / candidates.length) * 100)}%`
+                            ? `${Math.round((candidates.filter((c: any) => c._count.documents >= 4).length / candidates.length) * 100)}%`
                             : "0%"}
                     </p>
                 </div>
