@@ -9,8 +9,9 @@ export const metadata = {
 
 export default async function VendorsPage() {
   const session = await auth();
+  const role = session?.user?.role;
 
-  if (!session || session.user?.role !== "SUPERADMIN") {
+  if (!session || (role !== "SUPERADMIN" && role !== "ADMIN")) {
     redirect("/dashboard");
   }
 
@@ -33,7 +34,7 @@ export default async function VendorsPage() {
         </p>
       </div>
       
-      <VendorManagementClient initialVendors={vendors} initialClients={clients} />
+      <VendorManagementClient initialVendors={vendors} initialClients={clients} role={role || "ADMIN"} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, UserPlus, Building2, Mail, Lock, Link, Plus, Globe, Copy, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export function VendorManagementClient({ initialVendors, initialClients }: { initialVendors: any[], initialClients: any[] }) {
+export function VendorManagementClient({ initialVendors, initialClients, role }: { initialVendors: any[], initialClients: any[], role: string }) {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   
@@ -150,12 +150,14 @@ export function VendorManagementClient({ initialVendors, initialClients }: { ini
               </p>
             )}
 
-            <div className="mt-6 flex justify-end">
-              <Button onClick={handleCreateVendor} disabled={loading} className="h-12 rounded-2xl px-8 font-bold tracking-wide shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.02]">
-                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
-                Create Credentials
-              </Button>
-            </div>
+            {role === "SUPERADMIN" && (
+              <div className="mt-6 flex justify-end">
+                <Button onClick={handleCreateVendor} disabled={loading} className="h-12 rounded-2xl px-8 font-bold tracking-wide shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.02]">
+                  {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                  Create Credentials
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="glass-card p-6 md:p-8 rounded-3xl">
@@ -188,42 +190,44 @@ export function VendorManagementClient({ initialVendors, initialClients }: { ini
         </>
       ) : (
         <>
-          <div className="glass-card p-6 md:p-8 rounded-3xl animate-in slide-in-from-bottom-2 duration-500">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary" /> Register New Client
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Client Official Name</label>
-                <div className="relative group">
-                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                  <Input placeholder="E.g. TVS Credit" value={clientName} onChange={e => setClientName(e.target.value)} className="pl-12 h-12 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 font-medium" />
+          {role === "SUPERADMIN" && (
+            <div className="glass-card p-6 md:p-8 rounded-3xl animate-in slide-in-from-bottom-2 duration-500">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" /> Register New Client
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Client Official Name</label>
+                  <div className="relative group">
+                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                    <Input placeholder="E.g. TVS Credit" value={clientName} onChange={e => setClientName(e.target.value)} className="pl-12 h-12 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 font-medium" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Unique Link Slug</label>
+                  <div className="relative group">
+                    <Link className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                    <Input placeholder="tvs-credit" value={clientSlug} onChange={e => setClientSlug(e.target.value)} className="pl-12 h-12 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 font-medium" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground ml-1 font-medium italic">Final link will be: {typeof window !== 'undefined' ? window.location.origin : ''}/apply/{clientSlug || 'slug'}</p>
                 </div>
               </div>
-              <div className="space-y-3">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Unique Link Slug</label>
-                <div className="relative group">
-                  <Link className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                  <Input placeholder="tvs-credit" value={clientSlug} onChange={e => setClientSlug(e.target.value)} className="pl-12 h-12 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 font-medium" />
-                </div>
-                <p className="text-[10px] text-muted-foreground ml-1 font-medium italic">Final link will be: {window?.location.origin}/apply/{clientSlug || 'slug'}</p>
+
+              {message && (
+                <p className={`mt-4 text-sm font-bold ${message.includes("success") ? "text-emerald-500" : "text-red-500"}`}>
+                  {message}
+                </p>
+              )}
+
+              <div className="mt-6 flex justify-end">
+                <Button onClick={handleCreateClient} disabled={loading} className="h-12 rounded-2xl px-8 font-bold tracking-wide shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.02]">
+                  {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Register Client Link
+                </Button>
               </div>
             </div>
-
-            {message && (
-              <p className={`mt-4 text-sm font-bold ${message.includes("success") ? "text-emerald-500" : "text-red-500"}`}>
-                {message}
-              </p>
-            )}
-
-            <div className="mt-6 flex justify-end">
-              <Button onClick={handleCreateClient} disabled={loading} className="h-12 rounded-2xl px-8 font-bold tracking-wide shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.02]">
-                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
-                Register Client Link
-              </Button>
-            </div>
-          </div>
+          )}
 
           <div className="glass-card p-6 md:p-8 rounded-3xl">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
