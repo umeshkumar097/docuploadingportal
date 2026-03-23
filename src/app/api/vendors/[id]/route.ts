@@ -5,9 +5,10 @@ import bcrypt from "bcryptjs";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session || session.user?.role !== "SUPERADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -26,7 +27,7 @@ export async function PATCH(
     }
 
     const updatedVendor = await prisma.user.update({
-      where: { id: params.id, role: "VENDOR" },
+      where: { id, role: "VENDOR" },
       data,
     });
 
@@ -39,16 +40,17 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session || session.user?.role !== "SUPERADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await prisma.user.delete({
-      where: { id: params.id, role: "VENDOR" },
+      where: { id, role: "VENDOR" },
     });
 
     return NextResponse.json({ success: true });

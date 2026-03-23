@@ -4,9 +4,10 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function ApplyClientPage({ params }: { params: { slug: string } }) {
+export default async function ApplyClientPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const client = await prisma.client.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
   });
 
   if (!client) {

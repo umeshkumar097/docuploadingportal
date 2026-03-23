@@ -7,7 +7,8 @@ import { ChevronLeft, Building2, Users, FileBarChart } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export default async function ClientDetailPage({ params }: { params: { id: string } }) {
+export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   const role = session?.user?.role;
 
@@ -16,7 +17,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   }
 
   const client = await prisma.client.findUnique({
-    where: { id: params.id }
+    where: { id }
   });
 
   if (!client) {
@@ -24,7 +25,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   }
 
   const candidates = await prisma.candidate.findMany({
-    where: { clientId: params.id },
+    where: { clientId: id },
     include: {
       documents: true,
       _count: {
