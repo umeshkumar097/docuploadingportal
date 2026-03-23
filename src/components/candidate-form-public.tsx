@@ -472,10 +472,10 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   <h3 className="text-2xl font-black uppercase italic">Upload Documents</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <FileUpload candidateId={candidateId as string} type="PHOTO" label="Photograph" mandatory={true} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" mandatory={true} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload candidateId={candidateId as string} type="ID_PROOF" label="Identity Proof" mandatory={true} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" mandatory={true} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload candidateId={candidateId as string} type="ID_PROOF" label="Identity Proof" maxSizeKB={10240} mandatory={true} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} onUploadSuccess={handleUploadSuccess} />
               </div>
             </div>
 
