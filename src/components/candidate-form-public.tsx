@@ -187,6 +187,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   
   useEffect(() => {
     if (!token) return;
+    setIsNominated(null); // Immediate reset on change
+    setLookupError(null);
     const hasEmpId = empIdWatch && empIdWatch.length >= 2;
     const hasMobile = mobileWatch && mobileWatch.length === 10;
     if (!hasEmpId && !hasMobile) {
@@ -227,7 +229,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   }, [empIdWatch, mobileWatch, token, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!token || isNominated === false) return;
+    if (!token || isNominated !== true) return;
     setIsSubmitting(true);
     try {
       await fetch(`/api/candidate/${token}/heartbeat`, {
