@@ -10,7 +10,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const session = await auth();
-    if (!session || session.user?.role !== "SUPERADMIN") {
+    if (!session || (session.user?.role !== "SUPERADMIN" && session.user?.role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -45,7 +45,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const session = await auth();
-    if (!session || session.user?.role !== "SUPERADMIN") {
+    if (!session || (session.user?.role !== "SUPERADMIN" && session.user?.role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
