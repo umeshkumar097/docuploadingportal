@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || session.user?.role !== "SUPERADMIN") {
+    if (!session || (session.user?.role !== "SUPERADMIN" && session.user?.role !== "ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

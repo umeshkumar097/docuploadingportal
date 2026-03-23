@@ -67,7 +67,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
         </div>
 
         <div className="flex items-center gap-3">
-            {role === "ADMIN" && candidate.status === "PENDING" && (
+            {(role === "ADMIN" || role === "SUPERADMIN") && candidate.status === "PENDING" && (
                 <div className="flex gap-2">
                     <form action={async () => {
                         "use server";

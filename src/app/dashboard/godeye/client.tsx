@@ -196,7 +196,7 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
               </p>
             )}
 
-            {role === "SUPERADMIN" && (
+            {(role === "SUPERADMIN" || role === "ADMIN") && (
               <div className="mt-6 flex justify-end">
                 <Button onClick={handleCreateVendor} disabled={loading} className="h-12 rounded-2xl px-8 font-bold tracking-wide shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.02]">
                   {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
@@ -223,7 +223,7 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
                         {v.vendorName?.substring(0,2) || "VD"}
                       </div>
                       <div className="flex gap-1">
-                        {role === "SUPERADMIN" && (
+                        {(role === "SUPERADMIN" || role === "ADMIN") && (
                           <>
                             <Button 
                               variant="ghost" 
@@ -264,7 +264,7 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
         </>
       ) : (
         <>
-          {role === "SUPERADMIN" && (
+          {(role === "SUPERADMIN" || role === "ADMIN") && (
             <div className="glass-card p-6 md:p-8 rounded-3xl animate-in slide-in-from-bottom-2 duration-500">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" /> Register New Client
