@@ -67,7 +67,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   
   const router = useRouter();
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-  const [uploadedDocs, setUploadedDocs] = new useState<Set<string>>(new Set());
+  const [uploadedDocs, setUploadedDocs] = useState<Set<string>>(new Set());
 
   const handleUploadSuccess = (type: string) => {
     setUploadedDocs(prev => {
