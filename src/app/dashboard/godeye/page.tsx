@@ -10,27 +10,30 @@ export const metadata = {
 export default async function VendorsPage() {
   const session = await auth();
 
-  if (!session || session.user?.role !== "ADMIN") {
+  if (!session || session.user?.role !== "SUPERADMIN") {
     redirect("/dashboard");
   }
 
-  // Fetch existing vendors
   const vendors = await prisma.user.findMany({
     where: { role: "VENDOR" },
     select: { id: true, email: true, name: true, vendorName: true },
     orderBy: { email: "asc" }
   });
 
+  const clients = await prisma.client.findMany({
+    orderBy: { createdAt: "desc" }
+  });
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-3xl font-black text-foreground tracking-tight">Multi-Tenant Vendors</h1>
+        <h1 className="text-3xl font-black text-foreground tracking-tight">Godeye Control Center</h1>
         <p className="text-muted-foreground mt-2 font-medium">
-          Create and manage dedicated portals for your partner companies. Vendors can log in to view only their specific candidates and upload scoped Master Data.
+          Manage Vendors and Clients. Generate unique application links and oversee multi-tenant configurations.
         </p>
       </div>
       
-      <VendorManagementClient initialVendors={vendors} />
+      <VendorManagementClient initialVendors={vendors} initialClients={clients} />
     </div>
   );
 }

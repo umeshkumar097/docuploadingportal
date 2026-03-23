@@ -40,6 +40,7 @@ const formSchema = z.object({
   pincode: z.string().regex(/^[0-9]{6}$/, "Pincode must be exactly 6 digits"),
   mobileNumber: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits"),
   employeeId: z.string().min(2, "Employee ID is required"),
+  phase: z.string().optional(),
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
     message: "Please select an ID type",
   }),
@@ -49,7 +50,12 @@ const formSchema = z.object({
   }),
 });
 
-export function CandidateFormPublic() {
+interface CandidateFormPublicProps {
+  clientId?: string;
+  clientName?: string;
+}
+
+export function CandidateFormPublic({ clientId, clientName }: CandidateFormPublicProps) {
   const [isInitializing, setIsInitializing] = useState(true);
   const [candidateId, setCandidateId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -79,6 +85,7 @@ export function CandidateFormPublic() {
       pincode: "",
       mobileNumber: "",
       employeeId: "",
+      phase: "Phase 1",
       idType: undefined as any,
       idNumber: "",
       originalDegree: false,
@@ -112,7 +119,11 @@ export function CandidateFormPublic() {
         }
 
         // Create new anonymous session
-        const res = await fetch("/api/candidate/init", { method: "POST" });
+        const res = await fetch("/api/candidate/init", { 
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clientId })
+        });
         const data = await res.json();
         
         if (data.success) {
@@ -160,6 +171,7 @@ export function CandidateFormPublic() {
               pincode: value.pincode || undefined,
               mobileNumber: value.mobileNumber || undefined,
               employeeId: value.employeeId || undefined,
+              phase: value.phase || undefined,
               idType: value.idType || undefined,
               idNumber: value.idNumber || undefined,
             }),
@@ -201,6 +213,7 @@ export function CandidateFormPublic() {
           if (m.state && !form.getValues("residentialState")) form.setValue("residentialState", m.state, { shouldValidate: true });
           if (m.city && !form.getValues("city")) form.setValue("city", m.city, { shouldValidate: true });
           if (m.pincode && !form.getValues("pincode")) form.setValue("pincode", m.pincode, { shouldValidate: true });
+          if (m.phase) form.setValue("phase", m.phase, { shouldValidate: true });
           
           const mobile = m.personalMobileNo || m.officeMobileNo;
           if (mobile && !form.getValues("mobileNumber")) form.setValue("mobileNumber", mobile, { shouldValidate: true });
@@ -312,10 +325,10 @@ export function CandidateFormPublic() {
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
-          Document <span className="text-primary">Submission</span>
+          {clientName ? <span className="text-primary truncate block max-w-full px-4">{clientName}</span> : "Document"} <span className={clientName ? "text-foreground" : "text-primary"}>Submission</span>
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Please provide your details and upload the required documents for verification. Ensure all copies are clear and original.
+          {clientName ? `Please complete your document verification for ${clientName}.` : "Please provide your details and upload the required documents for verification."} Ensure all copies are clear and original.
         </p>
       </div>
 

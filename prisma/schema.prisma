@@ -46,6 +46,15 @@ enum DocumentStatus {
   REJECTED
 }
 
+model Client {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  slug      String      @unique
+  candidates Candidate[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
 model User {
   id    String @id @default(cuid())
   name       String?
@@ -67,6 +76,9 @@ model Candidate {
   token        String          @unique @default(uuid())
   name             String?
   employer         String?
+  phase            String?         @default("Phase 1")
+  clientId         String?
+  client           Client?         @relation(fields: [clientId], references: [id])
   residentialState String?
   city             String?
   pincode          String?
@@ -111,6 +123,7 @@ model MasterEmployee {
   personalMobileNo      String?
   whatsappNo            String?
   vendor                String?
+  phase                 String?   @default("Phase 1")
   region2               String?
   location2             String?
   city                  String?

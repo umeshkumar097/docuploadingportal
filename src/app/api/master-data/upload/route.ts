@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       personalMobileNo: String(row["Personal Mobile No"] || "").trim(),
       whatsappNo: String(row["Whatsapp No"] || "").trim(),
       vendor: vendorNameLimit ? vendorNameLimit : String(row["Vendor"] || "").trim(),
+      phase: String(row["Phase"] || row["Phases"] || "Phase 1").trim(),
       region2: String(row["Region 2"] || "").trim(),
       location2: String(row["Location2"] || "").trim(),
       city: String(row["City"] || "").trim(),

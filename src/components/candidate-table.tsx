@@ -36,6 +36,12 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   // Search and Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
+  const [phaseFilter, setPhaseFilter] = useState("all");
+
+  const uniquePhases = useMemo(() => {
+    const phases = candidates.map(c => c.phase).filter(Boolean);
+    return Array.from(new Set(phases)).sort();
+  }, [candidates]);
 
   const uniqueCompanies = useMemo(() => {
     const companies = candidates.map(c => c.employer).filter(Boolean);
@@ -51,10 +57,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         (c.mobileNumber?.includes(searchQuery));
       
       const matchesCompany = companyFilter === "all" || c.employer === companyFilter;
+      const matchesPhase = phaseFilter === "all" || c.phase === phaseFilter;
       
-      return matchesSearch && matchesCompany;
+      return matchesSearch && matchesCompany && matchesPhase;
     });
-  }, [candidates, searchQuery, companyFilter]);
+  }, [candidates, searchQuery, companyFilter, phaseFilter]);
 
   const handleDeleteClick = (id: string, name: string) => {
     setCandidateToDelete({ id, name });
@@ -188,6 +195,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       return {
         "Registration Date": new Date(c.createdAt).toLocaleString(),
         "Candidate Name": c.name || "Anonymous",
+        "Phase": c.phase || "Phase 1",
         "Employer": c.employer || "N/A",
         "Residential State": c.residentialState || "N/A",
         "Mobile": c.mobileNumber || "N/A",
@@ -209,6 +217,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
     const wscols = [
       { wch: 25 }, // Date
       { wch: 25 }, // Name
+      { wch: 12 }, // Phase
       { wch: 20 }, // Employer
       { wch: 20 }, // State
       { wch: 15 }, // Mobile
@@ -257,6 +266,20 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
               </select>
             </div>
           )}
+
+          <div className="relative flex-1 md:flex-none">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <select
+              className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 min-w-[150px]"
+              value={phaseFilter}
+              onChange={(e) => setPhaseFilter(e.target.value)}
+            >
+              <option value="all">All Phases</option>
+              {uniquePhases.map(phase => (
+                <option key={phase} value={phase}>{phase}</option>
+              ))}
+            </select>
+          </div>
           
           <Button 
             variant="outline" 
@@ -338,7 +361,14 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 </TableCell>
                 <TableCell className="py-6 pl-2">
                   <div className="flex flex-col">
-                      <span className="font-bold text-foreground text-sm">{candidate.name || "Anonymous Candidate"}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-foreground text-sm">{candidate.name || "Anonymous Candidate"}</span>
+                        {candidate.phase && (
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-primary/20 text-primary/70 font-bold uppercase tracking-tighter">
+                            {candidate.phase}
+                          </Badge>
+                        )}
+                      </div>
                       <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{candidate.employeeId || candidate.id}</span>
                   </div>
                 </TableCell>
