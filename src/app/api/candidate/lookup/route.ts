@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       existingCandidate: existingCandidate ? {
         token: existingCandidate.token,
         id: existingCandidate.id,
-        uploadedDocumentTypes: existingCandidate.documents.map(d => d.type)
+        uploadedDocumentTypes: existingCandidate.documents.map((d: any) => d.type)
       } : null
     });
 
