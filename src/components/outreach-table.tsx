@@ -4,8 +4,9 @@ import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, AlertCircle, Phone } from "lucide-react";
+import { Search, Filter, AlertCircle, Phone, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import * as XLSX from "xlsx";
 
 interface OutreachTableProps {
   data: any[];
@@ -34,6 +35,30 @@ export function OutreachTable({ data }: OutreachTableProps) {
     });
   }, [data, searchQuery, vendorFilter]);
 
+  const handleExportExcel = () => {
+    const dataToExport = filteredData.map(m => ({
+      "Name": m.employeeName || "N/A",
+      "Whatsapp Number": m.whatsappNo || "N/A",
+      "Employee ID": m.employeeId || "N/A",
+      "Vendor": m.vendor || "N/A"
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Outreach List");
+    
+    // Set column widths
+    worksheet["!cols"] = [
+      { wch: 30 }, // Name
+      { wch: 20 }, // WhatsApp
+      { wch: 15 }, // Emp ID
+      { wch: 20 }, // Vendor
+    ];
+
+    const filename = `Outreach-List-${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, filename);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between pb-2">
@@ -47,18 +72,28 @@ export function OutreachTable({ data }: OutreachTableProps) {
           />
         </div>
 
-        <div className="relative w-full md:w-auto">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <select
-            className="pl-10 pr-8 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-pink-500/20 min-w-[200px]"
-            value={vendorFilter}
-            onChange={(e) => setVendorFilter(e.target.value)}
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:flex-none">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <select
+              className="pl-10 pr-8 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-pink-500/20 min-w-[200px]"
+              value={vendorFilter}
+              onChange={(e) => setVendorFilter(e.target.value)}
+            >
+              <option value="all">All Vendors</option>
+              {uniqueVendors.map((vendor: any) => (
+                <option key={vendor} value={vendor}>{vendor}</option>
+              ))}
+            </select>
+          </div>
+          
+          <Button 
+            onClick={handleExportExcel}
+            className="h-12 rounded-2xl px-6 font-bold bg-pink-600 text-white hover:bg-pink-700 transition-all gap-2 shadow-lg shadow-pink-500/20"
           >
-            <option value="all">All Vendors</option>
-            {uniqueVendors.map((vendor: any) => (
-              <option key={vendor} value={vendor}>{vendor}</option>
-            ))}
-          </select>
+            <Download className="h-4 w-4" />
+            Export Calling List
+          </Button>
         </div>
       </div>
 
