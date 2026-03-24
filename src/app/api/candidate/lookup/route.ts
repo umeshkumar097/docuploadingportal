@@ -20,11 +20,31 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    if (!employeeData) {
-      return NextResponse.json({ error: "Employee not found", found: false }, { status: 404 });
-    }
+    const existingCandidate = await prisma.candidate.findFirst({
+      where: {
+        OR: [
+          ...(employeeId ? [{ employeeId }] : []),
+          ...(mobileNumber ? [{ mobileNumber }] : [])
+        ],
+        status: { not: "READY" }
+      },
+      include: {
+        documents: {
+          select: { type: true }
+        }
+      }
+    });
 
-    return NextResponse.json({ success: true, found: true, data: employeeData });
+    return NextResponse.json({ 
+      success: true, 
+      found: true, 
+      data: employeeData,
+      existingCandidate: existingCandidate ? {
+        token: existingCandidate.token,
+        id: existingCandidate.id,
+        uploadedDocumentTypes: existingCandidate.documents.map(d => d.type)
+      } : null
+    });
 
   } catch (error: any) {
     console.error("Lookup Error:", error);

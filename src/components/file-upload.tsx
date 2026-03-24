@@ -13,12 +13,13 @@ interface FileUploadProps {
   maxSizeKB: number;
   mandatory?: boolean;
   description?: string;
+  initialSuccess?: boolean;
   onUploadSuccess?: (type: string) => void;
   onOcrSuccess?: (extractedText: string) => void;
 }
 
-export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, description, onUploadSuccess, onOcrSuccess }: FileUploadProps) {
-  const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, description, initialSuccess, onUploadSuccess, onOcrSuccess }: FileUploadProps) {
+  const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">(initialSuccess ? "success" : "idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);

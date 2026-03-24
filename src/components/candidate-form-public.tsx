@@ -214,6 +214,19 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           setNominationStatus("nominated");
           setLookupError(null);
           
+          // Resume Session if found
+          if (result.existingCandidate) {
+            const ext = result.existingCandidate;
+            setToken(ext.token);
+            setCandidateId(ext.id);
+            localStorage.setItem("cruxdoc_token", ext.token);
+            localStorage.setItem("cruxdoc_id", ext.id);
+            
+            if (ext.uploadedDocumentTypes) {
+              setUploadedDocs(new Set(ext.uploadedDocumentTypes));
+            }
+          }
+
           if (m.employeeName && !form.getValues("name")) form.setValue("name", m.employeeName, { shouldValidate: true });
           if (m.vendor && !form.getValues("employer")) form.setValue("employer", m.vendor, { shouldValidate: true });
           if (m.state && !form.getValues("residentialState")) form.setValue("residentialState", m.state, { shouldValidate: true });
@@ -493,10 +506,10 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   <h3 className="text-2xl font-black uppercase italic">Upload Documents</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <FileUpload candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload candidateId={candidateId as string} type="ID_PROOF" label="Identity Proof" maxSizeKB={10240} mandatory={true} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload candidateId={candidateId as string} type="ID_PROOF" label="Identity Proof" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("ID_PROOF")} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
               </div>
             </div>
 

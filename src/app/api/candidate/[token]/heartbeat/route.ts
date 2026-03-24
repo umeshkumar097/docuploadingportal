@@ -34,7 +34,10 @@ export async function POST(
       lastActiveAt: new Date(),
     };
 
-    if (step) {
+    if (step === "COMPLETED") {
+      updateData.status = "READY";
+      updateData.currentStep = "COMPLETED";
+    } else if (step) {
       updateData.currentStep = step;
     }
 

@@ -37,6 +37,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
   const [phaseFilter, setPhaseFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState<"submitted" | "no-submit" | "login">("submitted");
 
   const uniquePhases = useMemo(() => {
     const phases = candidates.map(c => c.phase).filter(Boolean);
@@ -50,6 +51,17 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
 
   const filteredCandidates = useMemo(() => {
     return candidates.filter((c: any) => {
+      // Identity Category Filter
+      const docCount = c._count?.documents ?? c.documents?.length ?? 0;
+      const isSubmitted = c.status !== "PENDING";
+      const isNoSubmit = c.status === "PENDING" && docCount > 0;
+      const isLogin = c.status === "PENDING" && docCount === 0 && (c.employeeId || c.name);
+
+      if (activeTab === "submitted" && !isSubmitted) return false;
+      if (activeTab === "no-submit" && !isNoSubmit) return false;
+      if (activeTab === "login" && !isLogin) return false;
+
+      // Other Filters
       const q = searchQuery.toLowerCase();
       const matchesSearch = 
         (c.name?.toLowerCase().includes(q)) ||
@@ -61,7 +73,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       
       return matchesSearch && matchesCompany && matchesPhase;
     });
-  }, [candidates, searchQuery, companyFilter, phaseFilter]);
+  }, [candidates, searchQuery, companyFilter, phaseFilter, activeTab]);
 
   const handleDeleteClick = (id: string, name: string) => {
     setCandidateToDelete({ id, name });
@@ -238,6 +250,28 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   };
 
   return (    <div className="space-y-6">
+      {/* Category Tabs */}
+      <div className="flex flex-wrap gap-2 pb-2">
+        <button
+          onClick={() => setActiveTab("submitted")}
+          className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "submitted" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
+        >
+          Submitted ({candidates.filter(c => c.status !== "PENDING").length})
+        </button>
+        <button
+          onClick={() => setActiveTab("no-submit")}
+          className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "no-submit" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
+        >
+          No Submit ({candidates.filter(c => c.status === "PENDING" && (c._count?.documents > 0 || c.documents?.length > 0)).length})
+        </button>
+        <button
+          onClick={() => setActiveTab("login")}
+          className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "login" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
+        >
+          Login ({candidates.filter(c => c.status === "PENDING" && (c._count?.documents === 0 || c.documents?.length === 0) && (c.employeeId || c.name)).length})
+        </button>
+      </div>
+
       {/* Search and Filters Bar */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between pb-2">
         <div className="relative w-full md:w-96 group">
