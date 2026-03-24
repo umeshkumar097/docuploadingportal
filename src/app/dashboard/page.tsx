@@ -24,7 +24,8 @@ export default async function DashboardPage() {
     const role = session?.user?.role || "OPS";
     const vendorName = (session?.user as any)?.vendorName;
 
-    const whereClause: any = { name: { not: null } };
+    // Include all candidates to track Login, No Submit, and Submitted states
+    const whereClause: any = {};
     
     if (role === "VENDOR") {
       if (vendorName) {
@@ -60,9 +61,15 @@ export default async function DashboardPage() {
 
     const totalCandidates = candidates.length;
 
+    const submittedCount = candidates.filter(c => c.status !== "PENDING").length;
+    const partialCount = candidates.filter(c => c.status === "PENDING" && (c._count?.documents > 0 || (c.documents && c.documents.length > 0))).length;
+    const loginOnlyCount = candidates.filter(c => c.status === "PENDING" && (c._count?.documents === 0 || !c.documents || c.documents.length === 0) && (c.employeeId || c.name)).length;
+
     const stats = [
-      { label: "Total Candidates", value: totalCandidates, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-      { label: "Success Rate", value: "100%", icon: TrendingUp, color: "text-violet-500", bg: "bg-violet-500/10" },
+      { label: "Submitted", value: submittedCount, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+      { label: "Partial (No Submit)", value: partialCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
+      { label: "Identified (Login)", value: loginOnlyCount, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+      { label: "Total Reach", value: totalCandidates, icon: Database, color: "text-violet-500", bg: "bg-violet-500/10" },
     ];
 
     return (
