@@ -37,6 +37,14 @@ const formSchema = z.object({
   employer: z.string().min(2, "Employer is required"),
   mobileNumber: z.string().regex(/^[0-9]{10}$/, "10-digit mobile number is required"),
   employeeId: z.string().min(2, "Employee ID is required"),
+  residentialState: z.string().min(2, "Residential State is required"),
+  city: z.string().min(2, "City is required"),
+  pincode: z.string().regex(/^[0-9]{6}$/, "Pincode must be exactly 6 digits"),
+  phase: z.string().optional(),
+  idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
+    message: "Please select an ID type",
+  }),
+  idNumber: z.string().optional(),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -59,6 +67,12 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
       employer: initialData?.employer || "",
       mobileNumber: initialData?.mobileNumber || "",
       employeeId: initialData?.employeeId || "",
+      residentialState: initialData?.residentialState || "",
+      city: initialData?.city || "",
+      pincode: initialData?.pincode || "",
+      phase: initialData?.phase || "Phase 1",
+      idType: initialData?.idType || "" as any,
+      idNumber: initialData?.idNumber || "",
       originalDegree: false,
     },
   });
@@ -68,6 +82,39 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
       setUploadedDocs(new Set(initialData.documents.map((d: any) => d.type)));
     }
   }, [initialData]);
+
+  // Auto-Save Debouncer (Same as Public Form)
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      const token = initialData?.token;
+      if (!token) return;
+      
+      const timer = setTimeout(async () => {
+        try {
+          await fetch(`/api/candidate/${token}/update-info`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: value.name || undefined,
+              employer: value.employer || undefined,
+              residentialState: value.residentialState || undefined,
+              city: value.city || undefined,
+              pincode: value.pincode || undefined,
+              mobileNumber: value.mobileNumber || undefined,
+              employeeId: value.employeeId || undefined,
+              phase: value.phase || undefined,
+              idType: value.idType || undefined,
+              idNumber: value.idNumber || undefined,
+            }),
+          });
+        } catch (err) {
+          console.error("Auto-save failed implicitly", err);
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, initialData]);
 
   const handleUploadSuccess = (type: string) => {
     setUploadedDocs(prev => new Set([...prev, type]));
@@ -208,6 +255,58 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                         <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
                         <Input placeholder="Enter ID" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-semibold" {...field} />
                       </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="residentialState"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">State</FormLabel>
+                    <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6 font-semibold" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">City</FormLabel>
+                    <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6 font-semibold" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pincode"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Pincode</FormLabel>
+                    <FormControl><Input maxLength={6} className="h-14 rounded-2xl bg-accent/30 border-none px-6 font-semibold" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="idType"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">ID Type</FormLabel>
+                    <FormControl>
+                      <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
+                        <option value="" disabled>Select</option>
+                        <option value="PAN">PAN</option>
+                        <option value="AADHAAR">Aadhaar</option>
+                        <option value="DL">DL</option>
+                        <option value="PASSPORT">Passport</option>
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
