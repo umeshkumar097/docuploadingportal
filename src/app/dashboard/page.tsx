@@ -59,7 +59,7 @@ export default async function DashboardPage() {
       },
     });
 
-    const masterData = await prisma.masterData.findMany({
+    const masterData = await prisma.masterEmployee.findMany({
       orderBy: { createdAt: "desc" }
     });
 
