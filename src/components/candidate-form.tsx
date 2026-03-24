@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileUpload } from "./file-upload";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
@@ -25,13 +25,17 @@ import {
   ShieldCheck,
   UploadCloud,
   CheckCircle2,
-  FileText
+  FileText,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name is required"),
+  name: z.string()
+    .min(2, "Name as per ID Proof is required")
+    .regex(/^(?![0-9.\-/]*$)[a-zA-Z0-9\s.]+$/, "Please enter your full name (dates or numbers not allowed)"),
   employer: z.string().min(2, "Employer is required"),
-  mobileNumber: z.string().min(10, "Valid mobile number is required"),
+  mobileNumber: z.string().regex(/^[0-9]{10}$/, "10-digit mobile number is required"),
   employeeId: z.string().min(2, "Employee ID is required"),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
@@ -46,6 +50,7 @@ interface CandidateFormProps {
 export function CandidateForm({ candidateId, initialData }: CandidateFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [uploadedDocs, setUploadedDocs] = useState<Set<string>>(new Set());
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,13 +63,34 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
     },
   });
 
+  useEffect(() => {
+    if (initialData?.documents) {
+      setUploadedDocs(new Set(initialData.documents.map((d: any) => d.type)));
+    }
+  }, [initialData]);
+
+  const handleUploadSuccess = (type: string) => {
+    setUploadedDocs(prev => new Set([...prev, type]));
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    // Simulating API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log(values);
-    setIsSubmitting(false);
-    setSubmitted(true);
+    try {
+      const token = initialData?.token;
+      if (!token) return;
+
+      await fetch(`/api/candidate/${token}/heartbeat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: "COMPLETED" })
+      });
+      
+      setSubmitted(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const allFieldsFilled = 
@@ -74,21 +100,27 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
     form.watch("employeeId") && 
     form.watch("originalDegree");
 
+  const allDocsUploaded = 
+    uploadedDocs.has("PHOTO") && 
+    uploadedDocs.has("QUALIFICATION") && 
+    uploadedDocs.has("ID_PROOF") && 
+    uploadedDocs.has("SIGNATURE");
+
+  const isFormReady = allFieldsFilled && allDocsUploaded;
+
   if (submitted) {
     return (
-      <div className="glass-card p-12 rounded-3xl text-center space-y-6 animate-in zoom-in duration-500 max-w-lg mx-auto">
-        <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 className="h-10 w-10" />
+      <div className="glass-card p-12 rounded-[3rem] text-center space-y-8 max-w-2xl mx-auto shadow-2xl backdrop-blur-2xl border-white/40">
+        <div className="w-24 h-24 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+          <CheckCircle2 className="h-12 w-12" />
         </div>
-        <h2 className="text-3xl font-black text-foreground">Submission Complete!</h2>
-        <p className="text-muted-foreground leading-relaxed">
-          Your documents have been successfully uploaded and are now being reviewed by our verification team.
-        </p>
-        <Button 
-          variant="outline" 
-          className="rounded-2xl h-12 px-8 font-bold"
-          onClick={() => window.location.reload()}
-        >
+        <div className="space-y-4">
+          <h2 className="text-4xl font-black text-foreground">Submission Complete!</h2>
+          <p className="text-muted-foreground text-lg italic">
+            Your documents have been successfully uploaded and are now being reviewed.
+          </p>
+        </div>
+        <Button variant="outline" className="rounded-2xl h-14 px-10 font-bold mt-4" onClick={() => window.location.reload()}>
           View Status
         </Button>
       </div>
@@ -96,26 +128,24 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 pb-20">
-      {/* Header */}
+    <div className="max-w-4xl mx-auto space-y-12">
       <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
           Document <span className="text-primary">Submission</span>
         </h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Please provide your details and upload the required documents for verification. Ensure all copies are clear and original.
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto italic font-medium">
+          Ensure all copies are clear and original.
         </p>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
-          {/* Personal Info Group */}
-          <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8">
-            <div className="flex items-center gap-3 mb-2">
+          <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8 relative overflow-hidden">
+             <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 rounded-xl bg-primary/10 text-primary">
                     <User className="h-5 w-5" />
                 </div>
-                <h3 className="text-xl font-bold">Personal Information</h3>
+                <h3 className="text-xl font-bold uppercase tracking-tight">Personal Information</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -124,11 +154,11 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="name"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Full Name</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Name per ID Proof</FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                        <Input placeholder="John Doe" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                        <Input placeholder="Enter Name" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-semibold" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -140,11 +170,11 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="employer"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Employer</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Employer/Company</FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                        <Input placeholder="Tech Corp" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                        <Input placeholder="Enter Company" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-semibold" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -156,11 +186,11 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="mobileNumber"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Mobile Number</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Mobile Number</FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                        <Input placeholder="9876543210" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                        <Input maxLength={10} placeholder="Enter Mobile" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-semibold" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -172,11 +202,11 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="employeeId"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Employee ID</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Employee ID</FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                        <Input placeholder="EMP123" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-medium" {...field} />
+                        <Input placeholder="Enter ID" className="pl-12 h-14 rounded-2xl bg-accent/30 border-none focus-visible:ring-2 focus-visible:ring-primary/50 text-base font-semibold" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -186,83 +216,51 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
             </div>
           </div>
 
-          {/* Document Uploads Group */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 px-4">
                 <div className="p-2 rounded-xl bg-primary/10 text-primary">
                     <UploadCloud className="h-5 w-5" />
                 </div>
-                <h3 className="text-2xl font-black">Required Documents</h3>
+                <h3 className="text-2xl font-black uppercase italic">Required Documents</h3>
             </div>
-            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[
-                { type: "PHOTO", label: "Photograph", size: "20KB", icon: User },
-                { type: "QUALIFICATION", label: "Qualification", size: "201KB", icon: FileText },
-                { type: "ID_PROOF", label: "ID Proof", size: "25KB", icon: CreditCard },
-                { type: "SIGNATURE", label: "Signature", size: "20KB", icon: CheckCircle2 },
-              ].map((doc) => (
-                <div key={doc.type} className="group">
-                  <FileUpload 
-                    candidateId={candidateId} 
-                    type={doc.type as any} 
-                    label={`${doc.label} (Max ${doc.size})`} 
-                    maxSizeKB={parseInt(doc.size)} 
-                  />
-                </div>
-              ))}
+              <FileUpload candidateId={candidateId} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
+              <FileUpload candidateId={candidateId} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
+              <FileUpload candidateId={candidateId} type="ID_PROOF" label="Identity Proof" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("ID_PROOF")} onUploadSuccess={handleUploadSuccess} />
+              <FileUpload candidateId={candidateId} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
             </div>
           </div>
 
-          {/* Consent Section */}
-          <div className="space-y-6 pt-4">
-              <FormField
-                control={form.control}
-                name="originalDegree"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-4 space-y-0 rounded-[2rem] border-2 border-primary/10 p-6 bg-primary/5 transition-colors hover:bg-primary/10">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="h-6 w-6 rounded-lg data-[state=checked]:bg-primary"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-tight">
-                      <FormLabel className="text-sm font-bold text-foreground cursor-pointer">
-                        Crucial Confirmation
-                      </FormLabel>
-                      <FormDescription className="text-xs font-medium text-muted-foreground">
-                        I hereby solemnly affirm that the degree certificate being uploaded is the <span className="text-primary font-bold underline">Original Document</span> issued by the University, and not a provisional, temporary, or digital copy.
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
+          <div className="space-y-8">
+            <FormField
+              control={form.control}
+              name="originalDegree"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-5 space-y-0 rounded-[2.5rem] border-2 border-emerald-500/30 p-8 bg-emerald-500/5 transition-colors hover:bg-emerald-500/10">
+                  <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="h-8 w-8 rounded-lg mt-1" /></FormControl>
+                  <div className="space-y-2 leading-tight">
+                    <FormLabel className="text-lg font-black text-emerald-900 uppercase">Original Certificate Confirmation</FormLabel>
+                    <FormDescription className="text-sm font-bold text-emerald-800/70">I confirm these are original copies.</FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
 
-              <div className="flex justify-center pt-6">
-                <Button 
-                    type="submit" 
-                    size="lg"
-                    className={`
-                        premium-button h-16 px-12 rounded-[2rem] font-black text-lg transition-all
-                        ${allFieldsFilled ? "bg-primary text-primary-foreground shadow-2xl shadow-primary/40" : "bg-muted text-muted-foreground"}
-                    `}
-                    disabled={!allFieldsFilled || isSubmitting}
-                >
-                    {isSubmitting ? (
-                        <div className="flex items-center gap-3">
-                            <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                            Processing...
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <ShieldCheck className="h-6 w-6" />
-                            Finalize Submission
-                        </div>
-                    )}
-                </Button>
-              </div>
+            <div className="flex justify-center flex-col items-center gap-4">
+              <Button 
+                  type="submit" 
+                  disabled={!isFormReady || isSubmitting}
+                  className={`h-20 px-16 rounded-[2.5rem] font-black text-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${isFormReady ? "bg-primary text-primary-foreground shadow-primary/40" : "bg-muted text-muted-foreground opacity-50"}`}
+              >
+                {isSubmitting ? "Finalizing..." : "Finalize Submission"}
+              </Button>
+              {!isFormReady && !isSubmitting && (
+                  <p className="text-xs font-bold text-red-500 uppercase tracking-widest animate-pulse flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Complete all fields & uploads to finalize
+                  </p>
+              )}
+            </div>
           </div>
         </form>
       </Form>
