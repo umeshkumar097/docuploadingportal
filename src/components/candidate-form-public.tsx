@@ -33,7 +33,9 @@ import {
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name as per ID Proof is required"),
+  name: z.string()
+    .min(2, "Name as per ID Proof is required")
+    .regex(/^(?![0-9.\-/]*$)[a-zA-Z0-9\s.]+$/, "Please enter your full name (dates or numbers not allowed)"),
   employer: z.string().min(2, "Company/Agency is required"),
   residentialState: z.string().min(2, "Residential State is required"),
   city: z.string().min(2, "City is required"),
@@ -214,6 +216,13 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           setNominationStatus("nominated");
           setLookupError(null);
           
+          // Prevent re-submission if already completed
+          if (result.alreadySubmitted) {
+            setNominationStatus("blocked");
+            setLookupError("Your documents have already been submitted.");
+            return;
+          }
+
           // Resume Session if found
           if (result.existingCandidate) {
             const ext = result.existingCandidate;

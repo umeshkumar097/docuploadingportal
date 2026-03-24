@@ -20,29 +20,36 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const existingCandidate = await prisma.candidate.findFirst({
+    const allRelatedCandidates = await prisma.candidate.findMany({
       where: {
         OR: [
           ...(employeeId ? [{ employeeId }] : []),
           ...(mobileNumber ? [{ mobileNumber }] : [])
-        ],
-        status: { not: "READY" }
+        ]
       },
       include: {
-        documents: {
-          select: { type: true }
-        }
+        _count: { select: { documents: true } }
       }
     });
+
+    const completedCandidate = allRelatedCandidates.find((c: any) => 
+      c.status !== "PENDING" || c._count.documents >= 4
+    );
+
+    const existingCandidate = allRelatedCandidates.find((c: any) => c.status === "PENDING");
 
     return NextResponse.json({ 
       success: true, 
       found: true, 
       data: employeeData,
+      alreadySubmitted: !!completedCandidate,
       existingCandidate: existingCandidate ? {
         token: existingCandidate.token,
         id: existingCandidate.id,
-        uploadedDocumentTypes: existingCandidate.documents.map((d: any) => d.type)
+        uploadedDocumentTypes: (await prisma.document.findMany({
+          where: { candidateId: existingCandidate.id },
+          select: { type: true }
+        })).map((d: any) => d.type)
       } : null
     });
 
