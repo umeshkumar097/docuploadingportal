@@ -300,7 +300,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                   <FormItem className="space-y-3">
                     <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">ID Type</FormLabel>
                     <FormControl>
-                      <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
+                      <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold text-foreground">
                         <option value="" disabled>Select</option>
                         <option value="PAN">PAN</option>
                         <option value="AADHAAR">Aadhaar</option>
@@ -308,6 +308,17 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                         <option value="PASSPORT">Passport</option>
                       </select>
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="idNumber"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">ID Number</FormLabel>
+                    <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6 font-semibold" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
