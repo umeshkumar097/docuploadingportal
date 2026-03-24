@@ -13,7 +13,7 @@ if (!url) {
 }
 
 const pool = new Pool({ connectionString: url });
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
