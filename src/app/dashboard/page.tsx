@@ -59,9 +59,6 @@ export default async function DashboardPage() {
       },
     });
 
-    const masterData = await prisma.masterEmployee.findMany({
-      orderBy: { createdAt: "desc" }
-    });
 
     const totalCandidates = candidates.length;
 
@@ -69,15 +66,11 @@ export default async function DashboardPage() {
     const partialCount = candidates.filter((c: any) => c.status === "PENDING" && (c._count?.documents ?? c.documents?.length ?? 0) > 0 && (c._count?.documents ?? c.documents?.length ?? 0) < 4).length;
     const loginOnlyCount = candidates.filter((c: any) => c.status === "PENDING" && (c._count?.documents === 0 || !c.documents || c.documents.length === 0) && (c.employeeId || c.name)).length;
 
-    // Outreach Logic: Master Data records NOT in candidates or NOT submitted
-    const submittedIds = new Set(candidates.filter((c: any) => c.status !== "PENDING" || (c._count?.documents ?? c.documents?.length ?? 0) >= 4).map((c: any) => c.employeeId));
-    const outreachCandidates = masterData.filter((m: any) => !submittedIds.has(m.employeeId));
-
     const stats = [
       { label: "Submitted", value: submittedCount, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
       { label: "Partial (No Submit)", value: partialCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
       { label: "Identified (Login)", value: loginOnlyCount, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-      { label: "Not Started (Outreach)", value: outreachCandidates.length, icon: TrendingUp, color: "text-pink-500", bg: "bg-pink-500/10" },
+      { label: "Total Reach", value: candidates.length, icon: Database, color: "text-violet-500", bg: "bg-violet-500/10" },
     ];
 
     return (
@@ -130,7 +123,7 @@ export default async function DashboardPage() {
               </Button>
           </div>
 
-          <CandidateTable candidates={candidates} masterData={outreachCandidates} role={role} />
+          <CandidateTable candidates={candidates} role={role} />
         </div>
       </div>
     );
