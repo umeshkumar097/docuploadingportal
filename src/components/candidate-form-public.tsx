@@ -517,7 +517,16 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <FileUpload candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
                 <FileUpload candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload candidateId={candidateId as string} type="ID_PROOF" label="Identity Proof" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("ID_PROOF")} onUploadSuccess={handleUploadSuccess} />
+                <FileUpload 
+                  candidateId={candidateId as string} 
+                  type="ID_PROOF" 
+                  label="Identity Proof" 
+                  maxSizeKB={10240} 
+                  mandatory={true} 
+                  initialSuccess={uploadedDocs.has("ID_PROOF")} 
+                  onUploadSuccess={handleUploadSuccess} 
+                  subType={form.watch("idType")}
+                />
                 <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
               </div>
             </div>

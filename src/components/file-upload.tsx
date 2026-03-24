@@ -16,9 +16,21 @@ interface FileUploadProps {
   initialSuccess?: boolean;
   onUploadSuccess?: (type: string) => void;
   onOcrSuccess?: (extractedText: string) => void;
+  subType?: string;
 }
 
-export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, description, initialSuccess, onUploadSuccess, onOcrSuccess }: FileUploadProps) {
+export function FileUpload({ 
+  candidateId, 
+  type, 
+  label, 
+  maxSizeKB, 
+  mandatory, 
+  description, 
+  initialSuccess, 
+  onUploadSuccess, 
+  onOcrSuccess,
+  subType 
+}: FileUploadProps) {
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">(initialSuccess ? "success" : "idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
@@ -115,20 +127,18 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
       setStatus("uploading");
 
       // 1. Image Processing: JPEG Conversion + Color Analysis
-      if (file.type.startsWith("image/")) {
-        console.log(`Processing ${file.name}...`);
-        const { blob, isGrayscale } = await processImage(file);
-        
-        if (isGrayscale) {
-          setStatus("error");
-          setErrorMessage("Upload Rejected - Please upload an original coloured copy. Black & White copies are not accepted.");
-          return;
-        }
-
-        const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
-        file = new File([blob], newName, { type: "image/jpeg" });
-        setFileName(newName);
+      console.log(`Processing ${file.name}...`);
+      const { blob, isGrayscale } = await processImage(file);
+      
+      if (isGrayscale) {
+        setStatus("error");
+        setErrorMessage("Upload Rejected - Please upload an original coloured copy. Black & White copies are not accepted.");
+        return;
       }
+
+      const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+      file = new File([blob], newName, { type: "image/jpeg" });
+      setFileName(newName);
 
       // 2. Size Validation (post-conversion)
       if (file.size > maxSizeKB * 1024) {
@@ -137,31 +147,68 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
         return;
       }
 
+      // 3. AI Document Verification (Strict & Blocking)
+      console.log(`[AI Verification] Starting scan for ${type}...`);
+      const ocrResult: any = await Tesseract.recognize(file, "eng");
+      const extractedText = ocrResult.data.text.toLowerCase();
+      const textDensity = extractedText.length;
+      
+      console.log(`[AI Verification] Raw Text Length: ${textDensity}`);
+      
+      let isValid = false;
+      let reason = "The uploaded document does not match the required category.";
+
+      if (type === "PHOTO") {
+        // Photos should have very low text density. High text count usually means it's a document.
+        if (textDensity < 150) { 
+            isValid = true; 
+        } else {
+            reason = "This looks like a document. Please upload a clear passport-size photograph.";
+        }
+      } else if (type === "SIGNATURE") {
+        if (textDensity < 100) { 
+            isValid = true; 
+        } else {
+            reason = "Signature should not contain much text. Please upload a clear scan of your signature.";
+        }
+      } else if (type === "QUALIFICATION") {
+        const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate"];
+        isValid = keywords.some(k => extractedText.includes(k));
+        reason = "Verification Failed: This does not look like a Graduation Degree or Marksheet.";
+      } else if (type === "ID_PROOF") {
+        // Context-aware ID Identification
+        if (subType === "PAN") {
+          const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax"];
+          isValid = panKeywords.some(k => extractedText.includes(k));
+          reason = "Verification Failed: Please upload a clear original PAN Card image.";
+        } else if (subType === "AADHAAR") {
+          const aadhaarKeywords = ["aadhaar", "unique", "government", "india", "female", "male", "dob", "address", "enrollment", "vid"];
+          isValid = aadhaarKeywords.some(k => extractedText.includes(k));
+          reason = "Verification Failed: Please upload a clear original Aadhaar Card image.";
+        } else {
+          // Generic fallback
+          const idKeywords = ["aadhaar", "unique", "government", "india", "dob", "income tax", "permanent account", "pan", "driving", "license", "election", "voter", "passport", "signature"];
+          isValid = idKeywords.some(k => extractedText.includes(k));
+          reason = "Verification Failed: This does not look like a valid ID Proof.";
+        }
+      }
+
+      if (!isValid) {
+        setStatus("error");
+        setErrorMessage(reason);
+        return;
+      }
+
+      // 4. Extract specific values (PAN/Aadhaar) if needed
+      const panMatch = ocrResult.data.text.match(/[A-Z]{5}[0-9]{4}[A-Z]{1}/);
+      if (panMatch) onOcrSuccess?.(panMatch[0]);
+      const aadhaarMatch = ocrResult.data.text.match(/\b\d{4}\s?\d{4}\s?\d{4}\b/);
+      if (aadhaarMatch) onOcrSuccess?.(aadhaarMatch[0].replace(/\s/g, ""));
+
       const formData = new FormData();
       formData.append("candidateId", candidateId);
       formData.append("type", type);
       formData.append("file", file);
-
-      // 3. Initiate Autonomous OCR in Background
-      if (onOcrSuccess) {
-        Tesseract.recognize(file, "eng")
-          .then((result: any) => {
-            const { text } = result.data;
-            console.log("[OCR Raw Extraction]:", text);
-            // Valid PAN format: 5 Letters, 4 Numbers, 1 Letter
-            const panMatch = text.match(/[A-Z]{5}[0-9]{4}[A-Z]{1}/);
-            if (panMatch) return onOcrSuccess(panMatch[0]);
-
-            // Valid Aadhaar format: 12 digits (often spaced 4-4-4)
-            const aadhaarMatch = text.match(/\b\d{4}\s?\d{4}\s?\d{4}\b/);
-            if (aadhaarMatch) return onOcrSuccess(aadhaarMatch[0].replace(/\s/g, ""));
-
-            // Valid DL Format (approximate Indian standard)
-            const dlMatch = text.match(/[A-Z]{2}[-\s]?[0-9]{2}[-\s]?[0-9]{11}/);
-            if (dlMatch) return onOcrSuccess(dlMatch[0].replace(/[-\s]/g, ""));
-          })
-          .catch((err: any) => console.error("[OCR Engine Error]:", err));
-      }
 
       await uploadDocument(formData);
       setStatus("success");
@@ -169,7 +216,7 @@ export function FileUpload({ candidateId, type, label, maxSizeKB, mandatory, des
     } catch (error: any) {
       console.error(error);
       setStatus("error");
-      setErrorMessage(error.message || "Upload failed");
+      setErrorMessage(error.message || "Verification failed");
     }
   };
 
