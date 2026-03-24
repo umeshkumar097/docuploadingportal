@@ -53,8 +53,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
     return candidates.filter((c: any) => {
       // Identity Category Filter
       const docCount = c._count?.documents ?? c.documents?.length ?? 0;
-      const isSubmitted = c.status !== "PENDING";
-      const isNoSubmit = c.status === "PENDING" && docCount > 0;
+      const isSubmitted = c.status !== "PENDING" || docCount >= 4;
+      const isNoSubmit = c.status === "PENDING" && docCount > 0 && docCount < 4;
       const isLogin = c.status === "PENDING" && docCount === 0 && (c.employeeId || c.name);
 
       if (activeTab === "submitted" && !isSubmitted) return false;
@@ -256,13 +256,13 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           onClick={() => setActiveTab("submitted")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "submitted" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          Submitted ({candidates.filter(c => c.status !== "PENDING").length})
+          Submitted ({candidates.filter(c => c.status !== "PENDING" || (c._count?.documents ?? c.documents?.length ?? 0) >= 4).length})
         </button>
         <button
           onClick={() => setActiveTab("no-submit")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "no-submit" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          No Submit ({candidates.filter(c => c.status === "PENDING" && (c._count?.documents > 0 || c.documents?.length > 0)).length})
+          No Submit ({candidates.filter(c => c.status === "PENDING" && (c._count?.documents ?? c.documents?.length ?? 0) > 0 && (c._count?.documents ?? c.documents?.length ?? 0) < 4).length})
         </button>
         <button
           onClick={() => setActiveTab("login")}
