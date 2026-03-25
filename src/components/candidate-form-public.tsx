@@ -535,6 +535,17 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="idNumber"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">ID Number <span className="text-red-500">*</span></FormLabel>
+                      <FormControl><Input placeholder="Enter ID Number" className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
             )}
