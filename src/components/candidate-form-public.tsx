@@ -219,7 +219,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           // Prevent re-submission if already completed
           if (result.alreadySubmitted) {
             setNominationStatus("blocked");
-            setLookupError("Your documents have already been submitted.");
+            setLookupError("YOUR DOCUMENTS ALREADY SUBMITTED");
             return;
           }
 
@@ -247,12 +247,12 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           if (mobile && !form.getValues("mobileNumber")) form.setValue("mobileNumber", mobile, { shouldValidate: true });
         } else {
           setNominationStatus("blocked");
-          setLookupError("You are not nominated for this batch.");
+          setLookupError("YOU ARE NOT NOMINATED FOR THIS BATCH");
         }
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         setNominationStatus("blocked");
-        setLookupError("You are not nominated for this batch.");
+        setLookupError("YOU ARE NOT NOMINATED FOR THIS BATCH");
       }
     }, 800);
 
