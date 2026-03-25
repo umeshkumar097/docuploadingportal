@@ -89,7 +89,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       pincode: "",
       mobileNumber: "",
       employeeId: "",
-      phase: "Phase 1",
+      phase: "",
       idType: undefined as any,
       idNumber: "",
       originalDegree: false,

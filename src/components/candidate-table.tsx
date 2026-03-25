@@ -377,6 +377,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 />
               </TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest pl-2">Candidate</TableHead>
+              <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Phase</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Employer</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-center">Docs</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest pr-8 text-right">Action</TableHead>
@@ -395,16 +396,18 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 </TableCell>
                 <TableCell className="py-6 pl-2">
                   <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-foreground text-sm">{candidate.name || "Anonymous Candidate"}</span>
-                        {candidate.phase && (
-                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-primary/20 text-primary/70 font-bold uppercase tracking-tighter">
-                            {candidate.phase}
-                          </Badge>
-                        )}
-                      </div>
+                      <span className="font-bold text-foreground text-sm">{candidate.name || "Anonymous Candidate"}</span>
                       <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{candidate.employeeId || candidate.id}</span>
                   </div>
+                </TableCell>
+                <TableCell className="py-6">
+                  {candidate.phase ? (
+                    <Badge variant="outline" className="text-[9px] px-2 py-0.5 border-primary/20 text-primary font-bold uppercase tracking-widest bg-primary/5 rounded-lg">
+                      {candidate.phase}
+                    </Badge>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground italic font-medium">N/A</span>
+                  )}
                 </TableCell>
                 <TableCell className="py-6 font-medium text-sm text-muted-foreground">{candidate.employer || "N/A"}</TableCell>
                 <TableCell className="py-6 text-center">
@@ -438,7 +441,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
             ))}
             {filteredCandidates.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="h-40 text-center animate-in fade-in zoom-in duration-500">
+                <TableCell colSpan={7} className="h-40 text-center animate-in fade-in zoom-in duration-500">
                   <div className="flex flex-col items-center justify-center space-y-3">
                       <AlertCircle className="h-10 w-10 text-muted-foreground animate-bounce" />
                       <p className="text-muted-foreground font-bold tracking-tight">No submissions found yet.</p>

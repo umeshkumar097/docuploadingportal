@@ -70,7 +70,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
       residentialState: initialData?.residentialState || "",
       city: initialData?.city || "",
       pincode: initialData?.pincode || "",
-      phase: initialData?.phase || "Phase 1",
+      phase: initialData?.phase || "",
       idType: initialData?.idType || "" as any,
       idNumber: initialData?.idNumber || "",
       originalDegree: false,

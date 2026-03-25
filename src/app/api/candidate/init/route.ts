@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         currentStep: "STARTED",
         lastActiveAt: new Date(),
         clientId: clientId || null,
-        phase: "Phase 1", // Default for direct links
+        phase: null, // Dynamic, will be set during lookup or form entry
       },
       select: {
         id: true,
