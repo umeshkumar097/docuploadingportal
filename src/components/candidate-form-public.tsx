@@ -46,7 +46,7 @@ const formSchema = z.object({
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
     message: "Please select an ID type",
   }),
-  idNumber: z.string().optional(),
+  idNumber: z.string().min(2, "ID Number is required"),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -288,6 +288,10 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
     form.watch("mobileNumber") && 
     form.watch("employeeId") && 
     form.watch("idType") && 
+    form.watch("city") &&
+    form.watch("residentialState") &&
+    form.watch("pincode") &&
+    form.watch("idNumber") &&
     form.watch("originalDegree");
 
   const allDocsUploaded = 
@@ -435,7 +439,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   name="name"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Name per ID Proof</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Name per ID Proof <span className="text-red-500">*</span></FormLabel>
                       <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -446,7 +450,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   name="employer"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Employer/Company</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Employer/Company <span className="text-red-500">*</span></FormLabel>
                       <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -457,7 +461,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   name="residentialState"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">State</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">State <span className="text-red-500">*</span></FormLabel>
                       <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -468,7 +472,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   name="city"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">City</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">City <span className="text-red-500">*</span></FormLabel>
                       <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -479,7 +483,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   name="pincode"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Pincode</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Pincode <span className="text-red-500">*</span></FormLabel>
                       <FormControl><Input maxLength={6} className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -490,7 +494,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   name="idType"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">ID Type</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">ID Type <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
                         <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none">
                           <option value="" disabled selected>Select</option>

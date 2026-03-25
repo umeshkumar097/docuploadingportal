@@ -44,7 +44,7 @@ const formSchema = z.object({
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
     message: "Please select an ID type",
   }),
-  idNumber: z.string().optional(),
+  idNumber: z.string().min(2, "ID Number is required"),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -145,6 +145,11 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
     form.watch("employer") && 
     form.watch("mobileNumber") && 
     form.watch("employeeId") && 
+    form.watch("city") &&
+    form.watch("residentialState") &&
+    form.watch("pincode") &&
+    form.watch("idType") &&
+    form.watch("idNumber") &&
     form.watch("originalDegree");
 
   const allDocsUploaded = 
@@ -201,7 +206,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="name"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Name per ID Proof</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Name per ID Proof <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
@@ -217,7 +222,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="employer"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Employer/Company</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Employer/Company <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
@@ -233,7 +238,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="mobileNumber"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Mobile Number</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Mobile Number <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
@@ -249,7 +254,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="employeeId"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Employee ID</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Employee ID <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
@@ -265,7 +270,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="residentialState"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">State</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">State <span className="text-red-500">*</span></FormLabel>
                     <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6 font-semibold" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -276,7 +281,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="city"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">City</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">City <span className="text-red-500">*</span></FormLabel>
                     <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6 font-semibold" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -287,7 +292,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="pincode"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Pincode</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Pincode <span className="text-red-500">*</span></FormLabel>
                     <FormControl><Input maxLength={6} className="h-14 rounded-2xl bg-accent/30 border-none px-6 font-semibold" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -298,7 +303,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="idType"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">ID Type</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">ID Type <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold text-foreground">
                         <option value="" disabled>Select</option>
@@ -317,7 +322,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 name="idNumber"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">ID Number</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">ID Number <span className="text-red-500">*</span></FormLabel>
                     <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6 font-semibold" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
