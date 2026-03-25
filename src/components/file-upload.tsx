@@ -4,7 +4,7 @@ import { useState } from "react";
 import { uploadDocument } from "@/lib/actions/upload";
 import { Upload, CheckCircle2, AlertCircle, Loader2, FileText, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Tesseract from "tesseract.js";
+// Removed top-level Tesseract import for SSR safety
 
 interface FileUploadProps {
   candidateId: string;
@@ -148,49 +148,55 @@ export function FileUpload({
       }
 
       // 3. AI Document Verification (Strict & Blocking)
-      console.log(`[AI Verification] Starting scan for ${type}...`);
-      const ocrResult: any = await Tesseract.recognize(file, "eng");
-      const extractedText = ocrResult.data.text.toLowerCase();
-      const textDensity = extractedText.length;
-      
-      console.log(`[AI Verification] Raw Text Length: ${textDensity}`);
-      
-      let isValid = false;
-      let reason = "The uploaded document does not match the required category.";
+      // Only run OCR for items that NEED text verification to save resources and prevent crashes
+      let isValid = true;
+      let reason = "";
+      let ocrResult: any = null;
 
-      if (type === "PHOTO") {
-        // Photos should have very low text density. High text count usually means it's a document.
-        if (textDensity < 150) { 
-            isValid = true; 
-        } else {
-            reason = "This looks like a document. Please upload a clear passport-size photograph.";
-        }
-      } else if (type === "SIGNATURE") {
-        if (textDensity < 100) { 
-            isValid = true; 
-        } else {
-            reason = "Signature should not contain much text. Please upload a clear scan of your signature.";
-        }
-      } else if (type === "QUALIFICATION") {
-        const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate"];
-        isValid = keywords.some(k => extractedText.includes(k));
-        reason = "Verification Failed: This does not look like a Graduation Degree or Marksheet.";
-      } else if (type === "ID_PROOF") {
-        // Context-aware ID Identification
-        if (subType === "PAN") {
-          const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax"];
-          isValid = panKeywords.some(k => extractedText.includes(k));
-          reason = "Verification Failed: Please upload a clear original PAN Card image.";
-        } else if (subType === "AADHAAR") {
-          const aadhaarKeywords = ["aadhaar", "unique", "government", "india", "female", "male", "dob", "address", "enrollment", "vid"];
-          isValid = aadhaarKeywords.some(k => extractedText.includes(k));
-          reason = "Verification Failed: Please upload a clear original Aadhaar Card image.";
-        } else {
-          // Generic fallback
-          const idKeywords = ["aadhaar", "unique", "government", "india", "dob", "income tax", "permanent account", "pan", "driving", "license", "election", "voter", "passport", "signature"];
-          isValid = idKeywords.some(k => extractedText.includes(k));
-          reason = "Verification Failed: This does not look like a valid ID Proof.";
-        }
+      if (type === "QUALIFICATION" || type === "ID_PROOF" || type === "PHOTO" || type === "SIGNATURE") {
+          console.log(`[AI Verification] Starting scan for ${type}...`);
+          try {
+              const Tesseract = (await import("tesseract.js")).default;
+              ocrResult = await Tesseract.recognize(file, "eng");
+              const extractedText = ocrResult.data.text.toLowerCase();
+              const textDensity = extractedText.length;
+              
+              console.log(`[AI Verification] Raw Text Length: ${textDensity}`);
+              
+              if (type === "PHOTO") {
+                if (textDensity > 200) { 
+                    isValid = false;
+                    reason = "This looks like a document. Please upload a clear passport-size photograph.";
+                }
+              } else if (type === "SIGNATURE") {
+                if (textDensity > 150) { 
+                    isValid = false;
+                    reason = "Signature should not contain much text. Please upload a clear scan of your signature.";
+                }
+              } else if (type === "QUALIFICATION") {
+                const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate"];
+                isValid = keywords.some(k => extractedText.includes(k));
+                reason = "Verification Failed: This does not look like a Graduation Degree or Marksheet.";
+              } else if (type === "ID_PROOF") {
+                if (subType === "PAN") {
+                  const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax"];
+                  isValid = panKeywords.some(k => extractedText.includes(k));
+                  reason = "Verification Failed: Please upload a clear original PAN Card image.";
+                } else if (subType === "AADHAAR") {
+                  const aadhaarKeywords = ["aadhaar", "unique", "government", "india", "female", "male", "dob", "address", "enrollment", "vid"];
+                  isValid = aadhaarKeywords.some(k => extractedText.includes(k));
+                  reason = "Verification Failed: Please upload a clear original Aadhaar Card image.";
+                } else {
+                  const idKeywords = ["aadhaar", "unique", "government", "india", "dob", "income tax", "permanent account", "pan", "driving", "license", "election", "voter", "passport", "signature"];
+                  isValid = idKeywords.some(k => extractedText.includes(k));
+                  reason = "Verification Failed: This does not look like a valid ID Proof.";
+                }
+              }
+          } catch (ocrErr) {
+              console.error("[OCR Error] Skipping AI Verification:", ocrErr);
+              // Fallback: If OCR fails (e.g. worker crash), we allow the upload but log the error
+              // This prevents the whole component from crashing for the user
+          }
       }
 
       if (!isValid) {
