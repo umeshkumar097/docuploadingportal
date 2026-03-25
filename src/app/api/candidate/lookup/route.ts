@@ -4,8 +4,8 @@ import prisma from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const employeeId = searchParams.get("employeeId");
-    const mobileNumber = searchParams.get("mobileNumber");
+    const employeeId = searchParams.get("employeeId")?.trim();
+    const mobileNumber = searchParams.get("mobileNumber")?.trim();
 
     if (!employeeId && !mobileNumber) {
       return NextResponse.json({ error: "Employee ID or Mobile Number is required" }, { status: 400 });
@@ -14,8 +14,15 @@ export async function GET(req: NextRequest) {
     const employeeData = await prisma.masterEmployee.findFirst({
       where: {
         OR: [
-          ...(employeeId ? [{ employeeId }] : []),
-          ...(mobileNumber ? [{ personalMobileNo: mobileNumber }, { officeMobileNo: mobileNumber }] : [])
+          ...(employeeId ? [
+            { employeeId: { equals: employeeId, mode: "insensitive" as const } },
+            { employeeId: { contains: employeeId, mode: "insensitive" as const } }
+          ] : []),
+          ...(mobileNumber ? [
+            { personalMobileNo: { contains: mobileNumber } }, 
+            { officeMobileNo: { contains: mobileNumber } },
+            { whatsappNo: { contains: mobileNumber } }
+          ] : [])
         ]
       }
     });
@@ -23,8 +30,11 @@ export async function GET(req: NextRequest) {
     const allRelatedCandidates = await prisma.candidate.findMany({
       where: {
         OR: [
-          ...(employeeId ? [{ employeeId }] : []),
-          ...(mobileNumber ? [{ mobileNumber }] : [])
+          ...(employeeId ? [
+            { employeeId: { equals: employeeId, mode: "insensitive" as const } },
+            { employeeId: { contains: employeeId, mode: "insensitive" as const } }
+          ] : []),
+          ...(mobileNumber ? [{ mobileNumber: { contains: mobileNumber } }] : [])
         ]
       },
       include: {
