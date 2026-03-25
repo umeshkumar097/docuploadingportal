@@ -376,8 +376,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   <AlertCircle className="h-6 w-6" />
                 </div>
                 <div>
-                  <h4 className="font-black text-red-600 uppercase tracking-wider">{lookupError}</h4>
-                  <p className="text-xs text-red-500/80 font-bold uppercase tracking-tight italic">Please check your details and try again.</p>
+                  <h4 className="font-black text-red-600 uppercase tracking-wider leading-tight">{lookupError}</h4>
                 </div>
               </div>
             )}
