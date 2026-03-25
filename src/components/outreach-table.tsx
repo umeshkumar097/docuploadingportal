@@ -4,8 +4,9 @@ import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, AlertCircle, Phone, Download } from "lucide-react";
+import { Search, Filter, AlertCircle, Phone, Download, Trash2, Loader2, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 
 interface OutreachTableProps {
@@ -15,6 +16,8 @@ interface OutreachTableProps {
 export function OutreachTable({ data }: OutreachTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [vendorFilter, setVendorFilter] = useState("all");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const router = useRouter();
 
   const uniqueVendors = useMemo(() => {
     const vendors = data.map(m => m.vendor).filter(Boolean);
@@ -57,6 +60,26 @@ export function OutreachTable({ data }: OutreachTableProps) {
 
     const filename = `Outreach-List-${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(workbook, filename);
+  };
+  
+  const handleDelete = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${name || 'this record'}"? This will remove them from the outreach list.`)) return;
+    
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/master-data/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to delete");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during deletion");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -105,7 +128,8 @@ export function OutreachTable({ data }: OutreachTableProps) {
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Emp ID</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">WhatsApp Number</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Vendor Context</TableHead>
-              <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-right pr-8">Outreach</TableHead>
+              <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-center">Actions</TableHead>
+              <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-right pr-8">Contact</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -128,16 +152,33 @@ export function OutreachTable({ data }: OutreachTableProps) {
                 <TableCell className="py-6">
                   <Badge variant="outline" className="text-[10px] font-bold border-primary/20 text-primary uppercase">{m.vendor || "N/A"}</Badge>
                 </TableCell>
-                <TableCell className="py-6 pr-8 text-right">
-                  <Button variant="ghost" size="sm" className="rounded-xl hover:bg-pink-500/10 text-pink-600 font-black uppercase text-[10px] tracking-widest gap-2">
-                    <Phone className="h-3 w-3" /> Call Required
+                <TableCell className="py-6 text-center">
+                   <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    disabled={deletingId === m.id}
+                    className="rounded-xl hover:bg-red-500/10 text-red-500 transition-all font-bold group h-9 w-9"
+                    onClick={() => handleDelete(m.id, m.employeeName)}
+                  >
+                    {deletingId === m.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                    )}
                   </Button>
+                </TableCell>
+                <TableCell className="py-6 pr-8 text-right">
+                  <a href={`tel:${m.personalMobileNo || m.officeMobileNo || ''}`} className="inline-block">
+                    <Button variant="ghost" size="sm" className="rounded-xl hover:bg-pink-500/10 text-pink-600 font-black uppercase text-[10px] tracking-widest gap-2">
+                        <Phone className="h-3 w-3" /> Call Required
+                    </Button>
+                  </a>
                 </TableCell>
               </TableRow>
             ))}
             {filteredData.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="h-40 text-center">
+                <TableCell colSpan={6} className="h-40 text-center">
                   <div className="flex flex-col items-center justify-center space-y-3 opacity-50">
                     <AlertCircle className="h-10 w-10 text-muted-foreground" />
                     <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">No pending outreach found</p>
