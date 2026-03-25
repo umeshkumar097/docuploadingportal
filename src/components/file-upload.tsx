@@ -200,9 +200,9 @@ export function FileUpload({
       }
 
       // 4. Extract specific values (PAN/Aadhaar) if needed
-      const panMatch = ocrResult.data.text.match(/[A-Z]{5}[0-9]{4}[A-Z]{1}/);
-      if (panMatch) onOcrSuccess?.(panMatch[0]);
-      const aadhaarMatch = ocrResult.data.text.match(/\b\d{4}\s?\d{4}\s?\d{4}\b/);
+      const panMatch = ocrResult.data.text.match(/[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}/i);
+      if (panMatch) onOcrSuccess?.(panMatch[0].toUpperCase());
+      const aadhaarMatch = ocrResult.data.text.match(/\d{4}\s?\d{4}\s?\d{4}/);
       if (aadhaarMatch) onOcrSuccess?.(aadhaarMatch[0].replace(/\s/g, ""));
 
       const formData = new FormData();

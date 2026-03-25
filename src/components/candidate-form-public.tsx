@@ -535,17 +535,6 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="idNumber"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">ID Number <span className="text-red-500">*</span></FormLabel>
-                      <FormControl><Input placeholder="Enter ID Number" className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
             </div>
             )}
@@ -581,12 +570,32 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                       mandatory={true} 
                       initialSuccess={uploadedDocs.has("ID_PROOF")} 
                       onUploadSuccess={handleUploadSuccess} 
+                      onOcrSuccess={(val) => form.setValue("idNumber", val, { shouldValidate: true })}
                       subType={form.watch("idType")}
                     />
                     <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
                   </>
                 )}
               </div>
+
+              {uploadedDocs.has("ID_PROOF") && !isDraCertified && (
+                <div className="mt-8 pt-8 border-t border-primary/10 animate-in slide-in-from-top-4 duration-500">
+                  <FormField
+                    control={form.control}
+                    name="idNumber"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                           Confirm {form.watch("idType") || "ID"} Number <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <p className="text-xs text-muted-foreground mb-4 italic">The ID number has been automatically extracted. Please confirm or correct it if needed.</p>
+                        <FormControl><Input placeholder={`Enter your ${form.watch("idType") || "ID"} number`} className="h-14 rounded-2xl bg-primary/10 border-2 border-primary/30 px-6 font-bold text-lg text-primary shadow-inner" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-8">
