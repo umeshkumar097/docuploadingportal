@@ -14,7 +14,7 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { name, employer, mobileNumber, employeeId, idType, idNumber, residentialState, city, pincode, phase } = body;
+    const { name, employer, mobileNumber, employeeId, idType, idNumber, residentialState, city, pincode, phase, isDraCertified } = body;
 
     // Validate if candidate exists
     const candidate = await prisma.candidate.findUnique({
@@ -44,6 +44,7 @@ export async function PATCH(
         ...(phase !== undefined && { phase }),
         ...(idType !== undefined && { idType }),
         ...(idNumber !== undefined && { idNumber }),
+        ...(isDraCertified !== undefined && { isDraCertified }),
         lastActiveAt: new Date(),
         currentStep: "PERSONAL_INFO_DONE"
       },
@@ -58,6 +59,7 @@ export async function PATCH(
         pincode: true,
         idType: true,
         idNumber: true,
+        isDraCertified: true,
         lastActiveAt: true,
         currentStep: true
       }

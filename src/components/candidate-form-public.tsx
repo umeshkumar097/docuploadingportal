@@ -46,7 +46,8 @@ const formSchema = z.object({
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
     message: "Please select an ID type",
   }),
-  idNumber: z.string().min(2, "ID Number is required"),
+  isDraCertified: z.boolean().default(false),
+  idNumber: z.string().optional(),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -92,6 +93,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       phase: "",
       idType: undefined as any,
       idNumber: "",
+      isDraCertified: false,
       originalDegree: false,
     },
   });
@@ -173,6 +175,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
               phase: value.phase || undefined,
               idType: value.idType || undefined,
               idNumber: value.idNumber || undefined,
+              isDraCertified: value.isDraCertified ?? undefined,
             }),
           });
         } catch (err) {
@@ -281,24 +284,27 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
     }
   }
 
-  const allFieldsFilled = 
-    form.watch("name") && 
-    form.watch("employer") && 
-    form.watch("residentialState") && 
-    form.watch("mobileNumber") && 
-    form.watch("employeeId") && 
-    form.watch("idType") && 
-    form.watch("city") &&
-    form.watch("residentialState") &&
-    form.watch("pincode") &&
-    form.watch("idNumber") &&
-    form.watch("originalDegree");
+  const isDraCertified = form.watch("isDraCertified");
 
-  const allDocsUploaded = 
-    uploadedDocs.has("PHOTO") && 
-    uploadedDocs.has("QUALIFICATION") && 
-    uploadedDocs.has("ID_PROOF") && 
-    uploadedDocs.has("SIGNATURE");
+  const allFieldsFilled = isDraCertified 
+    ? (form.watch("employeeId") && form.watch("originalDegree"))
+    : (form.watch("name") && 
+       form.watch("employer") && 
+       form.watch("residentialState") && 
+       form.watch("mobileNumber") && 
+       form.watch("employeeId") && 
+       form.watch("idType") && 
+       form.watch("city") &&
+       form.watch("pincode") &&
+       form.watch("idNumber") &&
+       form.watch("originalDegree"));
+
+  const allDocsUploaded = isDraCertified
+    ? uploadedDocs.has("DRA_CERTIFICATE")
+    : (uploadedDocs.has("PHOTO") && 
+       uploadedDocs.has("QUALIFICATION") && 
+       uploadedDocs.has("ID_PROOF") && 
+       uploadedDocs.has("SIGNATURE"));
 
   const isFormReady = allFieldsFilled && allDocsUploaded && nominationStatus === "nominated";
 
@@ -370,6 +376,27 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 <h3 className="text-xl font-bold uppercase tracking-tight">Identity Verification</h3>
             </div>
 
+            <FormField
+              control={form.control}
+              name="isDraCertified"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-2xl border-2 border-primary/20 p-4 bg-primary/5 mb-6">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="h-6 w-6 rounded-md"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="text-sm font-black text-primary uppercase tracking-tight cursor-pointer">
+                      Are you DRA Certified already?
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+
             {nominationStatus === "blocked" && lookupError && (
               <div className="bg-red-500/10 border-2 border-red-500/20 rounded-2xl p-6 flex items-center gap-4 animate-in slide-in-from-top duration-500">
                 <div className="w-12 h-12 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20">
@@ -425,7 +452,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           </div>
 
           <div className={`space-y-10 transition-all duration-700 ${nominationStatus === "nominated" ? "opacity-100 scale-100" : "opacity-20 blur-sm pointer-events-none scale-[0.98]"}`}>
-            <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8">
+            {!isDraCertified && (
+              <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8">
               <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-xl bg-primary/10 text-primary">
                       <User className="h-5 w-5" />
@@ -509,6 +537,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 />
               </div>
             </div>
+            )}
 
             <div className="space-y-6">
               <div className="flex items-center gap-3 px-4">
@@ -518,19 +547,34 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   <h3 className="text-2xl font-black uppercase italic">Upload Documents</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <FileUpload candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
-                <FileUpload 
-                  candidateId={candidateId as string} 
-                  type="ID_PROOF" 
-                  label="Identity Proof" 
-                  maxSizeKB={10240} 
-                  mandatory={true} 
-                  initialSuccess={uploadedDocs.has("ID_PROOF")} 
-                  onUploadSuccess={handleUploadSuccess} 
-                  subType={form.watch("idType")}
-                />
-                <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
+                {isDraCertified ? (
+                  <FileUpload 
+                    candidateId={candidateId as string} 
+                    type="DRA_CERTIFICATE" 
+                    label="DRA Certificate" 
+                    maxSizeKB={10240} 
+                    mandatory={true} 
+                    initialSuccess={uploadedDocs.has("DRA_CERTIFICATE")} 
+                    onUploadSuccess={handleUploadSuccess} 
+                    description="Upload your original DRA Certification document"
+                  />
+                ) : (
+                  <>
+                    <FileUpload candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
+                    <FileUpload candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
+                    <FileUpload 
+                      candidateId={candidateId as string} 
+                      type="ID_PROOF" 
+                      label="Identity Proof" 
+                      maxSizeKB={10240} 
+                      mandatory={true} 
+                      initialSuccess={uploadedDocs.has("ID_PROOF")} 
+                      onUploadSuccess={handleUploadSuccess} 
+                      subType={form.watch("idType")}
+                    />
+                    <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
+                  </>
+                )}
               </div>
             </div>
 

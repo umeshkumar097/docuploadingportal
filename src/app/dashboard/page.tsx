@@ -24,8 +24,10 @@ export default async function DashboardPage() {
     const role = session?.user?.role || "OPS";
     const vendorName = (session?.user as any)?.vendorName;
 
-    // Include all candidates to track Login, No Submit, and Submitted states
-    const whereClause: any = {};
+    // Include all candidates EXCEPT DRA Certified (they have their own tab)
+    const whereClause: any = {
+      isDraCertified: false
+    };
     
     if (role === "VENDOR") {
       if (vendorName) {

@@ -412,7 +412,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 <TableCell className="py-6 font-medium text-sm text-muted-foreground">{candidate.employer || "N/A"}</TableCell>
                 <TableCell className="py-6 text-center">
                   <span className="text-sm font-bold text-foreground">
-                      {candidate._count?.documents || candidate.documents?.length || 0} <span className="text-muted-foreground font-normal">/ 4</span>
+                      {candidate._count?.documents || candidate.documents?.length || 0} <span className="text-muted-foreground font-normal">/ {candidate.isDraCertified ? "1" : "4"}</span>
                   </span>
                 </TableCell>
                  <TableCell className="py-6 pr-8 text-right">

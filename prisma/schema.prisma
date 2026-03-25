@@ -31,6 +31,7 @@ enum DocumentType {
   ID_PROOF_FRONT
   ID_PROOF_BACK
   SIGNATURE
+  DRA_CERTIFICATE
 }
 
 enum IDType {
@@ -86,6 +87,7 @@ model Candidate {
   employeeId       String?
   idType       IDType?
   idNumber     String?
+  isDraCertified Boolean         @default(false)
   status       CandidateStatus @default(PENDING)
   currentStep  CurrentStep     @default(STARTED)
   lastActiveAt DateTime        @default(now())
