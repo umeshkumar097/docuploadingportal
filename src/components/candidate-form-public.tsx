@@ -45,8 +45,8 @@ const formSchema = z.object({
   phase: z.string().optional(),
   idType: z.enum(["PAN", "AADHAAR", "DL", "PASSPORT"], {
     message: "Please select an ID type",
-  }),
-  isDraCertified: z.boolean().default(false),
+  }).optional(),
+  isDraCertified: z.boolean(),
   idNumber: z.string().optional(),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
@@ -91,7 +91,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       mobileNumber: "",
       employeeId: "",
       phase: "",
-      idType: undefined as any,
+      idType: undefined,
       idNumber: "",
       isDraCertified: false,
       originalDegree: false,
