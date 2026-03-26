@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
+    const phaseOverride = formData.get("phase") as string | null;
     
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -37,6 +38,12 @@ export async function POST(req: NextRequest) {
         if (!employeeId || seenEmployeeIds.has(employeeId)) continue;
 
         seenEmployeeIds.add(employeeId);
+        
+        // Use override if provided, otherwise check row, otherwise default
+        const phaseValue = (phaseOverride && phaseOverride.trim()) 
+          ? phaseOverride.trim() 
+          : String(row["Phase"] || row["Phases"] || "Phase 1").trim();
+
         allFormattedData.push({
           employeeId,
           employeeName: String(row["Employee Name"] || "").trim(),
@@ -52,7 +59,7 @@ export async function POST(req: NextRequest) {
           personalMobileNo: String(row["Personal Mobile No"] || "").trim(),
           whatsappNo: String(row["Whatsapp No"] || "").trim(),
           vendor: vendorNameLimit ? vendorNameLimit : String(row["Vendor"] || "").trim(),
-          phase: String(row["Phase"] || row["Phases"] || "Phase 1").trim(),
+          phase: phaseValue,
           region2: String(row["Region 2"] || "").trim(),
           location2: String(row["Location2"] || "").trim(),
           city: String(row["City"] || "").trim(),

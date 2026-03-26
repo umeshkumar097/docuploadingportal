@@ -6,6 +6,7 @@ import { UploadCloud, FileSpreadsheet, Loader2, AlertCircle, CheckCircle2 } from
 
 export function MasterDataUpload() {
   const [file, setFile] = useState<File | null>(null);
+  const [phase, setPhase] = useState<string>("Phase 1");
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
 
@@ -31,6 +32,7 @@ export function MasterDataUpload() {
     setStatus("uploading");
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("phase", phase);
 
     try {
       const response = await fetch("/api/master-data/upload", {
@@ -101,7 +103,19 @@ export function MasterDataUpload() {
           </div>
         )}
 
-        <div className="flex justify-end pt-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-4 border-t border-primary/5">
+          <div className="space-y-2 flex-1 max-w-xs">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Target Phase</label>
+            <input 
+              type="text"
+              value={phase}
+              onChange={(e) => setPhase(e.target.value)}
+              placeholder="e.g. Phase 1"
+              disabled={status === "uploading"}
+              className="w-full h-14 rounded-2xl bg-accent/30 border-2 border-primary/5 px-6 font-bold text-primary focus:border-primary/20 outline-none transition-all"
+            />
+          </div>
+
           <Button 
             onClick={handleUpload}
             disabled={!file || status === "uploading"}
