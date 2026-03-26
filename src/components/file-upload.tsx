@@ -174,9 +174,9 @@ export function FileUpload({
                     reason = "Signature should not contain much text. Please upload a clear scan of your signature.";
                 }
               } else if (type === "QUALIFICATION") {
-                const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate"];
+                const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate", "12th", "hsc", "h.s.c", "ssc", "higher", "senior", "inter"];
                 isValid = keywords.some(k => extractedText.includes(k));
-                reason = "Verification Failed: This does not look like a Graduation Degree or Marksheet.";
+                reason = "Verification Failed: This does not look like a valid Qualification Document (Marklist/Degree/Certificate).";
               } else if (type === "ID_PROOF") {
                 if (subType === "PAN") {
                   const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax"];
