@@ -40,6 +40,8 @@ const securityFeatures = [
   }
 ];
 
+
+
 export default function Home() {
   return (
     <div className="relative min-h-screen flex flex-col items-center overflow-x-hidden bg-black text-white selection:bg-blue-500/30">
