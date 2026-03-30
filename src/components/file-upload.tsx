@@ -169,9 +169,9 @@ export function FileUpload({
                     reason = "This looks like a document. Please upload a clear passport-size photograph.";
                 }
               } else if (type === "SIGNATURE") {
-                if (textDensity > 150) { 
+                if (textDensity > 250) { 
                     isValid = false;
-                    reason = "Signature should not contain much text. Please upload a clear scan of your signature.";
+                    reason = "Signature should not contain much text. Please upload a clear scan of your signature (Blue or Black ink allowed).";
                 }
               } else if (type === "QUALIFICATION") {
                 const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate", "12th", "hsc", "h.s.c", "ssc", "higher", "senior", "inter", "institute", "vocational", "education", "examination", "arts", "exam", "marksheet", "b.com", "b.a", "b.sc", "m.com", "m.a", "m.sc", "rollno", "pass", "college", "regular"];
