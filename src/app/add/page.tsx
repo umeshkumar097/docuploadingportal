@@ -97,18 +97,24 @@ export default function AddAddressPage() {
 
   if (!isEnabled) {
     return (
-      <div className="relative min-h-screen bg-black flex items-center justify-center p-6 text-white">
-        <AnimatedBackground />
-        <Card className="relative z-10 w-full max-w-md bg-white/5 border-white/10 backdrop-blur-xl text-center shadow-2xl">
-          <CardHeader>
-            <div className="mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4 border border-red-500/20">
-              <AlertCircle className="h-8 w-8 text-red-500" />
+      <div className="relative min-h-screen bg-slate-50/50 flex items-center justify-center p-6 text-slate-900 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#e2e8f0_0%,#f8fafc_100%)] pointer-events-none" />
+        <Card className="relative z-10 w-full max-w-md bg-white border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] text-center rounded-[2rem]">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-rose-500" />
+          <CardHeader className="p-10 pb-0">
+            <div className="mx-auto w-20 h-20 bg-rose-50 rounded-2xl flex items-center justify-center mb-6 border border-rose-100 shadow-sm">
+              <AlertCircle className="h-10 w-10 text-rose-500" />
             </div>
-            <CardTitle className="text-2xl font-bold text-white uppercase tracking-tight">Form Closed</CardTitle>
-            <CardDescription className="text-zinc-500 font-medium">
-              This specialized address collection form is currently inactive. Please contact your administrator if you believe this is an error.
+            <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight mb-2">PORTAL INACTIVE</CardTitle>
+            <CardDescription className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em] leading-relaxed">
+              This specialized address collection form is currently offline. Please consult your supervisor for further clearance.
             </CardDescription>
           </CardHeader>
+          <CardContent className="p-10 pt-6">
+             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
+                &copy; {new Date().getFullYear()} CRUXDOC SECURE INFRA
+             </div>
+          </CardContent>
         </Card>
       </div>
     );
@@ -116,28 +122,32 @@ export default function AddAddressPage() {
 
   if (isSuccess) {
     return (
-      <div className="relative min-h-screen bg-black flex items-center justify-center p-6 text-white">
-        <AnimatedBackground />
-        <Card className="relative z-10 w-full max-w-md bg-white/5 border-white/10 backdrop-blur-xl text-center shadow-2xl">
-          <CardHeader>
-            <div className="mx-auto w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
-              <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+      <div className="relative min-h-screen bg-slate-50/50 flex items-center justify-center p-6 text-slate-900 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#e2e8f0_0%,#f8fafc_100%)] pointer-events-none" />
+        <Card className="relative z-10 w-full max-w-md bg-white border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] text-center rounded-[2rem]">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-emerald-500" />
+          <CardHeader className="p-10 pb-0">
+            <div className="mx-auto w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 border border-emerald-100 shadow-sm">
+              <CheckCircle2 className="h-10 w-10 text-emerald-500" />
             </div>
-            <CardTitle className="text-2xl font-bold text-white uppercase tracking-tight">Success</CardTitle>
-            <CardDescription className="text-zinc-400 font-medium">
-              Your details have been moved to our secure central vault. Thank you for your cooperation.
+            <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight mb-2">VERIFICATION COMPLETE</CardTitle>
+            <CardDescription className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em] leading-relaxed">
+              Your shipping coordinates have been successfully verified and securely stored in our central repository.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-10 pt-8">
             <Button 
                 onClick={() => {
                   setIsSuccess(false);
                   form.reset();
                 }}
-                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold h-12 rounded-xl transition-all"
+                className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg active:scale-[0.98] border-0"
             >
-                Submit Another
+                SUBMIT ANOTHER LOG
             </Button>
+            <p className="mt-8 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
+                &copy; {new Date().getFullYear()} CRUXDOC SECURE INFRA
+            </p>
           </CardContent>
         </Card>
       </div>
