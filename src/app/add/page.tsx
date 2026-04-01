@@ -58,7 +58,7 @@ export default function AddAddressPage() {
       city: "",
       state: "",
       pincode: "",
-      bookLanguage: "English",
+      bookLanguage: "",
     },
   });
 
@@ -217,6 +217,7 @@ export default function AddAddressPage() {
                             className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 h-14 rounded-xl px-4 focus:bg-white focus:border-blue-500 transition-all shadow-sm outline-none appearance-none cursor-pointer font-medium"
                             {...field}
                         >
+                          <option value="" disabled>Select Language</option>
                           {languages.map(lang => (
                             <option key={lang} value={lang}>{lang}</option>
                           ))}
