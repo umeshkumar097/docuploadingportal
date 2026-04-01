@@ -13,24 +13,25 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { employeeId, phoneNumber, name, companyAgency, fullAddress, city, state, pincode, bookLanguage } = body;
+    const { employeeId, fullAddress, city, state, pincode, bookLanguage } = body;
 
-    // Strict validation
-    if (!employeeId || !phoneNumber || !name || !companyAgency || !fullAddress || !city || !state || !pincode || !bookLanguage) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+    // Strict validation for mandatory fields
+    if (!employeeId || !fullAddress || !city || !state || !pincode || !bookLanguage) {
+      return NextResponse.json({ error: "All mandatory fields must be filled" }, { status: 400 });
     }
 
     const record = await prisma.addressRecord.create({
       data: {
         employeeId,
-        phoneNumber,
-        name,
-        companyAgency,
         fullAddress,
         city,
         state,
         pincode,
-        bookLanguage
+        bookLanguage,
+        // These are now optional
+        name: null,
+        phoneNumber: null,
+        companyAgency: null
       }
     });
 

@@ -138,9 +138,9 @@ model MasterEmployee {
 model AddressRecord {
   id              String   @id @default(cuid())
   employeeId      String
-  phoneNumber     String
-  name            String
-  companyAgency   String
+  phoneNumber     String?
+  name            String?
+  companyAgency   String?
   fullAddress     String
   city            String
   state           String

@@ -26,9 +26,6 @@ import { Loader2, CheckCircle2, AlertCircle, MapPin, Building2, User, Phone, Has
 
 const formSchema = z.object({
   employeeId: z.string().min(1, "Employee ID is required"),
-  phoneNumber: z.string().min(10, "Valid phone number is required"),
-  name: z.string().min(1, "Full name is required"),
-  companyAgency: z.string().min(1, "Company/Agency name is required"),
   fullAddress: z.string().min(1, "Full address is required"),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
@@ -51,9 +48,6 @@ export default function AddAddressPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       employeeId: "",
-      phoneNumber: "",
-      name: "",
-      companyAgency: "",
       fullAddress: "",
       city: "",
       state: "",
@@ -159,7 +153,7 @@ export default function AddAddressPage() {
       <Card className="relative z-10 w-full max-w-2xl bg-white border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden group rounded-[2rem]">
         <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-600" />
         
-        <CardHeader className="p-10 pb-0">
+        <CardHeader className="p-10 pb-4">
           <div className="flex items-center gap-5 mb-6">
             <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-100 shadow-sm">
               <MapPin className="h-7 w-7 text-blue-600" />
@@ -168,6 +162,24 @@ export default function AddAddressPage() {
               <CardTitle className="text-3xl font-bold text-slate-900 tracking-tight leading-none mb-2">Address Collection</CardTitle>
               <CardDescription className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.25em]">Secure Enterprise Portal &bull; Verified Protocol</CardDescription>
             </div>
+          </div>
+
+          {/* System Instructions */}
+          <div className="mt-4 p-5 bg-slate-50/80 rounded-[1.5rem] border border-slate-100/50 flex flex-col gap-3">
+             <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-600 tracking-widest pl-1">
+                 <AlertCircle className="h-3 w-3" /> System Directives
+             </div>
+             <div className="space-y-3">
+                <p className="text-[11px] font-semibold text-slate-600 leading-relaxed pl-1">
+                    1. Enter your <span className="text-slate-900 font-black underline decoration-blue-500/30">Employee ID</span>.<br/>
+                    2. Input your <span className="text-slate-900 font-black underline decoration-blue-500/30">delivery address</span>. All fields, including the Pincode, are mandatory. The system will block your submission if any field is left blank.<br/>
+                    3. Select your <span className="text-slate-900 font-black underline decoration-blue-500/30">preferred language</span> for the books from the dropdown menu.<br/>
+                    4. Click <span className="text-blue-600 font-black">Submit</span>.
+                </p>
+                <div className="pt-2 border-t border-slate-200/50 text-[10px] italic text-rose-500 font-bold pl-1">
+                    * Ensure your address is accurate to avoid delivery failures. There is no workaround for missing data in this process.
+                </div>
+             </div>
           </div>
         </CardHeader>
 
@@ -227,69 +239,6 @@ export default function AddAddressPage() {
                     </FormItem>
                   )}
                 />
-
-                {/* Name */}
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                        <User className="h-3 w-3 text-slate-400" /> Full Name <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                            placeholder="John Doe" 
-                            className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm" 
-                            {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500" />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Phone Number */}
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                        <Phone className="h-3 w-3 text-slate-400" /> Mobile Number <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                            placeholder="+91 XXXXX XXXXX" 
-                            className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm" 
-                            {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500" />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Company/Agency */}
-                <FormField
-                  control={form.control}
-                  name="companyAgency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                        <Building2 className="h-3 w-3 text-slate-400" /> Organisation <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                            placeholder="Company or Agency Name" 
-                            className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm" 
-                            {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500" />
-                    </FormItem>
-                  )}
-                />
               </div>
 
               {/* Full Address */}
@@ -299,7 +248,7 @@ export default function AddAddressPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                      <MapPin className="h-3 w-3 text-slate-400" /> Complete Mailing Address <span className="text-red-500">*</span>
+                      <MapPin className="h-3 w-3 text-slate-400" /> Complete Delivery Address <span className="text-red-500">*</span>
                       </FormLabel>
                     <FormControl>
                       <Input 

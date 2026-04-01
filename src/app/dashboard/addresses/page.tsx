@@ -133,9 +133,9 @@ export default function AddressManagementPage() {
     const selectedData = records.filter(r => selectedIds.includes(r.id));
     const dataToExport = selectedData.map(r => ({
       "Employee ID": r.employeeId,
-      "Name": r.name,
-      "Phone": r.phoneNumber,
-      "Organisation": r.companyAgency,
+      "Name": r.name || "N/A",
+      "Phone": r.phoneNumber || "N/A",
+      "Organisation": r.companyAgency || "N/A",
       "Book Language": r.bookLanguage || "English",
       "Full Address": r.fullAddress,
       "City": r.city,
@@ -300,11 +300,11 @@ export default function AddressManagementPage() {
                     </TableCell>
                     <TableCell className="p-6">
                         <div className="flex flex-col">
-                           <span className="font-bold text-foreground truncate max-w-[200px]">{record.name}</span>
+                           <span className="font-bold text-foreground truncate max-w-[200px]">{record.name || "N/A"}</span>
                            <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground tracking-wider mt-1">
                               <span className="text-primary/60">{record.employeeId}</span>
                               <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                              <span>{record.phoneNumber}</span>
+                              <span>{record.phoneNumber || "N/A"}</span>
                            </div>
                         </div>
                     </TableCell>
@@ -313,7 +313,7 @@ export default function AddressManagementPage() {
                             <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
                                 <Building2 className="h-4 w-4 text-muted-foreground/60" />
                             </div>
-                            <span className="text-sm font-semibold truncate max-w-[150px]">{record.companyAgency}</span>
+                            <span className="text-sm font-semibold truncate max-w-[150px]">{record.companyAgency || "N/A"}</span>
                         </div>
                     </TableCell>
                     <TableCell className="p-6">
