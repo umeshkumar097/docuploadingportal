@@ -153,7 +153,7 @@ export default function AddAddressPage() {
       <Card className="relative z-10 w-full max-w-2xl bg-white border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden group rounded-[2rem]">
         <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-600" />
         
-        <CardHeader className="p-10 pb-4">
+        <CardHeader className="p-10 pb-0">
           <div className="flex items-center gap-5 mb-6">
             <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-100 shadow-sm">
               <MapPin className="h-7 w-7 text-blue-600" />
@@ -162,24 +162,6 @@ export default function AddAddressPage() {
               <CardTitle className="text-3xl font-bold text-slate-900 tracking-tight leading-none mb-2">Address Collection</CardTitle>
               <CardDescription className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.25em]">Secure Enterprise Portal &bull; Verified Protocol</CardDescription>
             </div>
-          </div>
-
-          {/* System Instructions */}
-          <div className="mt-4 p-5 bg-slate-50/80 rounded-[1.5rem] border border-slate-100/50 flex flex-col gap-3">
-             <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-600 tracking-widest pl-1">
-                 <AlertCircle className="h-3 w-3" /> System Directives
-             </div>
-             <div className="space-y-3">
-                <p className="text-[11px] font-semibold text-slate-600 leading-relaxed pl-1">
-                    1. Enter your <span className="text-slate-900 font-black underline decoration-blue-500/30">Employee ID</span>.<br/>
-                    2. Input your <span className="text-slate-900 font-black underline decoration-blue-500/30">delivery address</span>. All fields, including the Pincode, are mandatory. The system will block your submission if any field is left blank.<br/>
-                    3. Select your <span className="text-slate-900 font-black underline decoration-blue-500/30">preferred language</span> for the books from the dropdown menu.<br/>
-                    4. Click <span className="text-blue-600 font-black">Submit</span>.
-                </p>
-                <div className="pt-2 border-t border-slate-200/50 text-[10px] italic text-rose-500 font-bold pl-1">
-                    * Ensure your address is accurate to avoid delivery failures. There is no workaround for missing data in this process.
-                </div>
-             </div>
           </div>
         </CardHeader>
 
