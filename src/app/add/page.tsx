@@ -189,7 +189,7 @@ export default function AddAddressPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                        <Hash className="h-3 w-3 text-slate-400" /> Employee ID
+                        <Hash className="h-3 w-3 text-slate-400" /> Employee ID <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -210,7 +210,7 @@ export default function AddAddressPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                        <RefreshCw className="h-3 w-3 text-slate-400" /> Book Language
+                        <RefreshCw className="h-3 w-3 text-slate-400" /> Book Language <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <select 
@@ -235,7 +235,7 @@ export default function AddAddressPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                        <User className="h-3 w-3 text-slate-400" /> Full Name
+                        <User className="h-3 w-3 text-slate-400" /> Full Name <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -256,7 +256,7 @@ export default function AddAddressPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                        <Phone className="h-3 w-3 text-slate-400" /> Mobile Number
+                        <Phone className="h-3 w-3 text-slate-400" /> Mobile Number <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -277,7 +277,7 @@ export default function AddAddressPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                        <Building2 className="h-3 w-3 text-slate-400" /> Organisation
+                        <Building2 className="h-3 w-3 text-slate-400" /> Organisation <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -299,7 +299,7 @@ export default function AddAddressPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                      <MapPin className="h-3 w-3 text-slate-400" /> Complete Mailing Address
+                      <MapPin className="h-3 w-3 text-slate-400" /> Complete Mailing Address <span className="text-red-500">*</span>
                       </FormLabel>
                     <FormControl>
                       <Input 
@@ -320,7 +320,7 @@ export default function AddAddressPage() {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">City</FormLabel>
+                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">City <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="District / City" 
@@ -339,7 +339,7 @@ export default function AddAddressPage() {
                   name="state"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">State</FormLabel>
+                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">State <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="Name of State" 
@@ -358,7 +358,7 @@ export default function AddAddressPage() {
                   name="pincode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">Postal Code</FormLabel>
+                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">Postal Code <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="PIN Number" 
