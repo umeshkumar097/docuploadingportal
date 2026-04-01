@@ -13,10 +13,10 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { employeeId, phoneNumber, name, companyAgency, fullAddress, city, state, pincode } = body;
+    const { employeeId, phoneNumber, name, companyAgency, fullAddress, city, state, pincode, bookLanguage } = body;
 
     // Strict validation
-    if (!employeeId || !phoneNumber || !name || !companyAgency || !fullAddress || !city || !state || !pincode) {
+    if (!employeeId || !phoneNumber || !name || !companyAgency || !fullAddress || !city || !state || !pincode || !bookLanguage) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
@@ -29,7 +29,8 @@ export async function POST(req: Request) {
         fullAddress,
         city,
         state,
-        pincode
+        pincode,
+        bookLanguage
       }
     });
 

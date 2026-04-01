@@ -145,6 +145,7 @@ model AddressRecord {
   city            String
   state           String
   pincode         String
+  bookLanguage    String   @default("English")
   createdAt       DateTime @default(now())
 }
 

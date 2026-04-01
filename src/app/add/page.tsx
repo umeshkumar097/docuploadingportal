@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AnimatedBackground } from "@/components/animated-background";
-import { Loader2, CheckCircle2, AlertCircle, MapPin, Building2, User, Phone, Hash } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, MapPin, Building2, User, Phone, Hash, RefreshCw } from "lucide-react";
 
 const formSchema = z.object({
   employeeId: z.string().min(1, "Employee ID is required"),
@@ -33,7 +33,13 @@ const formSchema = z.object({
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
   pincode: z.string().min(6, "Valid Pincode is required"),
+  bookLanguage: z.string().min(1, "Book Language is required"),
 });
+
+const languages = [
+  "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu", "English", 
+  "Assamese", "Malayalam", "Bangla", "Oria", "Kannada"
+];
 
 export default function AddAddressPage() {
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
@@ -52,6 +58,7 @@ export default function AddAddressPage() {
       city: "",
       state: "",
       pincode: "",
+      bookLanguage: "English",
     },
   });
 
@@ -190,6 +197,30 @@ export default function AddAddressPage() {
                             className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm" 
                             {...field} 
                         />
+                      </FormControl>
+                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Book Language */}
+                <FormField
+                  control={form.control}
+                  name="bookLanguage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
+                        <RefreshCw className="h-3 w-3 text-slate-400" /> Book Language
+                      </FormLabel>
+                      <FormControl>
+                        <select 
+                            className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 h-14 rounded-xl px-4 focus:bg-white focus:border-blue-500 transition-all shadow-sm outline-none appearance-none cursor-pointer font-medium"
+                            {...field}
+                        >
+                          {languages.map(lang => (
+                            <option key={lang} value={lang}>{lang}</option>
+                          ))}
+                        </select>
                       </FormControl>
                       <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500" />
                     </FormItem>

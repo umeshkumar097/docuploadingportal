@@ -36,6 +36,7 @@ interface AddressRecord {
   city: string;
   state: string;
   pincode: string;
+  bookLanguage: string;
   createdAt: string;
 }
 
@@ -135,6 +136,7 @@ export default function AddressManagementPage() {
       "Name": r.name,
       "Phone": r.phoneNumber,
       "Organisation": r.companyAgency,
+      "Book Language": r.bookLanguage || "English",
       "Full Address": r.fullAddress,
       "City": r.city,
       "State": r.state,
@@ -264,6 +266,7 @@ export default function AddressManagementPage() {
               </TableHead>
               <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground whitespace-nowrap">Employee Info</TableHead>
               <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground whitespace-nowrap">Organisation</TableHead>
+              <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground whitespace-nowrap">Language</TableHead>
               <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground whitespace-nowrap">Address Details</TableHead>
               <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground whitespace-nowrap text-right">Submitted At</TableHead>
             </TableRow>
@@ -271,14 +274,14 @@ export default function AddressManagementPage() {
           <TableBody>
             {isLoading ? (
                <TableRow>
-                 <TableCell colSpan={5} className="p-20 text-center">
+                 <TableCell colSpan={6} className="p-20 text-center">
                     <Loader2 className="h-10 w-10 animate-spin mx-auto text-muted-foreground/30 mb-4" />
                     <span className="font-bold text-muted-foreground/50 uppercase tracking-widest text-xs">Deciphering Records...</span>
                  </TableCell>
                </TableRow>
             ) : records.length === 0 ? (
                <TableRow>
-                 <TableCell colSpan={5} className="p-20 text-center">
+                 <TableCell colSpan={6} className="p-20 text-center">
                     <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
                        <MapPin className="h-10 w-10 text-muted-foreground/20" />
                     </div>
@@ -312,6 +315,11 @@ export default function AddressManagementPage() {
                             </div>
                             <span className="text-sm font-semibold truncate max-w-[150px]">{record.companyAgency}</span>
                         </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100">
+                            {record.bookLanguage || "English"}
+                        </span>
                     </TableCell>
                     <TableCell className="p-6">
                         <div className="flex flex-col">
