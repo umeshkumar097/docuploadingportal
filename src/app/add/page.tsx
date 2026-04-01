@@ -144,52 +144,54 @@ export default function AddAddressPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-black flex items-center justify-center p-6 py-20 text-white">
-      <AnimatedBackground />
+    <div className="relative min-h-screen bg-[#050505] flex items-center justify-center p-6 py-20 text-white overflow-hidden">
+      {/* Premium Subtle Gradient Background */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1a1a1a_0%,#050505_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
       
-      <Card className="relative z-10 w-full max-w-2xl bg-black/60 border-white/10 backdrop-blur-2xl shadow-2xl overflow-hidden anim-fade-in group">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-500" />
+      <Card className="relative z-10 w-full max-w-2xl bg-[#0a0a0a] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
         
-        <CardHeader className="p-8 pb-0">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
-              <MapPin className="h-7 w-7 text-blue-400" />
+        <CardHeader className="p-10 pb-0">
+          <div className="flex items-center gap-5 mb-6">
+            <div className="p-3.5 bg-white/[0.03] rounded-2xl border border-white/5 shadow-inner">
+              <MapPin className="h-7 w-7 text-blue-400/80" />
             </div>
             <div>
-              <CardTitle className="text-3xl font-black text-white tracking-tight uppercase leading-none mb-1">Address Collection</CardTitle>
-              <CardDescription className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.2em]">Enterprise Data Portal &bull; Secure Protocol</CardDescription>
+              <CardTitle className="text-3xl font-bold text-white tracking-tight leading-none mb-2">Address Collection</CardTitle>
+              <CardDescription className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.25em]">Secure Enterprise Portal &bull; ISO Protocol</CardDescription>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="p-8 pt-6">
+        <CardContent className="p-10 pt-6">
           {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-500 text-sm font-bold animate-pulse">
+            <div className="mb-8 p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-center gap-3 text-red-500 text-sm font-bold">
               <AlertCircle className="h-5 w-5" />
               {error}
             </div>
           )}
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Employee ID */}
                 <FormField
                   control={form.control}
                   name="employeeId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
-                        <Hash className="h-3 w-3 text-blue-400/50" /> Employee ID
+                      <FormLabel className="text-zinc-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
+                        <Hash className="h-3 w-3 text-zinc-600" /> Employee ID
                       </FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="EMP12345" 
-                            className="bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-700 focus:bg-white/5 focus:border-blue-500/50 h-13 rounded-2xl transition-all shadow-inner" 
+                            className="bg-white/[0.02] border-white/10 text-white placeholder:text-zinc-800 focus:bg-white/[0.04] focus:border-blue-500/30 h-14 rounded-xl transition-all shadow-sm" 
                             {...field} 
                         />
                       </FormControl>
-                      <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500" />
+                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500/80" />
                     </FormItem>
                   )}
                 />
@@ -200,17 +202,17 @@ export default function AddAddressPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
-                        <User className="h-3 w-3 text-blue-400/50" /> Full Name
+                      <FormLabel className="text-zinc-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
+                        <User className="h-3 w-3 text-zinc-600" /> Full Name
                       </FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="John Doe" 
-                            className="bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-700 focus:bg-white/5 focus:border-blue-500/50 h-13 rounded-2xl transition-all shadow-inner" 
+                            className="bg-white/[0.02] border-white/10 text-white placeholder:text-zinc-800 focus:bg-white/[0.04] focus:border-blue-500/30 h-14 rounded-xl transition-all shadow-sm" 
                             {...field} 
                         />
                       </FormControl>
-                      <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500" />
+                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500/80" />
                     </FormItem>
                   )}
                 />
@@ -221,17 +223,17 @@ export default function AddAddressPage() {
                   name="phoneNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
-                        <Phone className="h-3 w-3 text-blue-400/50" /> Mobile Number
+                      <FormLabel className="text-zinc-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
+                        <Phone className="h-3 w-3 text-zinc-600" /> Mobile Number
                       </FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="+91 XXXXX XXXXX" 
-                            className="bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-700 focus:bg-white/5 focus:border-blue-500/50 h-13 rounded-2xl transition-all shadow-inner" 
+                            className="bg-white/[0.02] border-white/10 text-white placeholder:text-zinc-800 focus:bg-white/[0.04] focus:border-blue-500/30 h-14 rounded-xl transition-all shadow-sm" 
                             {...field} 
                         />
                       </FormControl>
-                      <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500" />
+                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500/80" />
                     </FormItem>
                   )}
                 />
@@ -242,17 +244,17 @@ export default function AddAddressPage() {
                   name="companyAgency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
-                        <Building2 className="h-3 w-3 text-blue-400/50" /> Organisation
+                      <FormLabel className="text-zinc-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
+                        <Building2 className="h-3 w-3 text-zinc-600" /> Organisation
                       </FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="Company or Agency Name" 
-                            className="bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-700 focus:bg-white/5 focus:border-blue-500/50 h-13 rounded-2xl transition-all shadow-inner" 
+                            className="bg-white/[0.02] border-white/10 text-white placeholder:text-zinc-800 focus:bg-white/[0.04] focus:border-blue-500/30 h-14 rounded-xl transition-all shadow-sm" 
                             {...field} 
                         />
                       </FormControl>
-                      <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500" />
+                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500/80" />
                     </FormItem>
                   )}
                 />
@@ -264,37 +266,37 @@ export default function AddAddressPage() {
                 name="fullAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
-                      <MapPin className="h-3 w-3 text-blue-400/50" /> Complete Mailing Address
+                    <FormLabel className="text-zinc-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
+                      <MapPin className="h-3 w-3 text-zinc-600" /> Complete Mailing Address
                       </FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="House No., Street, Floor, Landmark..." 
-                        className="bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-700 focus:bg-white/5 focus:border-blue-500/50 h-13 rounded-2xl transition-all shadow-inner" 
+                        className="bg-white/[0.02] border-white/10 text-white placeholder:text-zinc-800 focus:bg-white/[0.04] focus:border-blue-500/30 h-14 rounded-xl transition-all shadow-sm" 
                         {...field} 
                       />
                     </FormControl>
-                    <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500" />
+                    <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500/80" />
                   </FormItem>
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* City */}
                 <FormField
                   control={form.control}
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em]">City</FormLabel>
+                      <FormLabel className="text-zinc-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">City</FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="District / City" 
-                            className="bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-700 focus:bg-white/5 focus:border-blue-500/50 h-13 rounded-2xl transition-all shadow-inner" 
+                            className="bg-white/[0.02] border-white/10 text-white placeholder:text-zinc-800 focus:bg-white/[0.04] focus:border-blue-500/30 h-14 rounded-xl transition-all shadow-sm" 
                             {...field} 
                         />
                       </FormControl>
-                      <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500" />
+                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500/80" />
                     </FormItem>
                   )}
                 />
@@ -305,15 +307,15 @@ export default function AddAddressPage() {
                   name="state"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em]">State / Province</FormLabel>
+                      <FormLabel className="text-zinc-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">State</FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="Name of State" 
-                            className="bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-700 focus:bg-white/5 focus:border-blue-500/50 h-13 rounded-2xl transition-all shadow-inner" 
+                            className="bg-white/[0.02] border-white/10 text-white placeholder:text-zinc-800 focus:bg-white/[0.04] focus:border-blue-500/30 h-14 rounded-xl transition-all shadow-sm" 
                             {...field} 
                         />
                       </FormControl>
-                      <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500" />
+                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500/80" />
                     </FormItem>
                   )}
                 />
@@ -324,15 +326,15 @@ export default function AddAddressPage() {
                   name="pincode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em]">Postal Code</FormLabel>
+                      <FormLabel className="text-zinc-500 font-bold uppercase text-[9px] tracking-[0.2em] mb-2">Postal Code</FormLabel>
                       <FormControl>
                         <Input 
                             placeholder="PIN Number" 
-                            className="bg-white/[0.03] border-white/10 text-white placeholder:text-zinc-700 focus:bg-white/5 focus:border-blue-500/50 h-13 rounded-2xl transition-all shadow-inner" 
+                            className="bg-white/[0.02] border-white/10 text-white placeholder:text-zinc-800 focus:bg-white/[0.04] focus:border-blue-500/30 h-14 rounded-xl transition-all shadow-sm" 
                             {...field} 
                         />
                       </FormControl>
-                      <FormMessage className="text-[10px] font-black uppercase tracking-wider text-red-500" />
+                      <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500/80" />
                     </FormItem>
                   )}
                 />
@@ -341,10 +343,10 @@ export default function AddAddressPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-15 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xl rounded-[1.25rem] shadow-[0_0_50px_rgba(37,99,235,0.2)] hover:shadow-[0_0_80px_rgba(37,99,235,0.4)] transition-all active:scale-[0.98] mt-6 border border-white/10 ring-1 ring-white/5"
+                className="w-full h-15 bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg rounded-2xl transition-all active:scale-[0.99] mt-6 shadow-lg shadow-blue-500/10 border border-blue-400/20"
               >
                 {isSubmitting ? (
-                  <Loader2 className="h-7 w-7 animate-spin px-1" />
+                  <Loader2 className="h-7 w-7 animate-spin" />
                 ) : (
                   "AUTHENTICATE & SUBMIT"
                 )}
@@ -354,12 +356,9 @@ export default function AddAddressPage() {
         </CardContent>
       </Card>
       
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-40 hover:opacity-100 transition-opacity">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 whitespace-nowrap">
-            &copy; {new Date().getFullYear()} CRUXDOC ENTERPRISE &bull; SECURE DATA VAULT
-        </p>
-        <p className="text-[8px] font-black uppercase tracking-[0.4em] text-blue-500/60">
-            Military-Grade Encryption Active
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-20 hover:opacity-50 transition-opacity pointer-events-none">
+        <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-400 whitespace-nowrap">
+            &copy; {new Date().getFullYear()} CRUXDOC ENTERPRISE &bull; SECURE DATA ARCHITECTURE
         </p>
       </div>
     </div>
