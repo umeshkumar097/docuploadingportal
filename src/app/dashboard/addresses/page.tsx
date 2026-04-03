@@ -378,173 +378,191 @@ export default function AddressManagementPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-               <TableRow>
-                 <TableCell colSpan={6} className="p-20 text-center">
-                    <Loader2 className="h-10 w-10 animate-spin mx-auto text-muted-foreground/30 mb-4" />
-                    <span className="font-bold text-muted-foreground/50 uppercase tracking-widest text-xs">Deciphering Records...</span>
-                 </TableCell>
-               </TableRow>
-            ) : view === "submissions" ? (
-                records.length === 0 ? (
+            {(() => {
+              if (isLoading) {
+                return (
                   <TableRow>
                     <TableCell colSpan={6} className="p-20 text-center">
-                       <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Loader2 className="h-10 w-10 animate-spin mx-auto text-muted-foreground/30 mb-4" />
+                      <span className="font-bold text-muted-foreground/50 uppercase tracking-widest text-xs">Deciphering Records...</span>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              if (view === "submissions") {
+                if (records.length === 0) {
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={6} className="p-20 text-center">
+                        <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
                           <MapPin className="h-10 w-10 text-muted-foreground/20" />
-                       </div>
-                       <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">No address records found</span>
+                        </div>
+                        <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">No address records found</span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
+                return records.map((record) => (
+                  <TableRow key={record.id} className="group hover:bg-accent/30 transition-colors border-b last:border-0 h-24">
+                    <TableCell className="p-6">
+                      <Checkbox checked={selectedIds.includes(record.id)} onCheckedChange={() => toggleSelect(record.id)} className="rounded-lg h-5 w-5" />
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-foreground truncate max-w-[200px]">{record.name || "N/A"}</span>
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground tracking-wider mt-1">
+                          <span className="text-primary/60">{record.employeeId}</span>
+                          <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                          <span>{record.personalMobileNo || "N/A"}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                          <Building2 className="h-4 w-4 text-muted-foreground/60" />
+                        </div>
+                        <span className="text-sm font-semibold truncate max-w-[150px]">{record.companyAgency || "N/A"}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100">
+                        {record.bookLanguage || "English"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-foreground truncate max-w-[300px]">{record.addressLine1}</span>
+                        {(record.addressLine2 || record.addressLine3) && (
+                          <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[300px]">
+                            {[record.addressLine2, record.addressLine3].filter(Boolean).join(", ")}
+                          </span>
+                        )}
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest mt-1">
+                          {record.city}, {record.state} &middot; {record.pincode}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex flex-col items-end">
+                        <span className="text-sm font-black text-foreground/80 leading-none mb-1">
+                          {format(new Date(record.createdAt), "dd MMM yyyy")}
+                        </span>
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                          {format(new Date(record.createdAt), "HH:mm")}
+                        </span>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  records.map((record) => (
-                    <TableRow key={record.id} className="group hover:bg-accent/30 transition-colors border-b last:border-0 h-24">
-                      <TableCell className="p-6">
-                        <Checkbox 
-                          checked={selectedIds.includes(record.id)}
-                          onCheckedChange={() => toggleSelect(record.id)}
-                          className="rounded-lg h-5 w-5"
-                        />
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex flex-col">
-                             <span className="font-bold text-foreground truncate max-w-[200px]">{record.name || "N/A"}</span>
-                             <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground tracking-wider mt-1">
-                                <span className="text-primary/60">{record.employeeId}</span>
-                                <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                                <span>{record.personalMobileNo || "N/A"}</span>
-                             </div>
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                                  <Building2 className="h-4 w-4 text-muted-foreground/60" />
-                              </div>
-                              <span className="text-sm font-semibold truncate max-w-[150px]">{record.companyAgency || "N/A"}</span>
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100">
-                              {record.bookLanguage || "English"}
-                          </span>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex flex-col">
-                              <span className="text-sm font-black text-foreground truncate max-w-[300px]">{record.addressLine1}</span>
-                              {(record.addressLine2 || record.addressLine3) && (
-                                  <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[300px]">
-                                      {[record.addressLine2, record.addressLine3].filter(Boolean).join(", ")}
-                                  </span>
-                              )}
-                              <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest mt-1">
-                                  {record.city}, {record.state} &middot; {record.pincode}
-                              </span>
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex flex-col items-end">
-                              <span className="text-sm font-black text-foreground/80 leading-none mb-1">
-                                  {format(new Date(record.createdAt), "dd MMM yyyy")}
-                              </span>
-                              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                                  {format(new Date(record.createdAt), "HH:mm")}
-                              </span>
-                          </div>
+                ));
+              }
+
+              if (view === "pending") {
+                if (pendingRecords.length === 0) {
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={6} className="p-20 text-center">
+                        <CheckCircle2 className="h-10 w-10 text-emerald-500/20 mx-auto mb-6" />
+                        <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">All employees have submitted!</span>
                       </TableCell>
                     </TableRow>
-                  ))
-                )
-            ) : (
-                pendingRecords.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="p-20 text-center">
-                       <CheckCircle2 className="h-10 w-10 text-emerald-500/20 mx-auto mb-6" />
-                       <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">All employees have submitted!</span>
+                  );
+                }
+                return pendingRecords.map((item) => (
+                  <TableRow key={item.employeeId} className="group hover:bg-rose-50/20 transition-colors border-b last:border-0 h-24">
+                    <TableCell className="p-6">
+                      <Checkbox disabled className="rounded-lg h-5 w-5 opacity-20" />
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-foreground/80">{item.employeeName}</span>
+                        <span className="text-[10px] font-black uppercase text-primary/40 tracking-[0.2em] mt-1">{item.employeeId}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
+                          <Building2 className="h-4 w-4 text-muted-foreground/40" />
+                        </div>
+                        <span className="text-sm font-semibold text-muted-foreground">{item.vendor || "Not Configured"}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex flex-col gap-1.5">
+                        {item.officeMobileNo && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-50 text-blue-500 uppercase tracking-tighter">OFFICE</span>
+                            <span className="text-xs font-bold text-foreground/60">{item.officeMobileNo}</span>
+                          </div>
+                        )}
+                        {item.personalMobileNo && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-500 uppercase tracking-tighter">MOBILE</span>
+                            <span className="text-xs font-bold text-foreground/60">{item.personalMobileNo}</span>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6" colSpan={2}>
+                      <div className="flex items-center gap-3 text-rose-500 bg-rose-500/5 px-4 py-2.5 rounded-2xl border border-rose-500/10 w-fit">
+                        <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.1em]">Pending Campaign Record</span>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : view === "pending" ? (
-                  pendingRecords.map((item) => (
-                    <TableRow key={item.employeeId} className="group hover:bg-rose-50/20 transition-colors border-b last:border-0 h-24">
-                      <TableCell className="p-6">
-                        <Checkbox disabled className="rounded-lg h-5 w-5 opacity-20" />
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex flex-col">
-                             <span className="font-bold text-foreground/80">{item.employeeName}</span>
-                             <span className="text-[10px] font-black uppercase text-primary/40 tracking-[0.2em] mt-1">{item.employeeId}</span>
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
-                                <Building2 className="h-4 w-4 text-muted-foreground/40" />
-                             </div>
-                             <span className="text-sm font-semibold text-muted-foreground">{item.vendor || "Not Configured"}</span>
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex flex-col gap-1.5">
-                              {item.officeMobileNo && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-50 text-blue-500 uppercase tracking-tighter">OFFICE</span>
-                                  <span className="text-xs font-bold text-foreground/60">{item.officeMobileNo}</span>
-                                </div>
-                              )}
-                              {item.personalMobileNo && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-500 uppercase tracking-tighter">MOBILE</span>
-                                  <span className="text-xs font-bold text-foreground/60">{item.personalMobileNo}</span>
-                                </div>
-                              )}
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6" colSpan={2}>
-                          <div className="flex items-center gap-3 text-rose-500 bg-rose-500/5 px-4 py-2.5 rounded-2xl border border-rose-500/10 w-fit">
-                             <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                             <span className="text-[10px] font-black uppercase tracking-[0.1em]">Pending Campaign Record</span>
-                          </div>
+                ));
+              }
+
+              if (view === "dispatched") {
+                if (dispatchedRecords.length === 0) {
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={6} className="p-20 text-center">
+                        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <Truck className="h-10 w-10 text-emerald-500/20" />
+                        </div>
+                        <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">No books marked as dispatched yet</span>
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  dispatchedRecords.map((item) => (
-                    <TableRow key={item.employeeId} className="group hover:bg-emerald-50/20 transition-colors border-b last:border-0 h-24">
-                      <TableCell className="p-6">
-                        <Checkbox disabled className="rounded-lg h-5 w-5 opacity-20" />
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex flex-col">
-                             <span className="font-bold text-foreground/80">{item.name}</span>
-                             <span className="text-[10px] font-black uppercase text-primary/40 tracking-[0.2em] mt-1">{item.employeeId}</span>
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                <Building2 className="h-4 w-4 text-emerald-600" />
-                             </div>
-                             <span className="text-sm font-semibold text-muted-foreground">{item.vendor}</span>
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <div className="flex flex-col gap-1">
-                              <span className="text-xs font-bold text-foreground/60">{item.officeMobileNo}</span>
-                              <span className="text-xs font-bold text-foreground/60">{item.personalMobileNo}</span>
-                          </div>
-                      </TableCell>
-                      <TableCell className="p-6">
-                          <span className="text-xs font-medium text-muted-foreground line-clamp-2 max-w-[200px]">
-                            {item.address}
-                          </span>
-                      </TableCell>
-                      <TableCell className="p-6 text-right">
-                          <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-                             Shipped
-                          </span>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                  );
+                }
+                return dispatchedRecords.map((item) => (
+                  <TableRow key={item.employeeId} className="group hover:bg-emerald-50/20 transition-colors border-b last:border-0 h-24">
+                    <TableCell className="p-6">
+                      <Checkbox disabled className="rounded-lg h-5 w-5 opacity-20" />
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-foreground/80">{item.name}</span>
+                        <span className="text-[10px] font-black uppercase text-primary/40 tracking-[0.2em] mt-1">{item.employeeId}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                          <Building2 className="h-4 w-4 text-emerald-600" />
+                        </div>
+                        <span className="text-sm font-semibold text-muted-foreground">{item.vendor}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-bold text-foreground/60">{item.officeMobileNo}</span>
+                        <span className="text-xs font-bold text-foreground/60">{item.personalMobileNo}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-6">
+                      <span className="text-xs font-medium text-muted-foreground line-clamp-2 max-w-[200px]">{item.address}</span>
+                    </TableCell>
+                    <TableCell className="p-6 text-right">
+                      <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">Shipped</span>
+                    </TableCell>
+                  </TableRow>
+                ));
+              }
+              return null;
+            })()}
           </TableBody>
         </Table>
       </div>
