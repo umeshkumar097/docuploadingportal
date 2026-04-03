@@ -421,27 +421,44 @@ export default function AddressManagementPage() {
                   </TableRow>
                 ) : (
                   pendingRecords.map((item) => (
-                    <TableRow key={item.employeeId} className="group hover:bg-accent/30 transition-colors border-b last:border-0 h-20">
-                      <TableCell className="p-6"></TableCell>
+                    <TableRow key={item.employeeId} className="group hover:bg-rose-50/20 transition-colors border-b last:border-0 h-24">
+                      <TableCell className="p-6">
+                        <Checkbox disabled className="rounded-lg h-5 w-5 opacity-20" />
+                      </TableCell>
                       <TableCell className="p-6">
                           <div className="flex flex-col">
-                             <span className="font-bold text-foreground">{item.employeeName}</span>
-                             <span className="text-[10px] font-black uppercase text-primary/60 tracking-wider font-mono">{item.employeeId}</span>
+                             <span className="font-bold text-foreground/80">{item.employeeName}</span>
+                             <span className="text-[10px] font-black uppercase text-primary/40 tracking-[0.2em] mt-1">{item.employeeId}</span>
                           </div>
                       </TableCell>
                       <TableCell className="p-6">
-                          <span className="text-sm font-semibold opacity-60">{item.vendor || "N/A"}</span>
+                          <div className="flex items-center gap-2">
+                             <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
+                                <Building2 className="h-4 w-4 text-muted-foreground/40" />
+                             </div>
+                             <span className="text-sm font-semibold text-muted-foreground">{item.vendor || "Not Configured"}</span>
+                          </div>
                       </TableCell>
                       <TableCell className="p-6">
-                          <div className="flex flex-col text-[10px] font-bold text-muted-foreground">
-                              <span>O: {item.officeMobileNo || "-"}</span>
-                              <span>P: {item.personalMobileNo || "-"}</span>
+                          <div className="flex flex-col gap-1.5">
+                              {item.officeMobileNo && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-50 text-blue-500 uppercase tracking-tighter">OFFICE</span>
+                                  <span className="text-xs font-bold text-foreground/60">{item.officeMobileNo}</span>
+                                </div>
+                              )}
+                              {item.personalMobileNo && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-500 uppercase tracking-tighter">MOBILE</span>
+                                  <span className="text-xs font-bold text-foreground/60">{item.personalMobileNo}</span>
+                                </div>
+                              )}
                           </div>
                       </TableCell>
                       <TableCell className="p-6" colSpan={2}>
-                          <div className="flex items-center gap-2 text-rose-500 bg-rose-50 w-fit px-4 py-2 rounded-xl border border-rose-100">
-                             <AlertCircle className="h-3 w-3" />
-                             <span className="text-[10px] font-black uppercase tracking-widest">Pending Submission</span>
+                          <div className="flex items-center gap-3 text-rose-500 bg-rose-500/5 px-4 py-2.5 rounded-2xl border border-rose-500/10 w-fit">
+                             <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                             <span className="text-[10px] font-black uppercase tracking-[0.1em]">Pending Campaign Record</span>
                           </div>
                       </TableCell>
                     </TableRow>
