@@ -12,9 +12,38 @@ export async function GET() {
     const addresses = await prisma.addressRecord.findMany({
       orderBy: { createdAt: "desc" }
     });
-    return NextResponse.json(addresses);
+
+    const masterEmployees = await prisma.masterEmployee.findMany();
+
+    // Create a map for fast lookup
+    const masterMap = new Map();
+    masterEmployees.forEach((e: any) => masterMap.set(e.employeeId, e));
+
+    // Enrich existing records
+    const enrichedRecords = addresses.map((addr: any) => {
+      const master = masterMap.get(addr.employeeId);
+      return {
+        ...addr,
+        name: master?.employeeName || addr.name,
+        officeMobileNo: master?.officeMobileNo || "",
+        personalMobileNo: master?.personalMobileNo || "",
+        whatsappNo: master?.whatsappNo || "",
+        companyAgency: master?.vendor || addr.companyAgency,
+      };
+    });
+
+    // Find pending (Master - Submitted)
+    const submittedIds = new Set(addresses.map((a: any) => a.employeeId));
+    const pendingRecords = masterEmployees.filter((e: any) => !submittedIds.has(e.employeeId));
+
+    return NextResponse.json({
+      records: enrichedRecords,
+      pending: pendingRecords,
+      totalMaster: masterEmployees.length
+    });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch addresses" }, { status: 500 });
+    console.error("Dashboard error:", error);
+    return NextResponse.json({ error: "Failed to fetch dashboard data" }, { status: 500 });
   }
 }
 

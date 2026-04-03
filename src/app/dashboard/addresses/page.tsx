@@ -31,6 +31,9 @@ interface AddressRecord {
   employeeId: string;
   phoneNumber?: string;
   name?: string;
+  officeMobileNo?: string;
+  personalMobileNo?: string;
+  whatsappNo?: string;
   companyAgency?: string;
   addressLine1: string;
   addressLine2?: string;
@@ -43,8 +46,19 @@ interface AddressRecord {
   updatedAt?: string;
 }
 
+interface PendingRecord {
+  employeeId: string;
+  employeeName: string;
+  officeMobileNo?: string;
+  personalMobileNo?: string;
+  vendor?: string;
+}
+
 export default function AddressManagementPage() {
   const [records, setRecords] = useState<AddressRecord[]>([]);
+  const [pendingRecords, setPendingRecords] = useState<PendingRecord[]>([]);
+  const [totalMaster, setTotalMaster] = useState(0);
+  const [view, setView] = useState<"submissions" | "pending">("submissions");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormEnabled, setIsFormEnabled] = useState(true);
@@ -61,8 +75,10 @@ export default function AddressManagementPage() {
     try {
       const res = await fetch("/api/dashboard/addresses");
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setRecords(data);
+      if (data.records) {
+        setRecords(data.records);
+        setPendingRecords(data.pending || []);
+        setTotalMaster(data.totalMaster || 0);
       }
     } catch (error) {
       console.error("Fetch error:", error);
@@ -135,19 +151,15 @@ export default function AddressManagementPage() {
   function exportToExcel() {
     const selectedData = records.filter(r => selectedIds.includes(r.id));
     const dataToExport = selectedData.map(r => ({
-      "Employee ID": r.employeeId,
-      "Name": r.name || "N/A",
-      "Phone": r.phoneNumber || "N/A",
-      "Organisation": r.companyAgency || "N/A",
-      "Book Language": r.bookLanguage || "English",
-      "Address Line 1": r.addressLine1,
-      "Address Line 2": r.addressLine2 || "",
-      "Address Line 3": r.addressLine3 || "",
+      "Employee Name": r.name || "N/A",
+      "Office Mobile No": r.officeMobileNo || "N/A",
+      "Personal Mobile No": r.personalMobileNo || "N/A",
+      "Whatsapp No": r.whatsappNo || "N/A",
+      "Full Address": [r.addressLine1, r.addressLine2, r.addressLine3].filter(Boolean).join(", "),
       "City": r.city,
       "State": r.state,
       "Pincode": r.pincode,
-      "Submitted At": format(new Date(r.createdAt), "dd-MM-yyyy HH:mm"),
-      "Last Updated": r.updatedAt ? format(new Date(r.updatedAt), "dd-MM-yyyy HH:mm") : "N/A",
+      "Book Language": r.bookLanguage || "English",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -195,7 +207,20 @@ export default function AddressManagementPage() {
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
                 <MapPin className="h-20 w-20" />
             </div>
-            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Total Submissions</span>
+            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Total Masters Uploaded</span>
+            <div className="flex items-end gap-2">
+                <span className="text-4xl font-black tracking-tighter text-foreground">{totalMaster}</span>
+                <span className="text-xs font-bold text-blue-500 mb-1.5 flex items-center gap-1 uppercase">
+                   Target
+                </span>
+            </div>
+         </div>
+
+         <div className="bg-card border rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                <CheckCircle2 className="h-20 w-20" />
+            </div>
+            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Submissions Received</span>
             <div className="flex items-end gap-2">
                 <span className="text-4xl font-black tracking-tighter text-foreground">{records.length}</span>
                 <span className="text-xs font-bold text-emerald-500 mb-1.5 flex items-center gap-1 uppercase">
@@ -206,15 +231,34 @@ export default function AddressManagementPage() {
          
          <div className="bg-card border rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-center relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
-                <Building2 className="h-20 w-20" />
+                <AlertCircle className="h-20 w-20" />
             </div>
-            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Unique Agencies</span>
+            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Pending Submissions</span>
             <div className="flex items-end gap-2">
-                <span className="text-4xl font-black tracking-tighter text-foreground">
-                    {new Set(records.map(r => r.companyAgency)).size}
+                <span className="text-4xl font-black tracking-tighter text-rose-500">{pendingRecords.length}</span>
+                <span className="text-xs font-bold text-rose-500 mb-1.5 flex items-center gap-1 uppercase">
+                   Missing
                 </span>
             </div>
          </div>
+      </div>
+
+      {/* View Toggle */}
+      <div className="flex items-center gap-2 mb-6 p-1 bg-muted rounded-2xl w-fit">
+          <Button 
+            variant={view === "submissions" ? "default" : "ghost"}
+            onClick={() => setView("submissions")}
+            className="rounded-xl h-10 px-6 font-bold"
+          >
+            Submissions ({records.length})
+          </Button>
+          <Button 
+            variant={view === "pending" ? "default" : "ghost"}
+            onClick={() => setView("pending")}
+            className="rounded-xl h-10 px-6 font-bold"
+          >
+            Pending ({pendingRecords.length})
+          </Button>
       </div>
 
       {/* Floating Toolbar */}
@@ -285,73 +329,111 @@ export default function AddressManagementPage() {
                     <span className="font-bold text-muted-foreground/50 uppercase tracking-widest text-xs">Deciphering Records...</span>
                  </TableCell>
                </TableRow>
-            ) : records.length === 0 ? (
-               <TableRow>
-                 <TableCell colSpan={6} className="p-20 text-center">
-                    <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                       <MapPin className="h-10 w-10 text-muted-foreground/20" />
-                    </div>
-                    <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">No address records found</span>
-                 </TableCell>
-               </TableRow>
-            ) : (
-                records.map((record) => (
-                  <TableRow key={record.id} className="group hover:bg-accent/30 transition-colors border-b last:border-0 h-24">
-                    <TableCell className="p-6">
-                      <Checkbox 
-                        checked={selectedIds.includes(record.id)}
-                        onCheckedChange={() => toggleSelect(record.id)}
-                        className="rounded-lg h-5 w-5"
-                      />
-                    </TableCell>
-                    <TableCell className="p-6">
-                        <div className="flex flex-col">
-                           <span className="font-bold text-foreground truncate max-w-[200px]">{record.name || "N/A"}</span>
-                           <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground tracking-wider mt-1">
-                              <span className="text-primary/60">{record.employeeId}</span>
-                              <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                              <span>{record.phoneNumber || "N/A"}</span>
-                           </div>
-                        </div>
-                    </TableCell>
-                    <TableCell className="p-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                                <Building2 className="h-4 w-4 text-muted-foreground/60" />
-                            </div>
-                            <span className="text-sm font-semibold truncate max-w-[150px]">{record.companyAgency || "N/A"}</span>
-                        </div>
-                    </TableCell>
-                    <TableCell className="p-6">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100">
-                            {record.bookLanguage || "English"}
-                        </span>
-                    </TableCell>
-                    <TableCell className="p-6">
-                        <div className="flex flex-col">
-                            <span className="text-sm font-black text-foreground truncate max-w-[300px]">{record.addressLine1}</span>
-                            {(record.addressLine2 || record.addressLine3) && (
-                                <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[300px]">
-                                    {[record.addressLine2, record.addressLine3].filter(Boolean).join(", ")}
-                                </span>
-                            )}
-                            <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest mt-1">
-                                {record.city}, {record.state} &middot; {record.pincode}
-                            </span>
-                        </div>
-                    </TableCell>
-                    <TableCell className="p-6">
-                        <div className="flex flex-col items-end">
-                            <span className="text-sm font-black text-foreground/80 leading-none mb-1">
-                                {format(new Date(record.createdAt), "dd MMM yyyy")}
-                            </span>
-                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                                {format(new Date(record.createdAt), "HH:mm")}
-                            </span>
-                        </div>
+            ) : view === "submissions" ? (
+                records.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="p-20 text-center">
+                       <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <MapPin className="h-10 w-10 text-muted-foreground/20" />
+                       </div>
+                       <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">No address records found</span>
                     </TableCell>
                   </TableRow>
-                ))
+                ) : (
+                  records.map((record) => (
+                    <TableRow key={record.id} className="group hover:bg-accent/30 transition-colors border-b last:border-0 h-24">
+                      <TableCell className="p-6">
+                        <Checkbox 
+                          checked={selectedIds.includes(record.id)}
+                          onCheckedChange={() => toggleSelect(record.id)}
+                          className="rounded-lg h-5 w-5"
+                        />
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex flex-col">
+                             <span className="font-bold text-foreground truncate max-w-[200px]">{record.name || "N/A"}</span>
+                             <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground tracking-wider mt-1">
+                                <span className="text-primary/60">{record.employeeId}</span>
+                                <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                                <span>{record.personalMobileNo || "N/A"}</span>
+                             </div>
+                          </div>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                                  <Building2 className="h-4 w-4 text-muted-foreground/60" />
+                              </div>
+                              <span className="text-sm font-semibold truncate max-w-[150px]">{record.companyAgency || "N/A"}</span>
+                          </div>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100">
+                              {record.bookLanguage || "English"}
+                          </span>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex flex-col">
+                              <span className="text-sm font-black text-foreground truncate max-w-[300px]">{record.addressLine1}</span>
+                              {(record.addressLine2 || record.addressLine3) && (
+                                  <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[300px]">
+                                      {[record.addressLine2, record.addressLine3].filter(Boolean).join(", ")}
+                                  </span>
+                              )}
+                              <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest mt-1">
+                                  {record.city}, {record.state} &middot; {record.pincode}
+                              </span>
+                          </div>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex flex-col items-end">
+                              <span className="text-sm font-black text-foreground/80 leading-none mb-1">
+                                  {format(new Date(record.createdAt), "dd MMM yyyy")}
+                              </span>
+                              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                                  {format(new Date(record.createdAt), "HH:mm")}
+                              </span>
+                          </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )
+            ) : (
+                pendingRecords.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="p-20 text-center">
+                       <CheckCircle2 className="h-10 w-10 text-emerald-500/20 mx-auto mb-6" />
+                       <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">All employees have submitted!</span>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  pendingRecords.map((item) => (
+                    <TableRow key={item.employeeId} className="group hover:bg-accent/30 transition-colors border-b last:border-0 h-20">
+                      <TableCell className="p-6"></TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex flex-col">
+                             <span className="font-bold text-foreground">{item.employeeName}</span>
+                             <span className="text-[10px] font-black uppercase text-primary/60 tracking-wider font-mono">{item.employeeId}</span>
+                          </div>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <span className="text-sm font-semibold opacity-60">{item.vendor || "N/A"}</span>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex flex-col text-[10px] font-bold text-muted-foreground">
+                              <span>O: {item.officeMobileNo || "-"}</span>
+                              <span>P: {item.personalMobileNo || "-"}</span>
+                          </div>
+                      </TableCell>
+                      <TableCell className="p-6" colSpan={2}>
+                          <div className="flex items-center gap-2 text-rose-500 bg-rose-50 w-fit px-4 py-2 rounded-xl border border-rose-100">
+                             <AlertCircle className="h-3 w-3" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Pending Submission</span>
+                          </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )
             )}
           </TableBody>
         </Table>
