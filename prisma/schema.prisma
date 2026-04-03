@@ -158,3 +158,17 @@ model SystemSetting {
   value String // "true" or "false"
 }
 
+model BookDeliveryMaster {
+  id              String   @id @default(cuid())
+  employeeId      String   @unique
+  employeeName    String
+  officeMobileNo  String?
+  personalMobileNo String?
+  whatsappNo      String?
+  vendor          String?
+  city            String?
+  state           String?
+  pincode         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

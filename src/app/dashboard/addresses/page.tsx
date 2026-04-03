@@ -21,10 +21,12 @@ import {
   RefreshCw,
   AlertCircle,
   Building2,
-  CheckCircle2
+  CheckCircle2,
+  UserPlus
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
+import { BookRecipientUpload } from "@/components/book-recipient-upload";
 
 interface AddressRecord {
   id: string;
@@ -63,6 +65,7 @@ export default function AddressManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFormEnabled, setIsFormEnabled] = useState(true);
   const [isToggling, setIsToggling] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -182,22 +185,32 @@ export default function AddressManagementPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-card border rounded-[2rem] p-2 pl-6 shadow-sm">
-            <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1">Public Form Status</span>
-                <span className={`text-xs font-bold uppercase ${isFormEnabled ? "text-emerald-500" : "text-rose-500"}`}>
-                    {isFormEnabled ? "ONLINE & ACCEPTING" : "OFFLINE & LOCKED"}
-                </span>
-            </div>
+        <div className="flex items-center gap-4">
             <Button 
-                variant={isFormEnabled ? "outline" : "default"}
-                onClick={toggleFormStatus}
-                disabled={isToggling}
-                className={`rounded-[1.5rem] h-12 px-6 font-bold flex items-center gap-3 transition-all ${isFormEnabled ? "hover:bg-rose-500/10 hover:text-rose-600 border-emerald-500/20" : "bg-emerald-600 hover:bg-emerald-500 text-white"}`}
+                onClick={() => setIsUploadOpen(true)}
+                className="rounded-[1.5rem] h-12 px-6 font-bold flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20"
             >
-                {isToggling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
-                {isFormEnabled ? "Deactivate" : "Activate"}
+                <UserPlus className="h-4 w-4" />
+                Update Recipient List
             </Button>
+
+            <div className="flex items-center gap-4 bg-card border rounded-[2rem] p-2 pl-6 shadow-sm">
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1">Public Form Status</span>
+                    <span className={`text-xs font-bold uppercase ${isFormEnabled ? "text-emerald-500" : "text-rose-500"}`}>
+                        {isFormEnabled ? "ONLINE & ACCEPTING" : "OFFLINE & LOCKED"}
+                    </span>
+                </div>
+                <Button 
+                    variant={isFormEnabled ? "outline" : "default"}
+                    onClick={toggleFormStatus}
+                    disabled={isToggling}
+                    className={`rounded-[1.5rem] h-12 px-6 font-bold flex items-center gap-3 transition-all ${isFormEnabled ? "hover:bg-rose-500/10 hover:text-rose-600 border-emerald-500/20" : "bg-emerald-600 hover:bg-emerald-500 text-white"}`}
+                >
+                    {isToggling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
+                    {isFormEnabled ? "Deactivate" : "Activate"}
+                </Button>
+            </div>
         </div>
       </div>
 
@@ -438,6 +451,12 @@ export default function AddressManagementPage() {
           </TableBody>
         </Table>
       </div>
+
+      <BookRecipientUpload 
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }

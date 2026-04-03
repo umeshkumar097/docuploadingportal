@@ -13,11 +13,11 @@ export async function GET() {
       orderBy: { createdAt: "desc" }
     });
 
-    const masterEmployees = await prisma.masterEmployee.findMany();
+    const bookMasters = await prisma.bookDeliveryMaster.findMany();
 
     // Create a map for fast lookup
     const masterMap = new Map();
-    masterEmployees.forEach((e: any) => masterMap.set(e.employeeId, e));
+    bookMasters.forEach((e: any) => masterMap.set(e.employeeId, e));
 
     // Enrich existing records
     const enrichedRecords = addresses.map((addr: any) => {
@@ -34,12 +34,12 @@ export async function GET() {
 
     // Find pending (Master - Submitted)
     const submittedIds = new Set(addresses.map((a: any) => a.employeeId));
-    const pendingRecords = masterEmployees.filter((e: any) => !submittedIds.has(e.employeeId));
+    const pendingRecords = bookMasters.filter((e: any) => !submittedIds.has(e.employeeId));
 
     return NextResponse.json({
       records: enrichedRecords,
       pending: pendingRecords,
-      totalMaster: masterEmployees.length
+      totalMaster: bookMasters.length
     });
   } catch (error) {
     console.error("Dashboard error:", error);
