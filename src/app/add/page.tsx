@@ -26,7 +26,9 @@ import { Loader2, CheckCircle2, AlertCircle, MapPin, Building2, User, Phone, Has
 
 const formSchema = z.object({
   employeeId: z.string().min(1, "Employee ID is required"),
-  fullAddress: z.string().min(1, "Full address is required"),
+  addressLine1: z.string().min(1, "Address Line 1 is required"),
+  addressLine2: z.string().optional(),
+  addressLine3: z.string().optional(),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
   pincode: z.string().min(6, "Valid Pincode is required"),
@@ -42,13 +44,16 @@ export default function AddAddressPage() {
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [successMode, setSuccessMode] = useState<"Created" | "Updated">("Created");
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       employeeId: "",
-      fullAddress: "",
+      addressLine1: "",
+      addressLine2: "",
+      addressLine3: "",
       city: "",
       state: "",
       pincode: "",
@@ -79,6 +84,8 @@ export default function AddAddressPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Submission failed");
+      
+      setSuccessMode(data.message === "Updated" ? "Updated" : "Created");
       setIsSuccess(true);
     } catch (err: any) {
       setError(err.message);
@@ -111,7 +118,7 @@ export default function AddAddressPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-10 pt-6">
-             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
+             <div className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">
                 &copy; {new Date().getFullYear()} CRUXDOC SECURE INFRA
              </div>
           </CardContent>
@@ -130,9 +137,13 @@ export default function AddAddressPage() {
             <div className="mx-auto w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 border border-emerald-100 shadow-sm">
               <CheckCircle2 className="h-10 w-10 text-emerald-500" />
             </div>
-            <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight mb-2">VERIFICATION COMPLETE</CardTitle>
+            <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight mb-2 uppercase">
+              {successMode === "Updated" ? "Record Updated" : "Verification Complete"}
+            </CardTitle>
             <CardDescription className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em] leading-relaxed">
-              Your shipping coordinates have been successfully verified and securely stored in our central repository.
+              {successMode === "Updated" 
+                ? "Your existing address record has been successfully updated in our central repository."
+                : "Your shipping coordinates have been successfully verified and securely stored."}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-10 pt-8">
@@ -145,7 +156,7 @@ export default function AddAddressPage() {
             >
                 SUBMIT ANOTHER LOG
             </Button>
-            <p className="mt-8 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
+            <p className="mt-8 text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">
                 &copy; {new Date().getFullYear()} CRUXDOC SECURE INFRA
             </p>
           </CardContent>
@@ -233,18 +244,18 @@ export default function AddAddressPage() {
                 />
               </div>
 
-              {/* Full Address */}
+              {/* Address Line 1 */}
               <FormField
                 control={form.control}
-                name="fullAddress"
+                name="addressLine1"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
-                      <MapPin className="h-3 w-3 text-slate-400" /> Complete Delivery Address <span className="text-red-500">*</span>
+                      <MapPin className="h-3 w-3 text-slate-400" /> Address Line 1 <span className="text-red-500">*</span>
                       </FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="House No., Street, Floor, Landmark..." 
+                        placeholder="House No., Flat, Building Name..." 
                         className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm" 
                         {...field} 
                       />
@@ -253,6 +264,48 @@ export default function AddAddressPage() {
                   </FormItem>
                 )}
               />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Address Line 2 */}
+                <FormField
+                    control={form.control}
+                    name="addressLine2"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
+                            Street / Area (Optional)
+                        </FormLabel>
+                        <FormControl>
+                        <Input 
+                            placeholder="Road Name, Colony..." 
+                            className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm" 
+                            {...field} 
+                        />
+                        </FormControl>
+                    </FormItem>
+                    )}
+                />
+
+                {/* Address Line 3 */}
+                <FormField
+                    control={form.control}
+                    name="addressLine3"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-slate-500 font-bold uppercase text-[9px] tracking-[0.2em] flex items-center gap-2 mb-2">
+                            Landmark (Optional)
+                        </FormLabel>
+                        <FormControl>
+                        <Input 
+                            placeholder="Near Temple, Opposite School..." 
+                            className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm" 
+                            {...field} 
+                        />
+                        </FormControl>
+                    </FormItem>
+                    )}
+                />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* City */}

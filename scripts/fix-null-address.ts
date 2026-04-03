@@ -18,30 +18,23 @@ async function main() {
 
   try {
     const records = await prisma.addressRecord.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
-    console.log(`Total records: ${records.length}`);
-    
-    const seenIds = new Set<string>();
-    const idsToDelete: string[] = [];
-
-    records.forEach(r => {
-      if (seenIds.has(r.employeeId)) {
-        idsToDelete.push(r.id);
-      } else {
-        seenIds.add(r.employeeId);
+      where: {
+        addressLine1: null
       }
     });
 
-    if (idsToDelete.length > 0) {
-      console.log(`Deleting ${idsToDelete.length} duplicate records...`);
-      const deleteResult = await prisma.addressRecord.deleteMany({
-        where: { id: { in: idsToDelete } }
+    console.log(`Fixing ${records.length} records with NULL addressLine1...`);
+
+    for (const record of records) {
+      await prisma.addressRecord.update({
+        where: { id: record.id },
+        data: {
+          addressLine1: 'N/A'
+        }
       });
-      console.log(`Deleted ${deleteResult.count} records successfully.`);
-    } else {
-      console.log("No duplicates to delete.");
     }
+
+    console.log("Fix complete.");
   } finally {
     await prisma.$disconnect();
     await pool.end();

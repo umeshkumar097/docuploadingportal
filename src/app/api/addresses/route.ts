@@ -13,29 +13,51 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { employeeId, fullAddress, city, state, pincode, bookLanguage } = body;
+    const { 
+      employeeId, 
+      addressLine1, 
+      addressLine2, 
+      addressLine3, 
+      city, 
+      state, 
+      pincode, 
+      bookLanguage 
+    } = body;
 
     // Strict validation for mandatory fields
-    if (!employeeId || !fullAddress || !city || !state || !pincode || !bookLanguage) {
+    if (!employeeId || !addressLine1 || !city || !state || !pincode || !bookLanguage) {
       return NextResponse.json({ error: "All mandatory fields must be filled" }, { status: 400 });
     }
 
-    const record = await prisma.addressRecord.create({
-      data: {
-        employeeId,
-        fullAddress,
+    const record = await prisma.addressRecord.upsert({
+      where: { employeeId },
+      update: {
+        addressLine1,
+        addressLine2: addressLine2 || null,
+        addressLine3: addressLine3 || null,
         city,
         state,
         pincode,
         bookLanguage,
-        // These are now optional
-        name: null,
-        phoneNumber: null,
-        companyAgency: null
-      }
+        updatedAt: new Date(),
+      },
+      create: {
+        employeeId,
+        addressLine1,
+        addressLine2: addressLine2 || null,
+        addressLine3: addressLine3 || null,
+        city,
+        state,
+        pincode,
+        bookLanguage,
+      },
     });
 
-    return NextResponse.json({ success: true, id: record.id });
+    return NextResponse.json({ 
+      success: true, 
+      id: record.id,
+      message: record.createdAt.getTime() === record.updatedAt?.getTime() ? "Created" : "Updated"
+    });
   } catch (error) {
     console.error("Submission error:", error);
     return NextResponse.json({ error: "Failed to submit address" }, { status: 500 });

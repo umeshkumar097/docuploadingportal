@@ -29,15 +29,18 @@ import { format } from "date-fns";
 interface AddressRecord {
   id: string;
   employeeId: string;
-  phoneNumber: string;
-  name: string;
-  companyAgency: string;
-  fullAddress: string;
+  phoneNumber?: string;
+  name?: string;
+  companyAgency?: string;
+  addressLine1: string;
+  addressLine2?: string;
+  addressLine3?: string;
   city: string;
   state: string;
   pincode: string;
   bookLanguage: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export default function AddressManagementPage() {
@@ -137,11 +140,14 @@ export default function AddressManagementPage() {
       "Phone": r.phoneNumber || "N/A",
       "Organisation": r.companyAgency || "N/A",
       "Book Language": r.bookLanguage || "English",
-      "Full Address": r.fullAddress,
+      "Address Line 1": r.addressLine1,
+      "Address Line 2": r.addressLine2 || "",
+      "Address Line 3": r.addressLine3 || "",
       "City": r.city,
       "State": r.state,
       "Pincode": r.pincode,
       "Submitted At": format(new Date(r.createdAt), "dd-MM-yyyy HH:mm"),
+      "Last Updated": r.updatedAt ? format(new Date(r.updatedAt), "dd-MM-yyyy HH:mm") : "N/A",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -323,8 +329,13 @@ export default function AddressManagementPage() {
                     </TableCell>
                     <TableCell className="p-6">
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-foreground truncate max-w-[300px]">{record.fullAddress}</span>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60 mt-1">
+                            <span className="text-sm font-black text-foreground truncate max-w-[300px]">{record.addressLine1}</span>
+                            {(record.addressLine2 || record.addressLine3) && (
+                                <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[300px]">
+                                    {[record.addressLine2, record.addressLine3].filter(Boolean).join(", ")}
+                                </span>
+                            )}
+                            <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest mt-1">
                                 {record.city}, {record.state} &middot; {record.pincode}
                             </span>
                         </div>

@@ -17,30 +17,28 @@ async function main() {
   const prisma = new PrismaClient({ adapter });
 
   try {
-    const records = await prisma.addressRecord.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
+    const records = await prisma.addressRecord.findMany();
     console.log(`Total records: ${records.length}`);
     
-    const seenIds = new Set<string>();
-    const idsToDelete: string[] = [];
+    const counts: Record<string, number> = {};
+    const duplicateIds: string[] = [];
 
     records.forEach(r => {
-      if (seenIds.has(r.employeeId)) {
-        idsToDelete.push(r.id);
-      } else {
-        seenIds.add(r.employeeId);
+      counts[r.employeeId] = (counts[r.employeeId] || 0) + 1;
+      if (counts[r.employeeId] === 2) {
+        duplicateIds.push(r.employeeId);
       }
     });
 
-    if (idsToDelete.length > 0) {
-      console.log(`Deleting ${idsToDelete.length} duplicate records...`);
-      const deleteResult = await prisma.addressRecord.deleteMany({
-        where: { id: { in: idsToDelete } }
-      });
-      console.log(`Deleted ${deleteResult.count} records successfully.`);
+    if (duplicateIds.length > 0) {
+      console.log(`Found ${duplicateIds.length} duplicate Employee IDs:`);
+      for (const empId of duplicateIds) {
+        const dups = records.filter(r => r.employeeId === empId);
+        console.log(`ID: ${empId}`);
+        dups.forEach(d => console.log(`  - ${d.id}: ${d.createdAt} (${d.fullAddress})`));
+      }
     } else {
-      console.log("No duplicates to delete.");
+      console.log("No duplicates found.");
     }
   } finally {
     await prisma.$disconnect();
