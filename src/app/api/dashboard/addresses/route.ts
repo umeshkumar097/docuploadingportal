@@ -17,8 +17,8 @@ export async function GET() {
     const dispatched = await prisma.bookDispatched.findMany();
 
     // Create sets for fast lookup
-    const dispatchedIds = new Set(dispatched.map(d => d.employeeId));
-    const submittedIds = new Set(addresses.map(a => a.employeeId));
+    const dispatchedIds = new Set(dispatched.map((d: any) => d.employeeId));
+    const submittedIds = new Set(addresses.map((a: any) => a.employeeId));
     
     // Create a map for master data
     const masterMap = new Map();
@@ -45,7 +45,7 @@ export async function GET() {
     );
 
     // 3. Dispatched (Anyone in Dispatched list)
-    const dispatchedRecords = Array.from(dispatchedIds).map(id => {
+    const dispatchedRecords = (Array.from(dispatchedIds) as string[]).map((id: string) => {
       const master = masterMap.get(id);
       const submission = addresses.find((a: any) => a.employeeId === id);
       
@@ -56,7 +56,7 @@ export async function GET() {
         officeMobileNo: master?.officeMobileNo || "",
         personalMobileNo: master?.personalMobileNo || submission?.phoneNumber || "",
         address: submission ? [submission.addressLine1, submission.addressLine2, submission.addressLine3].filter(Boolean).join(", ") : "Address Not Captured",
-        dispatchedAt: dispatched.find(d => d.employeeId === id)?.dispatchedAt
+        dispatchedAt: dispatched.find((d: any) => d.employeeId === id)?.dispatchedAt
       };
     });
 
