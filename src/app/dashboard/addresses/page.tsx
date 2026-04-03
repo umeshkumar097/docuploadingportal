@@ -22,11 +22,13 @@ import {
   AlertCircle,
   Building2,
   CheckCircle2,
-  UserPlus
+  UserPlus,
+  Truck
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { BookRecipientUpload } from "@/components/book-recipient-upload";
+import { DispatchedUpload } from "@/components/dispatched-upload";
 
 interface AddressRecord {
   id: string;
@@ -56,16 +58,28 @@ interface PendingRecord {
   vendor?: string;
 }
 
+interface DispatchedRecord {
+  employeeId: string;
+  name: string;
+  vendor: string;
+  officeMobileNo?: string;
+  personalMobileNo?: string;
+  address: string;
+  dispatchedAt: string;
+}
+
 export default function AddressManagementPage() {
   const [records, setRecords] = useState<AddressRecord[]>([]);
   const [pendingRecords, setPendingRecords] = useState<PendingRecord[]>([]);
+  const [dispatchedRecords, setDispatchedRecords] = useState<DispatchedRecord[]>([]);
   const [totalMaster, setTotalMaster] = useState(0);
-  const [view, setView] = useState<"submissions" | "pending">("submissions");
+  const [view, setView] = useState<"submissions" | "pending" | "dispatched">("submissions");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormEnabled, setIsFormEnabled] = useState(true);
   const [isToggling, setIsToggling] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isDispatchedUploadOpen, setIsDispatchedUploadOpen] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -81,6 +95,7 @@ export default function AddressManagementPage() {
       if (data.records) {
         setRecords(data.records);
         setPendingRecords(data.pending || []);
+        setDispatchedRecords(data.dispatched || []);
         setTotalMaster(data.totalMaster || 0);
       }
     } catch (error) {
@@ -191,7 +206,15 @@ export default function AddressManagementPage() {
                 className="rounded-[1.5rem] h-12 px-6 font-bold flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20"
             >
                 <UserPlus className="h-4 w-4" />
-                Update Recipient List
+                Upload Recipient List
+            </Button>
+
+            <Button 
+                onClick={() => setIsDispatchedUploadOpen(true)}
+                className="rounded-[1.5rem] h-12 px-6 font-bold flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+            >
+                <Truck className="h-4 w-4" />
+                Upload Sent List
             </Button>
 
             <div className="flex items-center gap-4 bg-card border rounded-[2rem] p-2 pl-6 shadow-sm">
@@ -220,7 +243,7 @@ export default function AddressManagementPage() {
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
                 <MapPin className="h-20 w-20" />
             </div>
-            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Total Masters Uploaded</span>
+            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Total Recipients</span>
             <div className="flex items-end gap-2">
                 <span className="text-4xl font-black tracking-tighter text-foreground">{totalMaster}</span>
                 <span className="text-xs font-bold text-blue-500 mb-1.5 flex items-center gap-1 uppercase">
@@ -233,11 +256,24 @@ export default function AddressManagementPage() {
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
                 <CheckCircle2 className="h-20 w-20" />
             </div>
-            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Submissions Received</span>
+            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Address Collected</span>
             <div className="flex items-end gap-2">
                 <span className="text-4xl font-black tracking-tighter text-foreground">{records.length}</span>
                 <span className="text-xs font-bold text-emerald-500 mb-1.5 flex items-center gap-1 uppercase">
-                   <RefreshCw className="h-3 w-3" /> Live
+                   Ready
+                </span>
+            </div>
+         </div>
+
+         <div className="bg-card border rounded-[2.5rem] p-8 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                <Truck className="h-20 w-20" />
+            </div>
+            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Books Shipped</span>
+            <div className="flex items-end gap-2">
+                <span className="text-4xl font-black tracking-tighter text-emerald-600">{dispatchedRecords.length}</span>
+                <span className="text-xs font-bold text-emerald-600 mb-1.5 flex items-center gap-1 uppercase">
+                   Sent
                 </span>
             </div>
          </div>
@@ -246,7 +282,7 @@ export default function AddressManagementPage() {
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
                 <AlertCircle className="h-20 w-20" />
             </div>
-            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Pending Submissions</span>
+            <span className="text-[10px] font-black tracking-[0.2em] uppercase text-muted-foreground mb-1">Pending Address</span>
             <div className="flex items-end gap-2">
                 <span className="text-4xl font-black tracking-tighter text-rose-500">{pendingRecords.length}</span>
                 <span className="text-xs font-bold text-rose-500 mb-1.5 flex items-center gap-1 uppercase">
@@ -271,6 +307,13 @@ export default function AddressManagementPage() {
             className="rounded-xl h-10 px-6 font-bold"
           >
             Pending ({pendingRecords.length})
+          </Button>
+          <Button 
+            variant={view === "dispatched" ? "default" : "ghost"}
+            onClick={() => setView("dispatched")}
+            className="rounded-xl h-10 px-6 font-bold"
+          >
+            Sent / Sent ({dispatchedRecords.length})
           </Button>
       </div>
 
@@ -419,7 +462,7 @@ export default function AddressManagementPage() {
                        <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">All employees have submitted!</span>
                     </TableCell>
                   </TableRow>
-                ) : (
+                ) : view === "pending" ? (
                   pendingRecords.map((item) => (
                     <TableRow key={item.employeeId} className="group hover:bg-rose-50/20 transition-colors border-b last:border-0 h-24">
                       <TableCell className="p-6">
@@ -463,8 +506,45 @@ export default function AddressManagementPage() {
                       </TableCell>
                     </TableRow>
                   ))
-                )
-            )}
+                ) : (
+                  dispatchedRecords.map((item) => (
+                    <TableRow key={item.employeeId} className="group hover:bg-emerald-50/20 transition-colors border-b last:border-0 h-24">
+                      <TableCell className="p-6">
+                        <Checkbox disabled className="rounded-lg h-5 w-5 opacity-20" />
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex flex-col">
+                             <span className="font-bold text-foreground/80">{item.name}</span>
+                             <span className="text-[10px] font-black uppercase text-primary/40 tracking-[0.2em] mt-1">{item.employeeId}</span>
+                          </div>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex items-center gap-2">
+                             <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                <Building2 className="h-4 w-4 text-emerald-600" />
+                             </div>
+                             <span className="text-sm font-semibold text-muted-foreground">{item.vendor}</span>
+                          </div>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <div className="flex flex-col gap-1">
+                              <span className="text-xs font-bold text-foreground/60">{item.officeMobileNo}</span>
+                              <span className="text-xs font-bold text-foreground/60">{item.personalMobileNo}</span>
+                          </div>
+                      </TableCell>
+                      <TableCell className="p-6">
+                          <span className="text-xs font-medium text-muted-foreground line-clamp-2 max-w-[200px]">
+                            {item.address}
+                          </span>
+                      </TableCell>
+                      <TableCell className="p-6 text-right">
+                          <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+                             Shipped
+                          </span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
           </TableBody>
         </Table>
       </div>
@@ -472,6 +552,12 @@ export default function AddressManagementPage() {
       <BookRecipientUpload 
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
+        onSuccess={fetchData}
+      />
+
+      <DispatchedUpload 
+        isOpen={isDispatchedUploadOpen}
+        onClose={() => setIsDispatchedUploadOpen(false)}
         onSuccess={fetchData}
       />
     </div>

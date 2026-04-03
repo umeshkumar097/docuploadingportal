@@ -172,3 +172,9 @@ model BookDeliveryMaster {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model BookDispatched {
+  id          String   @id @default(cuid())
+  employeeId  String   @unique
+  dispatchedAt DateTime @default(now())
+}
