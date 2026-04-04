@@ -16,16 +16,23 @@ export async function GET() {
     const bookMasters = await prisma.bookDeliveryMaster.findMany();
     const dispatched = await prisma.bookDispatched.findMany();
 
-    // Create sets for fast lookup
-    const dispatchedIds = new Set(dispatched.map((d: any) => d.employeeId));
-    const submittedIds = new Set(addresses.map((a: any) => a.employeeId));
+    // Create set of VALID Master IDs (Source of Truth)
+    const masterIds = new Set(bookMasters.map((m: any) => m.employeeId));
+
+    // Filter incoming data to ONLY include those in the Master List
+    const validAddresses = addresses.filter((a: any) => masterIds.has(a.employeeId));
+    const validDispatched = dispatched.filter((d: any) => masterIds.has(d.employeeId));
+
+    // Create sets for fast lookup within the valid subset
+    const dispatchedIds = new Set(validDispatched.map((d: any) => d.employeeId));
+    const submittedIds = new Set(validAddresses.map((a: any) => a.employeeId));
     
     // Create a map for master data
     const masterMap = new Map();
     bookMasters.forEach((e: any) => masterMap.set(e.employeeId, e));
 
     // 1. Submissions (Submitted & Not Dispatched)
-    const enrichedRecords = addresses
+    const enrichedRecords = validAddresses
       .filter((addr: any) => !dispatchedIds.has(addr.employeeId))
       .map((addr: any) => {
         const master = masterMap.get(addr.employeeId);
@@ -44,10 +51,10 @@ export async function GET() {
         !submittedIds.has(e.employeeId) && !dispatchedIds.has(e.employeeId)
     );
 
-    // 3. Dispatched (Anyone in Dispatched list)
+    // 3. Dispatched (Anyone in Dispatched list from Master)
     const dispatchedRecords = (Array.from(dispatchedIds) as string[]).map((id: string) => {
       const master = masterMap.get(id);
-      const submission = addresses.find((a: any) => a.employeeId === id);
+      const submission = validAddresses.find((a: any) => a.employeeId === id);
       
       return {
         employeeId: id,
@@ -56,22 +63,15 @@ export async function GET() {
         officeMobileNo: master?.officeMobileNo || "",
         personalMobileNo: master?.personalMobileNo || submission?.phoneNumber || "",
         address: submission ? [submission.addressLine1, submission.addressLine2, submission.addressLine3].filter(Boolean).join(", ") : "Address Not Captured",
-        dispatchedAt: dispatched.find((d: any) => d.employeeId === id)?.dispatchedAt
+        dispatchedAt: validDispatched.find((d: any) => d.employeeId === id)?.dispatchedAt
       };
     });
-
-    // Calculate Total Recipients (Union of all IDs)
-    const allUniqueIds = new Set([
-      ...bookMasters.map((m: any) => m.employeeId),
-      ...addresses.map((a: any) => a.employeeId),
-      ...dispatched.map((d: any) => d.employeeId)
-    ]);
 
     return NextResponse.json({
       records: enrichedRecords,
       pending: pendingRecords,
       dispatched: dispatchedRecords,
-      totalMaster: allUniqueIds.size
+      totalMaster: bookMasters.length
     });
   } catch (error) {
     console.error("Dashboard error:", error);
