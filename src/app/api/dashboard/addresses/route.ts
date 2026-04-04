@@ -60,11 +60,18 @@ export async function GET() {
       };
     });
 
+    // Calculate Total Recipients (Union of all IDs)
+    const allUniqueIds = new Set([
+      ...bookMasters.map((m: any) => m.employeeId),
+      ...addresses.map((a: any) => a.employeeId),
+      ...dispatched.map((d: any) => d.employeeId)
+    ]);
+
     return NextResponse.json({
       records: enrichedRecords,
       pending: pendingRecords,
       dispatched: dispatchedRecords,
-      totalMaster: bookMasters.length
+      totalMaster: allUniqueIds.size
     });
   } catch (error) {
     console.error("Dashboard error:", error);
