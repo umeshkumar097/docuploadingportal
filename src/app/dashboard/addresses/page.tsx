@@ -184,6 +184,7 @@ export default function AddressManagementPage() {
   function exportToExcel() {
     const selectedData = records.filter(r => selectedIds.includes(r.id));
     const dataToExport = selectedData.map(r => ({
+      "Employee Id": r.employeeId,
       "Employee Name": r.name || "N/A",
       "Office Mobile No": r.officeMobileNo || "N/A",
       "Personal Mobile No": r.personalMobileNo || "N/A",
