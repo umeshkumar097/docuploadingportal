@@ -161,17 +161,17 @@ export default function AddressManagementPage() {
     }
   }
 
-  async function deleteSelected() {
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} records?`)) return;
+  async function handleDelete(ids: string[]) {
+    if (!confirm(`Are you sure you want to delete ${ids.length} record(s)?`)) return;
 
     try {
       const res = await fetch("/api/dashboard/addresses", {
         method: "DELETE",
-        body: JSON.stringify({ ids: selectedIds }),
+        body: JSON.stringify({ ids }),
       });
       if (res.ok) {
-        setRecords(prev => prev.filter(r => !selectedIds.includes(r.id)));
-        setSelectedIds([]);
+        setRecords(prev => prev.filter(r => !ids.includes(r.id)));
+        setSelectedIds(prev => prev.filter(id => !ids.includes(id)));
         setMessage({ type: "success", text: "Records deleted successfully" });
       }
     } catch (error) {
@@ -390,7 +390,7 @@ export default function AddressManagementPage() {
                     <Download className="h-4 w-4" /> Export Excel
                 </Button>
                 <Button 
-                    onClick={deleteSelected}
+                    onClick={() => handleDelete(selectedIds)}
                     variant="destructive"
                     className="font-bold rounded-full px-6 h-11 flex items-center gap-2"
                 >
@@ -432,6 +432,7 @@ export default function AddressManagementPage() {
               <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground whitespace-nowrap">Language</TableHead>
               <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground whitespace-nowrap">Address Details</TableHead>
               <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground whitespace-nowrap text-right">Submitted At</TableHead>
+              <TableHead className="p-6 font-bold uppercase text-[10px] tracking-widest text-muted-foreground text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -510,6 +511,16 @@ export default function AddressManagementPage() {
                           {format(new Date(record.createdAt), "HH:mm")}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell className="p-6 text-right">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete([record.id])}
+                        className="text-muted-foreground hover:text-rose-500 hover:bg-rose-50 transition-colors rounded-xl"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ));
