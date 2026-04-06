@@ -23,12 +23,15 @@ import {
   Building2,
   CheckCircle2,
   UserPlus,
-  Truck
+  Truck,
+  RefreshCcw
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { BookRecipientUpload } from "@/components/book-recipient-upload";
 import { DispatchedUpload } from "@/components/dispatched-upload";
+import { ResetSubmissionUpload } from "@/components/reset-submission-upload";
+import { toast } from "sonner";
 
 interface AddressRecord {
   id: string;
@@ -51,6 +54,7 @@ interface AddressRecord {
 }
 
 interface PendingRecord {
+  id: string;
   employeeId: string;
   employeeName: string;
   state?: string;
@@ -95,6 +99,7 @@ export default function AddressManagementPage() {
   const [isToggling, setIsToggling] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isDispatchedUploadOpen, setIsDispatchedUploadOpen] = useState(false);
+  const [isResetUploadOpen, setIsResetUploadOpen] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -161,23 +166,25 @@ export default function AddressManagementPage() {
     }
   }
 
-  async function handleDelete(ids: string[]) {
-    if (!confirm(`Are you sure you want to delete ${ids.length} record(s)?`)) return;
+  async function handleDelete(id: string | string[], type: 'address' | 'master' | 'dispatched' = 'address') {
+    if (!confirm(`Are you sure you want to delete this record from the ${type} list?`)) return;
 
     try {
-      const res = await fetch("/api/dashboard/addresses", {
-        method: "DELETE",
-        body: JSON.stringify({ ids }),
-      });
+      const endpoint = type === 'address' 
+        ? `/api/dashboard/addresses?id=${Array.isArray(id) ? id.join(',') : id}`
+        : type === 'master'
+        ? `/api/dashboard/book-master/delete?id=${id}`
+        : `/api/dashboard/book-dispatched/delete?employeeId=${id}`;
+
+      const res = await fetch(endpoint, { method: "DELETE" });
       if (res.ok) {
-        setRecords(prev => prev.filter(r => !ids.includes(r.id)));
-        setSelectedIds(prev => prev.filter(id => !ids.includes(id)));
-        setMessage({ type: "success", text: "Records deleted successfully" });
+        toast.success("Record deleted successfully");
+        fetchData();
+      } else {
+        throw new Error("Failed to delete");
       }
     } catch (error) {
-      setMessage({ type: "error", text: "Failed to delete records" });
-    } finally {
-      setTimeout(() => setMessage(null), 3000);
+      toast.error("Failed to delete record");
     }
   }
 
@@ -253,6 +260,15 @@ export default function AddressManagementPage() {
             >
                 <UserPlus className="h-4 w-4" />
                 Upload Recipient List
+            </Button>
+
+            <Button 
+                onClick={() => setIsResetUploadOpen(true)}
+                variant="outline"
+                className="h-12 rounded-[1.5rem] font-bold gap-2 px-6 border-orange-200 hover:bg-orange-50 hover:text-orange-600 transition-all"
+            >
+                <RefreshCcw className="h-4 w-4" />
+                Reset Incomplete
             </Button>
 
             <Button 
@@ -391,7 +407,7 @@ export default function AddressManagementPage() {
                     <Download className="h-4 w-4" /> Export Excel
                 </Button>
                 <Button 
-                    onClick={() => handleDelete(selectedIds)}
+                    onClick={() => handleDelete(selectedIds, 'address')}
                     variant="destructive"
                     className="font-bold rounded-full px-6 h-11 flex items-center gap-2"
                 >
@@ -405,14 +421,6 @@ export default function AddressManagementPage() {
                     Cancel
                 </Button>
              </div>
-          </div>
-      )}
-
-      {/* Feedback Messages */}
-      {message && (
-          <div className={`fixed top-10 right-10 z-50 p-4 rounded-2xl border shadow-2xl flex items-center gap-3 animate-in slide-in-from-right duration-300 ${message.type === "success" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : "bg-rose-500/10 border-rose-500/20 text-rose-600"}`}>
-             {message.type === "success" ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-             <span className="font-bold text-sm">{message.text}</span>
           </div>
       )}
 
@@ -441,7 +449,7 @@ export default function AddressManagementPage() {
               if (isLoading) {
                 return (
                   <TableRow>
-                    <TableCell colSpan={6} className="p-20 text-center">
+                    <TableCell colSpan={7} className="p-20 text-center">
                       <Loader2 className="h-10 w-10 animate-spin mx-auto text-muted-foreground/30 mb-4" />
                       <span className="font-bold text-muted-foreground/50 uppercase tracking-widest text-xs">Deciphering Records...</span>
                     </TableCell>
@@ -450,18 +458,6 @@ export default function AddressManagementPage() {
               }
 
               if (view === "submissions") {
-                if (records.length === 0) {
-                  return (
-                    <TableRow>
-                      <TableCell colSpan={6} className="p-20 text-center">
-                        <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                          <MapPin className="h-10 w-10 text-muted-foreground/20" />
-                        </div>
-                        <span className="font-bold text-muted-foreground/30 uppercase tracking-widest text-xs">No address records found</span>
-                      </TableCell>
-                    </TableRow>
-                  );
-                }
                 return records.map((record) => (
                   <TableRow key={record.id} className="group hover:bg-accent/30 transition-colors border-b last:border-0 h-24">
                     <TableCell className="p-6">
@@ -493,11 +489,6 @@ export default function AddressManagementPage() {
                     <TableCell className="p-6">
                       <div className="flex flex-col">
                         <span className="text-sm font-black text-foreground truncate max-w-[300px]">{record.addressLine1}</span>
-                        {(record.addressLine2 || record.addressLine3) && (
-                          <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[300px]">
-                            {[record.addressLine2, record.addressLine3].filter(Boolean).join(", ")}
-                          </span>
-                        )}
                         <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest mt-1">
                           {record.city}, {record.state} &middot; {record.pincode}
                         </span>
@@ -508,16 +499,13 @@ export default function AddressManagementPage() {
                         <span className="text-sm font-black text-foreground/80 leading-none mb-1">
                           {format(new Date(record.createdAt), "dd MMM yyyy")}
                         </span>
-                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                          {format(new Date(record.createdAt), "HH:mm")}
-                        </span>
                       </div>
                     </TableCell>
                     <TableCell className="p-6 text-right">
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => handleDelete([record.id])}
+                        onClick={() => handleDelete(record.id, 'address')}
                         className="text-muted-foreground hover:text-rose-500 hover:bg-rose-50 transition-colors rounded-xl"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -624,8 +612,16 @@ export default function AddressManagementPage() {
                     <TableCell className="p-6">
                       <span className="text-xs font-medium text-muted-foreground line-clamp-2 max-w-[200px]">{item.address}</span>
                     </TableCell>
-                    <TableCell className="p-6 text-right">
+                    <TableCell className="p-6 text-right flex items-center justify-end gap-3">
                       <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">Shipped</span>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDelete(item.employeeId, 'dispatched')}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ));
@@ -645,6 +641,12 @@ export default function AddressManagementPage() {
       <DispatchedUpload 
         isOpen={isDispatchedUploadOpen}
         onClose={() => setIsDispatchedUploadOpen(false)}
+        onSuccess={fetchData}
+      />
+
+      <ResetSubmissionUpload 
+        isOpen={isResetUploadOpen}
+        onClose={() => setIsResetUploadOpen(false)}
         onSuccess={fetchData}
       />
     </div>

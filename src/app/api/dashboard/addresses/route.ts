@@ -81,13 +81,24 @@ export async function GET() {
 
 export async function DELETE(req: Request) {
   const session = await auth();
-  if (!session || (session.user?.role !== "ADMIN" && session.user?.role !== "SUPERADMIN")) {
+  if (!session || (session.user?.role !== "ADMIN" && session.user?.role !== "SUPERADMIN" && (session.user?.role as any) !== "VENDOR")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { ids } = await req.json();
-    if (!ids || !Array.isArray(ids)) {
+    const { searchParams } = new URL(req.url);
+    const idParam = searchParams.get("id");
+    
+    let ids: string[] = [];
+
+    if (idParam) {
+        ids = idParam.split(",");
+    } else {
+        const body = await req.json();
+        ids = body.ids;
+    }
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
@@ -97,6 +108,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Delete Error:", error);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 }

@@ -21,7 +21,6 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Parse Excel/CSV
     const workbook = XLSX.read(buffer, { type: "buffer" });
     const allResolvedIds: string[] = [];
     const rawRows: any[] = [];
@@ -34,17 +33,15 @@ export async function POST(req: NextRequest) {
         const employeeId = String(row["Employee Id"] || row["Employee ID"] || "").trim();
         const whatsappNo = String(row["Whatsapp No"] || row["Whatsapp"] || "").trim();
         const mobileNo = String(row["Mobile No"] || row["Mobile"] || row["Personal Mobile No"] || "").trim();
-        
         rawRows.push({ employeeId, whatsappNo, mobileNo });
       }
     }
 
-    // Resolve IDs from Phone Numbers if missing
+    // Resolve IDs
     for (const row of rawRows) {
         if (row.employeeId) {
             allResolvedIds.push(row.employeeId);
         } else if (row.whatsappNo || row.mobileNo) {
-            // Find by phone in Master List
             const match = await prisma.bookDeliveryMaster.findFirst({
                 where: {
                     OR: [
@@ -62,25 +59,26 @@ export async function POST(req: NextRequest) {
     const uniqueIds = Array.from(new Set(allResolvedIds));
 
     if (uniqueIds.length === 0) {
-      return NextResponse.json({ error: "No valid employee records or phone matches found in file" }, { status: 400 });
+      return NextResponse.json({ error: "No valid records found to reset" }, { status: 400 });
     }
 
-    const finalData = uniqueIds.map(id => ({ employeeId: id }));
-
-    // High-performance batch insertion for dispatched list
-    // We use skipDuplicates to avoid errors if someone is already in the list
-    const result = await prisma.bookDispatched.createMany({
-        data: finalData,
-        skipDuplicates: true,
-    });
+    // Process Revocation: Remove from Dispatched AND Submissions
+    await prisma.$transaction([
+        prisma.bookDispatched.deleteMany({
+            where: { employeeId: { in: uniqueIds } }
+        }),
+        prisma.addressRecord.deleteMany({
+            where: { employeeId: { in: uniqueIds } }
+        })
+    ]);
 
     return NextResponse.json({ 
         success: true, 
-        message: `Successfully processed ${finalData.length} records. ${result.count} new recipients added to Dispatched list.` 
+        message: `Successfully reset ${uniqueIds.length} records. They can now re-submit their addresses and will appear in Pending.` 
     });
 
   } catch (error: any) {
-    console.error("Dispatched Upload Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to process dispatched file" }, { status: 500 });
+    console.error("Revoke Error:", error);
+    return NextResponse.json({ error: error.message || "Failed to reset addresses" }, { status: 500 });
   }
 }
