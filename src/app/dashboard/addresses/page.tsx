@@ -53,9 +53,24 @@ interface AddressRecord {
 interface PendingRecord {
   employeeId: string;
   employeeName: string;
+  state?: string;
+  reportingManagerId?: string;
+  reportingManagerName?: string;
+  reportingManagerGroup?: string;
+  skipLevelManagerId?: string;
+  skipLevelManagerName?: string;
+  activeStatus?: string;
+  email?: string;
   officeMobileNo?: string;
   personalMobileNo?: string;
+  whatsappNo?: string;
   vendor?: string;
+  phase?: string;
+  region2?: string;
+  location2?: string;
+  city?: string;
+  pincode?: string;
+  draBatch?: string;
 }
 
 interface DispatchedRecord {
@@ -186,6 +201,36 @@ export default function AddressManagementPage() {
     XLSX.writeFile(workbook, `AddressRecords_${format(new Date(), "yyyyMMdd_HHmm")}.xlsx`);
   }
 
+  function exportPendingToExcel() {
+    const dataToExport = pendingRecords.map(r => ({
+      "Employee Id": r.employeeId,
+      "Employee Name": r.employeeName || "",
+      "State": r.state || "",
+      "Reporting Manager ID": r.reportingManagerId || "",
+      "Reporting Manager Name": r.reportingManagerName || "",
+      "Reporting Manager Group": r.reportingManagerGroup || "",
+      "Skip Level Manager ID": r.skipLevelManagerId || "",
+      "Skip Level Manager Name": r.skipLevelManagerName || "",
+      "Active Status": r.activeStatus || "",
+      "Email": r.email || "",
+      "Office Mobile No": r.officeMobileNo || "",
+      "Personal Mobile No": r.personalMobileNo || "",
+      "Whatsapp No": r.whatsappNo || "",
+      "Vendor": r.vendor || "",
+      "Phase": r.phase || "Phase 1",
+      "Region 2": r.region2 || "",
+      "Location2": r.location2 || "",
+      "City": r.city || "",
+      "Pincode": r.pincode || "",
+      "DRA Batch": r.draBatch || "",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Pending_Recipients");
+    XLSX.writeFile(workbook, `Pending_Recipients_${format(new Date(), "yyyyMMdd_HHmm")}.xlsx`);
+  }
+
   return (
     <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       {/* Header & Status Control */}
@@ -292,29 +337,41 @@ export default function AddressManagementPage() {
          </div>
       </div>
 
-      {/* View Toggle */}
-      <div className="flex items-center gap-2 mb-6 p-1 bg-muted rounded-2xl w-fit">
-          <Button 
-            variant={view === "submissions" ? "default" : "ghost"}
-            onClick={() => setView("submissions")}
-            className="rounded-xl h-10 px-6 font-bold"
-          >
-            Submissions ({records.length})
-          </Button>
-          <Button 
-            variant={view === "pending" ? "default" : "ghost"}
-            onClick={() => setView("pending")}
-            className="rounded-xl h-10 px-6 font-bold"
-          >
-            Pending ({pendingRecords.length})
-          </Button>
-          <Button 
-            variant={view === "dispatched" ? "default" : "ghost"}
-            onClick={() => setView("dispatched")}
-            className="rounded-xl h-10 px-6 font-bold"
-          >
-            Sent / Sent ({dispatchedRecords.length})
-          </Button>
+      {/* View Toggle & Export Actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-2 p-1 bg-muted rounded-2xl w-fit">
+              <Button 
+                variant={view === "submissions" ? "default" : "ghost"}
+                onClick={() => setView("submissions")}
+                className="rounded-xl h-10 px-6 font-bold transition-all"
+              >
+                Submissions ({records.length})
+              </Button>
+              <Button 
+                variant={view === "pending" ? "default" : "ghost"}
+                onClick={() => setView("pending")}
+                className="rounded-xl h-10 px-6 font-bold transition-all"
+              >
+                Pending ({pendingRecords.length})
+              </Button>
+              <Button 
+                variant={view === "dispatched" ? "default" : "ghost"}
+                onClick={() => setView("dispatched")}
+                className="rounded-xl h-10 px-6 font-bold transition-all"
+              >
+                Sent / Dispatched ({dispatchedRecords.length})
+              </Button>
+          </div>
+
+          {view === "pending" && (
+            <Button 
+              onClick={exportPendingToExcel}
+              className="rounded-2xl h-12 px-8 font-black flex items-center gap-2 bg-foreground text-background hover:bg-foreground/90 shadow-xl shadow-foreground/10 border-t border-white/10"
+            >
+              <Download className="h-4 w-4" />
+              Download Pending List (Excel)
+            </Button>
+          )}
       </div>
 
       {/* Floating Toolbar */}
