@@ -29,6 +29,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "All mandatory fields must be filled" }, { status: 400 });
     }
 
+    // NEW: Check if book is already dispatched
+    const isDispatched = await prisma.bookDispatched.findUnique({
+      where: { employeeId }
+    });
+
+    if (isDispatched) {
+      return NextResponse.json({ 
+        error: "Your book has already been dispatched. Address updates are no longer permitted." 
+      }, { status: 403 });
+    }
+
     const record = await prisma.addressRecord.upsert({
       where: { employeeId },
       update: {
