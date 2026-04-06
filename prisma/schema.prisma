@@ -1,10 +1,146 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Client {
+  id         String      @id @default(cuid())
+  name       String      @unique
+  slug       String      @unique
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  candidates Candidate[]
+}
+
+model User {
+  id         String  @id @default(cuid())
+  name       String?
+  email      String  @unique
+  role       Role    @default(OPS)
+  vendorName String?
+  password   String?
+}
+
+model Candidate {
+  id               String          @id @default(cuid())
+  token            String          @unique @default(uuid())
+  name             String?
+  employer         String?
+  mobileNumber     String?
+  employeeId       String?
+  status           CandidateStatus @default(PENDING)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  currentStep      CurrentStep     @default(STARTED)
+  lastActiveAt     DateTime        @default(now())
+  idType           IDType?
+  idNumber         String?
+  residentialState String?
+  city             String?
+  pincode          String?
+  clientId         String?
+  phase            String?         @default("Phase 1")
+  isDraCertified   Boolean         @default(false)
+  client           Client?         @relation(fields: [clientId], references: [id])
+  documents        Document[]
+}
+
+model Document {
+  id              String         @id @default(cuid())
+  candidateId     String
+  type            DocumentType
+  fileUrl         String
+  sizeKB          Int
+  status          DocumentStatus @default(PENDING)
+  rejectionReason String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  candidate       Candidate      @relation(fields: [candidateId], references: [id])
+}
+
+model MasterEmployee {
+  id                    String   @id @default(cuid())
+  employeeId            String   @unique
+  employeeName          String?
+  state                 String?
+  reportingManagerId    String?
+  reportingManagerName  String?
+  reportingManagerGroup String?
+  skipLevelManagerId    String?
+  skipLevelManagerName  String?
+  activeStatus          String?
+  email                 String?
+  officeMobileNo        String?
+  personalMobileNo      String?
+  whatsappNo            String?
+  vendor                String?
+  region2               String?
+  location2             String?
+  draBatch              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  city                  String?
+  pincode               String?
+  phase                 String?  @default("Phase 1")
+}
+
+model AddressRecord {
+  id            String    @id @default(cuid())
+  employeeId    String    @unique
+  phoneNumber   String?
+  name          String?
+  companyAgency String?
+  city          String
+  state         String
+  pincode       String
+  createdAt     DateTime  @default(now())
+  bookLanguage  String    @default("English")
+  addressLine1  String
+  addressLine2  String?
+  addressLine3  String?
+  updatedAt     DateTime? @updatedAt
+}
+
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model BookDeliveryMaster {
+  id                    String   @id @default(cuid())
+  employeeId            String   @unique
+  employeeName          String
+  state                 String?
+  reportingManagerId    String?
+  reportingManagerName  String?
+  reportingManagerGroup String?
+  skipLevelManagerId    String?
+  skipLevelManagerName  String?
+  activeStatus          String?
+  email                 String?
+  officeMobileNo        String?
+  personalMobileNo      String?
+  whatsappNo            String?
+  vendor                String?
+  phase                 String?   @default("Phase 1")
+  region2               String?
+  location2             String?
+  city                  String?
+  pincode               String?
+  draBatch              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model BookDispatched {
+  id           String   @id @default(cuid())
+  employeeId   String   @unique
+  dispatchedAt DateTime @default(now())
 }
 
 enum Role {
@@ -28,9 +164,9 @@ enum DocumentType {
   PHOTO
   QUALIFICATION
   ID_PROOF
+  SIGNATURE
   ID_PROOF_FRONT
   ID_PROOF_BACK
-  SIGNATURE
   DRA_CERTIFICATE
 }
 
@@ -47,134 +183,9 @@ enum DocumentStatus {
   REJECTED
 }
 
-model Client {
-  id        String      @id @default(cuid())
-  name      String      @unique
-  slug      String      @unique
-  candidates Candidate[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-}
-
-model User {
-  id    String @id @default(cuid())
-  name       String?
-  email      String @unique
-  role       Role   @default(OPS)
-  vendorName String?
-  password   String?
-}
-
 enum CurrentStep {
   STARTED
   PERSONAL_INFO_DONE
   UPLOADING_DOCS
   COMPLETED
-}
-
-model Candidate {
-  id           String          @id @default(cuid())
-  token        String          @unique @default(uuid())
-  name             String?
-  employer         String?
-  phase            String?         @default("Phase 1")
-  clientId         String?
-  client           Client?         @relation(fields: [clientId], references: [id])
-  residentialState String?
-  city             String?
-  pincode          String?
-  mobileNumber     String?
-  employeeId       String?
-  idType       IDType?
-  idNumber     String?
-  isDraCertified Boolean         @default(false)
-  status       CandidateStatus @default(PENDING)
-  currentStep  CurrentStep     @default(STARTED)
-  lastActiveAt DateTime        @default(now())
-  documents    Document[]
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-}
-
-model Document {
-  id              String         @id @default(cuid())
-  candidateId     String
-  candidate       Candidate      @relation(fields: [candidateId], references: [id])
-  type            DocumentType
-  fileUrl         String
-  sizeKB          Int
-  status          DocumentStatus @default(PENDING)
-  rejectionReason String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-}
-
-model MasterEmployee {
-  id                    String   @id @default(cuid())
-  employeeId            String   @unique
-  employeeName          String?
-  state                 String?
-  reportingManagerId    String?
-  reportingManagerName  String?
-  reportingManagerGroup String?
-  skipLevelManagerId    String?
-  skipLevelManagerName  String?
-  activeStatus          String?
-  email                 String?
-  officeMobileNo        String?
-  personalMobileNo      String?
-  whatsappNo            String?
-  vendor                String?
-  phase                 String?   @default("Phase 1")
-  region2               String?
-  location2             String?
-  city                  String?
-  pincode               String?
-  draBatch              String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model AddressRecord {
-  id              String   @id @default(cuid())
-  employeeId      String   @unique
-  phoneNumber     String?
-  name            String?
-  companyAgency   String?
-  addressLine1    String
-  addressLine2    String?
-  addressLine3    String?
-  city            String
-  state           String
-  pincode         String
-  bookLanguage    String   @default("English")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime? @updatedAt
-}
-
-model SystemSetting {
-  id    String @id @default(cuid())
-  key   String @unique // e.g. "ADD_FORM_ENABLED"
-  value String // "true" or "false"
-}
-
-model BookDeliveryMaster {
-  id              String   @id @default(cuid())
-  employeeId      String   @unique
-  employeeName    String
-  officeMobileNo  String?
-  personalMobileNo String?
-  whatsappNo      String?
-  vendor          String?
-  city            String?
-  state           String?
-  pincode         String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model BookDispatched {
-  id          String   @id @default(cuid())
-  employeeId  String   @unique
-  dispatchedAt DateTime @default(now())
 }
