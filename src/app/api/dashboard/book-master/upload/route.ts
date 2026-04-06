@@ -39,13 +39,24 @@ export async function POST(req: NextRequest) {
         allFormattedData.push({
           employeeId,
           employeeName: String(row["Employee Name"] || row["Name"] || "").trim(),
-          officeMobileNo: String(row["Office Mobile No"] || "").trim(),
-          personalMobileNo: String(row["Personal Mobile No"] || row["Mobile"] || row["Phone"] || "").trim(),
-          whatsappNo: String(row["Whatsapp No"] || "").trim(),
-          vendor: String(row["Vendor"] || row["Organisation"] || row["Agency"] || "").trim(),
-          city: String(row["City"] || "").trim(),
           state: String(row["State"] || "").trim(),
+          reportingManagerId: String(row["Reporting Manager ID"] || "").trim(),
+          reportingManagerName: String(row["Reporting Manager Name"] || "").trim(),
+          reportingManagerGroup: String(row["Reporting Manager Group"] || "").trim(),
+          skipLevelManagerId: String(row["Skip Level Manager ID"] || "").trim(),
+          skipLevelManagerName: String(row["Skip Level Manager Name"] || "").trim(),
+          activeStatus: String(row["Active Status"] || "").trim(),
+          email: String(row["Email"] || "").trim(),
+          officeMobileNo: String(row["Office Mobile No"] || "").trim(),
+          personalMobileNo: String(row["Personal Mobile No"] || row["Mobile"] || "").trim(),
+          whatsappNo: String(row["Whatsapp No"] || "").trim(),
+          vendor: String(row["Vendor"] || row["Organisation"] || "").trim(),
+          phase: String(row["Phase"] || "Phase 1").trim(),
+          region2: String(row["Region 2"] || "").trim(),
+          location2: String(row["Location2"] || "").trim(),
+          city: String(row["City"] || "").trim(),
           pincode: String(row["Pincode"] || "").trim(),
+          draBatch: String(row["DRA Batch"] || "").trim(),
         });
       }
     }
@@ -54,13 +65,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No valid employee records found in file" }, { status: 400 });
     }
 
-    // Use transaction to clear and reload the master list for this campaign
-    await prisma.$transaction([
-        prisma.bookDeliveryMaster.deleteMany(),
-        prisma.bookDeliveryMaster.createMany({
-            data: allFormattedData,
-        })
-    ]);
+    // Merge and Update logic using transactional upsert
+    // Note: For large datasets (>1000), consider batching. For now, 300+ is fine.
+    await prisma.$transaction(
+        allFormattedData.map(item => 
+          prisma.bookDeliveryMaster.upsert({
+            where: { employeeId: item.employeeId },
+            update: item,
+            create: item,
+          })
+        )
+    );
 
     return NextResponse.json({ 
         success: true, 
