@@ -11,18 +11,20 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    const idParam = searchParams.get("id");
 
-    if (!id) {
-      return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+    if (!idParam) {
+      return NextResponse.json({ error: "Missing IDs" }, { status: 400 });
     }
 
-    // Delete from Master List
-    await prisma.bookDeliveryMaster.delete({
-      where: { id },
+    const ids = idParam.split(",");
+
+    // Batch delete from Master List
+    const result = await prisma.bookDeliveryMaster.deleteMany({
+      where: { id: { in: ids } },
     });
 
-    return NextResponse.json({ success: true, message: "Record deleted from Master list" });
+    return NextResponse.json({ success: true, message: `Successfully deleted ${result.count} record(s) from Master list.` });
   } catch (error: any) {
     console.error("Delete Master Error:", error);
     return NextResponse.json({ error: error.message || "Failed to delete record" }, { status: 500 });

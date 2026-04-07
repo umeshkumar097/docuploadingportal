@@ -11,18 +11,20 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const employeeId = searchParams.get("employeeId");
+    const employeeIdParam = searchParams.get("employeeId");
 
-    if (!employeeId) {
-      return NextResponse.json({ error: "Missing Employee ID" }, { status: 400 });
+    if (!employeeIdParam) {
+      return NextResponse.json({ error: "Missing Employee IDs" }, { status: 400 });
     }
 
-    // Delete from Dispatched
-    await prisma.bookDispatched.delete({
-      where: { employeeId },
+    const employeeIds = employeeIdParam.split(",");
+
+    // Batch delete from Dispatched
+    const result = await prisma.bookDispatched.deleteMany({
+      where: { employeeId: { in: employeeIds } },
     });
 
-    return NextResponse.json({ success: true, message: "Record removed from Dispatched list" });
+    return NextResponse.json({ success: true, message: `Successfully removed ${result.count} record(s) from Dispatched list.` });
   } catch (error: any) {
     console.error("Delete Dispatched Error:", error);
     return NextResponse.json({ error: error.message || "Failed to remove record" }, { status: 500 });

@@ -62,3 +62,17 @@ export async function deleteCandidate(candidateId: string) {
 
   revalidatePath("/dashboard", "layout");
 }
+
+export async function bulkDeleteCandidates(ids: string[]) {
+  // Clean up all relational documents for these candidates in bulk
+  await prisma.document.deleteMany({
+    where: { candidateId: { in: ids } }
+  });
+
+  // Obliterate all candidate records
+  await prisma.candidate.deleteMany({
+    where: { id: { in: ids } }
+  });
+
+  revalidatePath("/dashboard", "layout");
+}

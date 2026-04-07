@@ -159,10 +159,13 @@ export default function AddressManagementPage() {
   }
 
   function toggleAll() {
-    if (selectedIds.length === records.length && records.length > 0) {
+    const currentList = view === "submissions" ? records : view === "pending" ? pendingRecords : dispatchedRecords;
+    const currentIds = currentList.map(r => (view === "submissions" ? r.id : r.employeeId));
+    
+    if (selectedIds.length === currentIds.length && currentIds.length > 0) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(records.map(r => r.id));
+      setSelectedIds(currentIds);
     }
   }
 
@@ -407,7 +410,7 @@ export default function AddressManagementPage() {
                     <Download className="h-4 w-4" /> Export Excel
                 </Button>
                 <Button 
-                    onClick={() => handleDelete(selectedIds, 'address')}
+                    onClick={() => handleDelete(selectedIds, view === 'submissions' ? 'address' : view === 'pending' ? 'master' : 'dispatched')}
                     variant="destructive"
                     className="font-bold rounded-full px-6 h-11 flex items-center gap-2"
                 >
@@ -431,7 +434,10 @@ export default function AddressManagementPage() {
             <TableRow className="hover:bg-transparent border-b">
               <TableHead className="w-14 p-6">
                 <Checkbox 
-                  checked={selectedIds.length === records.length && records.length > 0}
+                  checked={(() => {
+                    const currentList = view === "submissions" ? records : view === "pending" ? pendingRecords : dispatchedRecords;
+                    return selectedIds.length === currentList.length && currentList.length > 0;
+                  })()}
                   onCheckedChange={toggleAll}
                   className="rounded-lg h-5 w-5"
                 />
@@ -529,7 +535,7 @@ export default function AddressManagementPage() {
                 return pendingRecords.map((item) => (
                   <TableRow key={item.employeeId} className="group hover:bg-rose-50/20 transition-colors border-b last:border-0 h-24">
                     <TableCell className="p-6">
-                      <Checkbox disabled className="rounded-lg h-5 w-5 opacity-20" />
+                      <Checkbox checked={selectedIds.includes(item.employeeId)} onCheckedChange={() => toggleSelect(item.employeeId)} className="rounded-lg h-5 w-5" />
                     </TableCell>
                     <TableCell className="p-6">
                       <div className="flex flex-col">
@@ -587,7 +593,7 @@ export default function AddressManagementPage() {
                 return dispatchedRecords.map((item) => (
                   <TableRow key={item.employeeId} className="group hover:bg-emerald-50/20 transition-colors border-b last:border-0 h-24">
                     <TableCell className="p-6">
-                      <Checkbox disabled className="rounded-lg h-5 w-5 opacity-20" />
+                      <Checkbox checked={selectedIds.includes(item.employeeId)} onCheckedChange={() => toggleSelect(item.employeeId)} className="rounded-lg h-5 w-5" />
                     </TableCell>
                     <TableCell className="p-6">
                       <div className="flex flex-col">

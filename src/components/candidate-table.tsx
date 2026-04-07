@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2, CheckCircle2, Search, Filter, Download } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { deleteCandidate } from "@/lib/actions/verification";
+import { deleteCandidate, bulkDeleteCandidates } from "@/lib/actions/verification";
 import * as XLSX from "xlsx";
 import { ConfirmationModal } from "./confirmation-modal";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   // Modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [candidateToDelete, setCandidateToDelete] = useState<{id: string, name: string} | null>(null);
   
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -92,6 +93,24 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       console.error(err);
       setIsDeleteModalOpen(false);
       setErrorMessage(err.message || "Failed to permanently delete candidate. This might be due to active network issues or restricted permissions.");
+      setIsErrorModalOpen(true);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    
+    setIsDeleting(true);
+    try {
+      await bulkDeleteCandidates(selectedIds);
+      setIsBulkDeleteModalOpen(false);
+      setSelectedIds([]);
+    } catch (err: any) {
+      console.error(err);
+      setIsBulkDeleteModalOpen(false);
+      setErrorMessage(err.message || "Failed to delete selected candidates.");
       setIsErrorModalOpen(true);
     } finally {
       setIsDeleting(false);
@@ -335,6 +354,16 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           <div className="flex gap-2">
             {role === "ADMIN" && (
               <Button 
+                onClick={() => setIsBulkDeleteModalOpen(true)} 
+                variant="destructive"
+                className="rounded-xl shadow-lg font-bold px-6 border-0 hover:bg-destructive/90 transition-all flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Bulk Delete
+              </Button>
+            )}
+            {role === "ADMIN" && (
+              <Button 
                 onClick={handleExportExcel} 
                 className="rounded-xl shadow-lg border-primary/20 font-bold px-6 bg-accent text-accent-foreground hover:bg-accent/80 transition-all"
               >
@@ -461,6 +490,17 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         title="Confirm Deletion"
         description={`Are you absolutely sure you want to permanently delete candidate ${candidateToDelete?.name}? This action cannot be undone.`}
         confirmText="Permanently Delete"
+        variant="destructive"
+      />
+
+      <ConfirmationModal 
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        onConfirm={handleConfirmBulkDelete}
+        loading={isDeleting}
+        title="Confirm Bulk Deletion"
+        description={`Are you absolutely sure you want to permanently delete ${selectedIds.length} candidates? This action cannot be undone.`}
+        confirmText="Bulk Delete Candidates"
         variant="destructive"
       />
 
