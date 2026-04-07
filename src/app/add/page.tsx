@@ -26,7 +26,7 @@ import { Loader2, CheckCircle2, AlertCircle, MapPin, Building2, User, Phone, Has
 
 const formSchema = z.object({
   employeeId: z.string().min(1, "Employee ID is required"),
-  addressLine1: z.string().min(1, "Address Line 1 is required"),
+  addressLine1: z.string().min(15, "Please provide a complete address (min 15 characters)"),
   addressLine2: z.string().optional(),
   addressLine3: z.string().optional(),
   city: z.string().min(1, "City is required"),
