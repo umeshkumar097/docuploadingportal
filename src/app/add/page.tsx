@@ -268,11 +268,33 @@ export default function AddAddressPage() {
                       <MapPin className="h-3 w-3 text-slate-400" /> Address Line 1 <span className="text-red-500">*</span>
                       </FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="House No., Flat, Building Name..." 
-                        className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm" 
-                        {...field} 
-                      />
+                      <div className="relative">
+                        <Input 
+                          placeholder="House No., Flat, Building Name..." 
+                          className="bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 h-14 rounded-xl transition-all shadow-sm pr-20" 
+                          {...field} 
+                          onChange={(e) => {
+                            field.onChange(e);
+                          }}
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 transition-all">
+                          {field.value.length < 15 ? (
+                            <div className="flex flex-col items-end">
+                              <span className="text-[10px] font-black text-rose-500 tabular-nums leading-none mb-0.5">
+                                {15 - field.value.length}
+                              </span>
+                              <span className="text-[7px] font-bold text-rose-400 uppercase tracking-tighter leading-none">
+                                characters left
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 animate-in zoom-in duration-300">
+                              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                              <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">MINIMUM REACHED</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage className="text-[10px] font-bold uppercase tracking-wider text-red-500" />
                   </FormItem>
