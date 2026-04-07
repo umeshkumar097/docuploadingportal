@@ -159,13 +159,15 @@ export default function AddressManagementPage() {
   }
 
   function toggleAll() {
-    const currentList = view === "submissions" ? records : view === "pending" ? pendingRecords : dispatchedRecords;
-    const currentIds = currentList.map(r => (view === "submissions" ? r.id : r.employeeId));
-    
-    if (selectedIds.length === currentIds.length && currentIds.length > 0) {
-      setSelectedIds([]);
+    if (view === "submissions") {
+      const currentIds = records.map(r => r.id);
+      setSelectedIds(prev => (prev.length === currentIds.length ? [] : currentIds));
+    } else if (view === "pending") {
+      const currentIds = pendingRecords.map(r => r.employeeId);
+      setSelectedIds(prev => (prev.length === currentIds.length ? [] : currentIds));
     } else {
-      setSelectedIds(currentIds);
+      const currentIds = dispatchedRecords.map(r => r.employeeId);
+      setSelectedIds(prev => (prev.length === currentIds.length ? [] : currentIds));
     }
   }
 
