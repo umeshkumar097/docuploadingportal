@@ -26,7 +26,21 @@ import { Loader2, CheckCircle2, AlertCircle, MapPin, Building2, User, Phone, Has
 
 const formSchema = z.object({
   employeeId: z.string().min(1, "Employee ID is required"),
-  addressLine1: z.string().min(15, "Please provide a complete address (min 15 characters)"),
+  addressLine1: z.string()
+    .min(15, "Please provide a complete address (min 15 characters)")
+    .refine((val) => {
+        // 1. Check for repetitive junk like "3333333333333333"
+        const uniqueChars = new Set(val.toLowerCase().replace(/\s/g, '').split(''));
+        if (uniqueChars.size < 5) return false;
+        
+        // 2. Ensure it's not JUST numbers (like a mobile number in address field)
+        const hasLetters = /[a-zA-Z]/.test(val);
+        if (!hasLetters) return false;
+
+        return true;
+    }, {
+        message: "This address looks incomplete or repetitive. Please provide a real address."
+    }),
   addressLine2: z.string().optional(),
   addressLine3: z.string().optional(),
   city: z.string().min(1, "City is required"),
