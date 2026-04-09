@@ -518,9 +518,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                       name="addressLine1"
                       render={({ field }) => (
                         <FormItem className="space-y-3">
-                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                            Address Line 1 {config.addressLine1 === "MANDATORY" && <span className="text-red-500">*</span>}
-                          </FormLabel>
+                            Address Line 1 {config.addressLine1 === "MANDATORY" ? (
+                              <span className="text-red-500">*</span>
+                            ) : (
+                              <span className="text-muted-foreground lowercase text-[10px] ml-1 font-medium">(Optional)</span>
+                            )}
                           <FormControl><Input placeholder="Flat, House no., Building, Company" className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -533,9 +535,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                       name="addressLine2"
                       render={({ field }) => (
                         <FormItem className="space-y-3">
-                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                            Street/Area {config.addressLine2 === "MANDATORY" && <span className="text-red-500">*</span>}
-                          </FormLabel>
+                            Street/Area {config.addressLine2 === "MANDATORY" ? (
+                              <span className="text-red-500">*</span>
+                            ) : (
+                              <span className="text-muted-foreground lowercase text-[10px] ml-1 font-medium">(Optional)</span>
+                            )}
                           <FormControl><Input placeholder="Street name, Sector, Village" className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -562,9 +566,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                       name="bookLanguage"
                       render={({ field }) => (
                         <FormItem className="space-y-3">
-                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                            Book Language {config.bookLanguage === "MANDATORY" && <span className="text-red-500">*</span>}
-                          </FormLabel>
+                            Book Language {config.bookLanguage === "MANDATORY" ? (
+                              <span className="text-red-500">*</span>
+                            ) : (
+                              <span className="text-muted-foreground lowercase text-[10px] ml-1 font-medium">(Optional)</span>
+                            )}
                           <FormControl>
                             <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
                               <option value="" disabled>Select Preference</option>
@@ -584,9 +590,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                       name="trainingLanguage"
                       render={({ field }) => (
                         <FormItem className="space-y-3">
-                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                            Training Language {config.trainingLanguage === "MANDATORY" && <span className="text-red-500">*</span>}
-                          </FormLabel>
+                            Training Language {config.trainingLanguage === "MANDATORY" ? (
+                              <span className="text-red-500">*</span>
+                            ) : (
+                              <span className="text-muted-foreground lowercase text-[10px] ml-1 font-medium">(Optional)</span>
+                            )}
                           <FormControl>
                             <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
                               <option value="" disabled>Select Preference</option>
@@ -618,9 +626,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   name="examCenter"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                        Preferred Exam Center {config.examCenter === "MANDATORY" && <span className="text-red-500">*</span>}
-                      </FormLabel>
+                        Preferred Exam Center {config.examCenter === "MANDATORY" ? (
+                          <span className="text-red-500">*</span>
+                        ) : (
+                          <span className="text-muted-foreground lowercase text-[10px] ml-1 font-medium">(Optional)</span>
+                        )}
                       <FormControl>
                         <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
                           <option value="" disabled>Select Exam Center</option>
@@ -667,39 +677,63 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="residentialState"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Residential State <span className="text-red-500">*</span></FormLabel>
-                      <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">City <span className="text-red-500">*</span></FormLabel>
-                      <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="pincode"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Pincode <span className="text-red-500">*</span></FormLabel>
-                      <FormControl><Input maxLength={6} className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {config.state !== "DISABLED" && (
+                  <FormField
+                    control={form.control}
+                    name="residentialState"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                          Residential State {config.state === "MANDATORY" ? (
+                            <span className="text-red-500">*</span>
+                          ) : (
+                            <span className="text-muted-foreground lowercase text-[10px] ml-1 font-medium">(Optional)</span>
+                          )}
+                        </FormLabel>
+                        <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {config.city !== "DISABLED" && (
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                          City {config.city === "MANDATORY" ? (
+                            <span className="text-red-500">*</span>
+                          ) : (
+                            <span className="text-muted-foreground lowercase text-[10px] ml-1 font-medium">(Optional)</span>
+                          )}
+                        </FormLabel>
+                        <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {config.pincode !== "DISABLED" && (
+                  <FormField
+                    control={form.control}
+                    name="pincode"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                          Pincode {config.pincode === "MANDATORY" ? (
+                            <span className="text-red-500">*</span>
+                          ) : (
+                            <span className="text-muted-foreground lowercase text-[10px] ml-1 font-medium">(Optional)</span>
+                          )}
+                        </FormLabel>
+                        <FormControl><Input maxLength={6} className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name="idType"
