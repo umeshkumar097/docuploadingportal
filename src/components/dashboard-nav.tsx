@@ -34,7 +34,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Candidates Workspace", href: "/dashboard", icon: LayoutDashboard },
   { label: "Master Data", href: "/dashboard/master-data", icon: Database },
-  { label: "Clients", href: "/dashboard/godeye?tab=clients", icon: Globe, adminOnly: true },
+  { label: "Clients", href: "/dashboard/admin?tab=clients", icon: Globe, adminOnly: true },
   { label: "Addresses", href: "/dashboard/addresses", icon: MapPin, adminOnly: true },
   { label: "Certified DRA", href: "/dashboard/dra-certified", icon: ClipboardCheck },
   { label: "Outreach Tracking", href: "/dashboard/outreach", icon: Building2, adminOnly: true },

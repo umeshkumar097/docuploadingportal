@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { VendorManagementClient } from "./client";
+import { AdminManagementClient } from "./client";
 import prisma from "@/lib/prisma";
 
 export const metadata = {
-  title: 'Vendor Management | CruxDoc',
+  title: 'Organization Management | CruxDoc',
 }
 
 export default async function VendorsPage() {
@@ -34,7 +34,7 @@ export default async function VendorsPage() {
         </p>
       </div>
       
-      <VendorManagementClient initialVendors={vendors} initialClients={clients} role={role || "ADMIN"} />
+      <AdminManagementClient initialVendors={vendors} initialClients={clients} role={role || "ADMIN"} />
     </div>
   );
 }

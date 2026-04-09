@@ -30,7 +30,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   });
 
   if (!client) {
-    redirect("/dashboard/godeye?tab=clients");
+    redirect("/dashboard/admin?tab=clients");
   }
 
   const candidates = await prisma.candidate.findMany({
@@ -48,7 +48,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
       {/* Breadcrumbs & Header */}
       <div className="flex flex-col gap-6">
-        <Link href="/dashboard/godeye?tab=clients">
+        <Link href="/dashboard/admin?tab=clients">
           <Button variant="ghost" size="sm" className="w-fit -ml-2 text-muted-foreground hover:text-primary gap-1 font-bold">
             <ChevronLeft className="h-4 w-4" /> Back to Clients
           </Button>

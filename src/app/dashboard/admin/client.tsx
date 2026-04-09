@@ -8,7 +8,7 @@ import { Loader2, UserPlus, Building2, Mail, Lock, Link as LinkIcon, Plus, Globe
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-export function VendorManagementClient({ initialVendors, initialClients, role }: { initialVendors: any[], initialClients: any[], role: string }) {
+export function AdminManagementClient({ initialVendors, initialClients, role }: { initialVendors: any[], initialClients: any[], role: string }) {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   
@@ -21,6 +21,7 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
       setActiveTab("vendors");
     }
   }, [tabParam]);
+
   const [vendors, setVendors] = useState(initialVendors);
   const [clients, setClients] = useState(initialClients);
   const [email, setEmail] = useState("");
@@ -149,7 +150,7 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
           onClick={() => setActiveTab("vendors")}
           className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === "vendors" ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}
         >
-          Vendors (Portals)
+          Vendors (Organization Portals)
         </button>
         <button 
           onClick={() => setActiveTab("clients")}
@@ -314,7 +315,7 @@ export function VendorManagementClient({ initialVendors, initialClients, role }:
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {clients.map((c: any) => {
-                  const fullUrl = `${window?.location.origin}/apply/${c.slug}`;
+                  const fullUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/apply/${c.slug}`;
                   return (
                     <div key={c.id} className="p-6 rounded-3xl bg-background border shadow-sm group hover:border-primary/30 transition-all">
                       <div className="flex items-start justify-between mb-4">
