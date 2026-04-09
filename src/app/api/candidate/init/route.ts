@@ -20,7 +20,15 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ success: true, candidate });
+    let clientConfig = null;
+    if (clientId) {
+      clientConfig = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { formConfig: true, examCenters: true }
+      });
+    }
+
+    return NextResponse.json({ success: true, candidate, clientConfig });
   } catch (error) {
     console.error("Session init error:", error);
     return NextResponse.json({ error: "Failed to initialize anonymous session" }, { status: 500 });

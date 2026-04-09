@@ -8,12 +8,14 @@ datasource db {
 }
 
 model Client {
-  id         String      @id @default(cuid())
-  name       String      @unique
-  slug       String      @unique
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  candidates Candidate[]
+  id           String      @id @default(cuid())
+  name         String      @unique
+  slug         String      @unique
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  formConfig   Json?       @default("{}")
+  examCenters  String[]    @default([])
+  candidates   Candidate[]
 }
 
 model User {
@@ -45,6 +47,11 @@ model Candidate {
   clientId         String?
   phase            String?         @default("Phase 1")
   isDraCertified   Boolean         @default(false)
+  addressLine1     String?
+  addressLine2     String?
+  bookLanguage     String?
+  trainingLanguage String?
+  examCenter       String?
   client           Client?         @relation(fields: [clientId], references: [id])
   documents        Document[]
 }

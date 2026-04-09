@@ -3,9 +3,18 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { CandidateTable } from "@/components/candidate-table";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, Building2, Users, FileBarChart } from "lucide-react";
+import { 
+  ChevronLeft, 
+  Building2, 
+  Users, 
+  FileBarChart,
+  Settings2,
+  ListFilter
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClientFormConfig } from "@/components/client-form-config";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -89,10 +98,30 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         </div>
       </div>
 
-      {/* Main Table View */}
-      <div className="bg-card/30 rounded-3xl p-1">
-        <CandidateTable candidates={candidates} role={role || "ADMIN"} />
-      </div>
+      <Tabs defaultValue="candidates" className="space-y-8">
+        <TabsList className="bg-accent/30 p-1 rounded-2xl w-fit">
+          <TabsTrigger value="candidates" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+            <ListFilter className="h-4 w-4 mr-2" /> Candidates
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+            <Settings2 className="h-4 w-4 mr-2" /> Form Settings
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="candidates" className="animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-card/30 rounded-3xl p-1">
+            <CandidateTable candidates={candidates} role={role || "ADMIN"} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="animate-in slide-in-from-bottom-2 duration-300">
+          <ClientFormConfig 
+            clientId={client.id} 
+            initialConfig={client.formConfig} 
+            initialCenters={client.examCenters} 
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -51,6 +51,11 @@ const formSchema = z.object({
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
+  addressLine1: z.string().optional(),
+  addressLine2: z.string().optional(),
+  bookLanguage: z.string().optional(),
+  trainingLanguage: z.string().optional(),
+  examCenter: z.string().optional(),
 });
 
 interface CandidateFormPublicProps {
@@ -62,6 +67,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   const [isInitializing, setIsInitializing] = useState(true);
   const [candidateId, setCandidateId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [config, setConfig] = useState<any>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -95,6 +101,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       idNumber: "",
       isDraCertified: false,
       originalDegree: false,
+      addressLine1: "",
+      addressLine2: "",
+      bookLanguage: "",
+      trainingLanguage: "",
+      examCenter: "",
     },
   });
 
@@ -114,6 +125,15 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           if (pingRes.ok) {
             setToken(storedToken);
             setCandidateId(storedId);
+            // Fetch config even if token exists
+            const confRes = await fetch(`/api/candidate/init`, { 
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ clientId })
+            });
+            const confData = await confRes.json();
+            if (confData.clientConfig) setConfig(confData.clientConfig);
+            
             setIsInitializing(false);
             return;
           } else {
@@ -134,6 +154,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           localStorage.setItem("cruxdoc_id", data.candidate.id);
           setToken(data.candidate.token);
           setCandidateId(data.candidate.id);
+          if (data.clientConfig) setConfig(data.clientConfig);
         }
       } catch (err) {
         console.error("Failed to initialize session", err);
@@ -176,6 +197,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
               idType: value.idType || undefined,
               idNumber: value.idNumber || undefined,
               isDraCertified: value.isDraCertified ?? undefined,
+              addressLine1: value.addressLine1 || undefined,
+              addressLine2: value.addressLine2 || undefined,
+              bookLanguage: value.bookLanguage || undefined,
+              trainingLanguage: value.trainingLanguage || undefined,
+              examCenter: value.examCenter || undefined,
             }),
           });
         } catch (err) {
@@ -237,6 +263,13 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             if (ext.uploadedDocumentTypes) {
               setUploadedDocs(new Set(ext.uploadedDocumentTypes));
             }
+
+            // Sync form values from existing candidate
+            if (ext.addressLine1) form.setValue("addressLine1", ext.addressLine1);
+            if (ext.addressLine2) form.setValue("addressLine2", ext.addressLine2);
+            if (ext.bookLanguage) form.setValue("bookLanguage", ext.bookLanguage);
+            if (ext.trainingLanguage) form.setValue("trainingLanguage", ext.trainingLanguage);
+            if (ext.examCenter) form.setValue("examCenter", ext.examCenter);
           }
 
           if (m.employeeName && !form.getValues("name")) form.setValue("name", m.employeeName, { shouldValidate: true });
@@ -286,6 +319,14 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
 
   const isDraCertified = form.watch("isDraCertified");
 
+  const checkMandatory = (field: string) => {
+    if (!config || !config[field]) return true; // Disabled means not mandatory
+    if (config[field] === "MANDATORY") {
+      return !!form.watch(field as any);
+    }
+    return true; // Optional means filled is OK
+  };
+
   const allFieldsFilled = isDraCertified 
     ? (form.watch("employeeId") && form.watch("originalDegree"))
     : (form.watch("name") && 
@@ -297,7 +338,16 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
        form.watch("city") &&
        form.watch("pincode") &&
        form.watch("idNumber") &&
-       form.watch("originalDegree"));
+       form.watch("originalDegree") &&
+       checkMandatory("addressLine1") &&
+       checkMandatory("addressLine2") &&
+       checkMandatory("city") &&
+       checkMandatory("state") &&
+       checkMandatory("pincode") &&
+       checkMandatory("bookLanguage") &&
+       checkMandatory("trainingLanguage") &&
+       checkMandatory("examCenter")
+    );
 
   const allDocsUploaded = isDraCertified
     ? uploadedDocs.has("DRA_CERTIFICATE")
@@ -352,7 +402,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   }
 
   return (
-    <div className="w-full space-y-12 pb-20 mt-12">
+    <div className="w-full space-y-12 pb-20 mt-12 px-4 md:px-0">
       <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
           {clientName ? <span className="text-primary truncate block max-w-full px-4">{clientName}</span> : "Document"} <span className={clientName ? "text-foreground" : "text-primary"}>Submission</span>
@@ -452,13 +502,147 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           </div>
 
           <div className={`space-y-10 transition-all duration-700 ${nominationStatus === "nominated" ? "opacity-100 scale-100" : "opacity-20 blur-sm pointer-events-none scale-[0.98]"}`}>
+            {/* Conditional Address Section */}
+            {!isDraCertified && config && (config.addressLine1 !== "DISABLED" || config.addressLine2 !== "DISABLED") && (
+              <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                        <Building2 className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-xl font-bold uppercase tracking-tight">Postal Address Details</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {config.addressLine1 !== "DISABLED" && (
+                    <FormField
+                      control={form.control}
+                      name="addressLine1"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                            Address Line 1 {config.addressLine1 === "MANDATORY" && <span className="text-red-500">*</span>}
+                          </FormLabel>
+                          <FormControl><Input placeholder="Flat, House no., Building, Company" className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  {config.addressLine2 !== "DISABLED" && (
+                    <FormField
+                      control={form.control}
+                      name="addressLine2"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                            Street/Area {config.addressLine2 === "MANDATORY" && <span className="text-red-500">*</span>}
+                          </FormLabel>
+                          <FormControl><Input placeholder="Street name, Sector, Village" className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Dynamic Section: Course & Language Preferences */}
+            {!isDraCertified && config && (config.bookLanguage !== "DISABLED" || config.trainingLanguage !== "DISABLED") && (
+              <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-xl bg-orange-500/10 text-orange-600">
+                        <FileText className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-xl font-bold uppercase tracking-tight">Course & Language Preferences</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {config.bookLanguage !== "DISABLED" && (
+                    <FormField
+                      control={form.control}
+                      name="bookLanguage"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                            Study Material Language {config.bookLanguage === "MANDATORY" && <span className="text-red-500">*</span>}
+                          </FormLabel>
+                          <FormControl>
+                            <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
+                              <option value="" disabled>Select Preference</option>
+                              {["English", "Hindi", "Gujarati", "Marathi", "Bengali", "Kannada", "Malayalam", "Tamil", "Telugu"].map(lang => (
+                                <option key={lang} value={lang}>{lang}</option>
+                              ))}
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  {config.trainingLanguage !== "DISABLED" && (
+                    <FormField
+                      control={form.control}
+                      name="trainingLanguage"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                            Training Language {config.trainingLanguage === "MANDATORY" && <span className="text-red-500">*</span>}
+                          </FormLabel>
+                          <FormControl>
+                            <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
+                              <option value="" disabled>Select Preference</option>
+                              {["English", "Hindi", "Gujarati", "Marathi", "Bengali", "Kannada", "Malayalam", "Tamil", "Telugu"].map(lang => (
+                                <option key={lang} value={lang}>{lang}</option>
+                              ))}
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Dynamic Section: Preferred Exam Center */}
+            {!isDraCertified && config && config.examCenter !== "DISABLED" && (
+              <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600">
+                        <CreditCard className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-xl font-bold uppercase tracking-tight">Examination Venue</h3>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="examCenter"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                        Preferred Exam Center {config.examCenter === "MANDATORY" && <span className="text-red-500">*</span>}
+                      </FormLabel>
+                      <FormControl>
+                        <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
+                          <option value="" disabled>Select Exam Center</option>
+                          {config.examCenters?.map((center: string) => (
+                            <option key={center} value={center}>{center}</option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
             {!isDraCertified && (
               <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8">
               <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-xl bg-primary/10 text-primary">
                       <User className="h-5 w-5" />
                   </div>
-                  <h3 className="text-xl font-bold uppercase tracking-tight">Personal Details</h3>
+                  <h3 className="text-xl font-bold uppercase tracking-tight">Identity Details</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FormField
@@ -488,7 +672,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   name="residentialState"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">State <span className="text-red-500">*</span></FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Residential State <span className="text-red-500">*</span></FormLabel>
                       <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -523,8 +707,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     <FormItem className="space-y-3">
                       <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">ID Type <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
-                        <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none">
-                          <option value="" disabled selected>Select</option>
+                        <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
+                          <option value="" disabled>Select</option>
                           <option value="PAN">PAN</option>
                           <option value="AADHAAR">Aadhaar</option>
                           <option value="DL">DL</option>
