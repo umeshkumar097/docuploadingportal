@@ -6,23 +6,44 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const employeeId = searchParams.get("employeeId")?.trim();
     const mobileNumber = searchParams.get("mobileNumber")?.trim();
+    const clientId = searchParams.get("clientId")?.trim();
 
     if (!employeeId && !mobileNumber) {
       return NextResponse.json({ error: "Employee ID or Mobile Number is required" }, { status: 400 });
     }
 
+    // Identify the specific client organization for isolation
+    let clientVendorName: string | undefined = undefined;
+    if (clientId) {
+      const client = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { name: true }
+      });
+      if (client) {
+        clientVendorName = client.name;
+      }
+    }
+
     const employeeData = await prisma.masterEmployee.findFirst({
       where: {
-        OR: [
-          ...(employeeId ? [
-            { employeeId: { equals: employeeId, mode: "insensitive" as const } },
-            { employeeId: { contains: employeeId, mode: "insensitive" as const } }
-          ] : []),
-          ...(mobileNumber ? [
-            { personalMobileNo: { contains: mobileNumber } }, 
-            { officeMobileNo: { contains: mobileNumber } },
-            { whatsappNo: { contains: mobileNumber } }
-          ] : [])
+        AND: [
+          // Filter by client organization if provided
+          ...(clientVendorName ? [{
+            vendor: { equals: clientVendorName, mode: "insensitive" as const }
+          }] : []),
+          {
+            OR: [
+              ...(employeeId ? [
+                { employeeId: { equals: employeeId, mode: "insensitive" as const } },
+                { employeeId: { contains: employeeId, mode: "insensitive" as const } }
+              ] : []),
+              ...(mobileNumber ? [
+                { personalMobileNo: { contains: mobileNumber } }, 
+                { officeMobileNo: { contains: mobileNumber } },
+                { whatsappNo: { contains: mobileNumber } }
+              ] : [])
+            ]
+          }
         ]
       }
     });

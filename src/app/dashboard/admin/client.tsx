@@ -41,6 +41,12 @@ export function AdminManagementClient({ initialVendors, initialClients, role }: 
   const [editVendorName, setEditVendorName] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
+  // Edit Client State
+  const [editingClient, setEditingClient] = useState<any>(null);
+  const [editClientName, setEditClientName] = useState("");
+  const [editClientSlug, setEditClientSlug] = useState("");
+  const [isDeletingClient, setIsDeletingClient] = useState<string | null>(null);
+
   const handleCreateVendor = async () => {
     if (!email || !password || !vendorName) {
       setMessage("All fields are required.");
@@ -105,6 +111,44 @@ export function AdminManagementClient({ initialVendors, initialClients, role }: 
       setMessage(err.message);
     } finally {
       setIsDeleting(null);
+    }
+  };
+
+  const handleUpdateClient = async () => {
+    if (!editingClient) return;
+    setLoading(true);
+    setMessage("");
+    try {
+      const res = await fetch(`/api/clients/${editingClient.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editClientName, slug: editClientSlug }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setClients(clients.map(c => c.id === editingClient.id ? data.client : c));
+      setEditingClient(null);
+      setMessage("Client updated successfully!");
+    } catch (err: any) {
+      setMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteClient = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this client? All associated data and links will be removed.")) return;
+    setIsDeletingClient(id);
+    try {
+      const res = await fetch(`/api/clients/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      setClients(clients.filter(c => c.id !== id));
+      setMessage("Client deleted successfully!");
+    } catch (err: any) {
+      setMessage(err.message);
+    } finally {
+      setIsDeletingClient(null);
     }
   };
 
@@ -322,7 +366,34 @@ export function AdminManagementClient({ initialVendors, initialClients, role }: 
                         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black uppercase text-xl">
                           {c.name.substring(0,2)}
                         </div>
-                        <Badge variant="outline" className="border-primary/20 text-primary uppercase text-[8px] px-2 py-0.5">ACTIVE LINK</Badge>
+                        <div className="flex gap-1">
+                          {(role === "SUPERADMIN" || role === "ADMIN") && (
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 rounded-lg hover:bg-primary/10 text-primary"
+                                onClick={() => {
+                                  setEditingClient(c);
+                                  setEditClientName(c.name);
+                                  setEditClientSlug(c.slug);
+                                }}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 rounded-lg hover:bg-red-500/10 text-red-500"
+                                disabled={isDeletingClient === c.id}
+                                onClick={() => handleDeleteClient(c.id)}
+                              >
+                                {isDeletingClient === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                              </Button>
+                            </>
+                          )}
+                          <Badge variant="outline" className="border-primary/20 text-primary uppercase text-[8px] px-2 py-0.5">ACTIVE LINK</Badge>
+                        </div>
                       </div>
                       <Link href={`/dashboard/clients/${c.id}`} className="hover:opacity-80 transition-opacity">
                         <h3 className="font-bold text-foreground text-xl mb-1 flex items-center gap-2">
@@ -394,6 +465,43 @@ export function AdminManagementClient({ initialVendors, initialClients, role }: 
                 Cancel
               </Button>
               <Button onClick={handleUpdateVendor} disabled={loading} className="h-14 flex-1 rounded-2xl font-black tracking-tight bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:scale-[1.02]">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Client Modal */}
+      {editingClient && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-card w-full max-w-md rounded-3xl p-8 shadow-2xl border border-primary/10 animate-in zoom-in-95 duration-300">
+            <h2 className="text-2xl font-black tracking-tight mb-2">Edit Client Details</h2>
+            <p className="text-muted-foreground text-sm mb-6 font-medium font-inter tracking-tight">Updating information for <span className="text-primary font-bold">{editingClient.name}</span></p>
+            
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Client Official Name</label>
+                <div className="relative group">
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
+                  <Input value={editClientName} onChange={(e) => setEditClientName(e.target.value)} className="pl-12 h-14 rounded-2xl bg-accent/20 border-none focus-visible:ring-2 focus-visible:ring-primary/40 font-bold tracking-tight" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Unique Link Slug</label>
+                <div className="relative group">
+                  <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
+                  <Input value={editClientSlug} onChange={(e) => setEditClientSlug(e.target.value)} className="pl-12 h-14 rounded-2xl bg-accent/20 border-none focus-visible:ring-2 focus-visible:ring-primary/40 font-bold tracking-tight" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 mt-8">
+              <Button variant="ghost" onClick={() => setEditingClient(null)} className="h-14 flex-1 rounded-2xl font-bold tracking-tight hover:bg-accent">
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateClient} disabled={loading} className="h-14 flex-1 rounded-2xl font-black tracking-tight bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:scale-[1.02]">
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Changes"}
               </Button>
             </div>

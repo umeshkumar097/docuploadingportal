@@ -236,6 +236,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
         let qs = "";
         if (hasEmpId) qs += `employeeId=${encodeURIComponent(empIdWatch)}`;
         if (hasMobile) qs += `${qs ? "&" : ""}mobileNumber=${encodeURIComponent(mobileWatch)}`;
+        if (clientId) qs += `${qs ? "&" : ""}clientId=${encodeURIComponent(clientId)}`;
         
         const res = await fetch(`/api/candidate/lookup?${qs}`, { signal: abortController.signal });
         const result = await res.json();
