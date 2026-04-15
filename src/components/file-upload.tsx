@@ -174,11 +174,19 @@ export function FileUpload({
                     reason = "Signature should not contain much text. Please upload a clear scan of your signature (Blue or Black ink allowed).";
                 }
               } else if (type === "QUALIFICATION") {
-                const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate", "12th", "hsc", "h.s.c", "ssc", "higher", "senior", "inter", "institute", "vocational", "education", "examination", "arts", "exam", "marksheet", "b.com", "b.a", "b.sc", "m.com", "m.a", "m.sc", "rollno", "pass", "college", "regular"];
-                // If it contains keywords OR has decent text density (typical of a marksheet/table)
-                // Lowered threshold to 400 to account for older or lower-resolution scans
-                isValid = keywords.some(k => extractedText.includes(k)) || textDensity > 400;
-                reason = "Verification Failed: This does not look like a valid Qualification Document. Please upload a clear original copy.";
+                const negativeKeywords = ["aadhaar", "unique identification", "government of india", "permanent account", "income tax department", "pan card", "election commission", "voter id", "driving licence", "identity card"];
+                const isIdProof = negativeKeywords.some(k => extractedText.includes(k));
+
+                if (isIdProof) {
+                    isValid = false;
+                    reason = "Verification Failed: This looks like an Identity Proof (Aadhaar/PAN/Voter ID). Please upload an Educational Qualification document (Marksheet/Certificate) in this slot.";
+                } else {
+                    const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate", "12th", "hsc", "h.s.c", "ssc", "higher", "senior", "inter", "institute", "vocational", "education", "examination", "arts", "exam", "marksheet", "b.com", "b.a", "b.sc", "m.com", "m.a", "m.sc", "rollno", "pass", "college", "regular"];
+                    // If it contains keywords OR has decent text density (typical of a marksheet/table)
+                    // Lowered threshold to 400 to account for older or lower-resolution scans
+                    isValid = keywords.some(k => extractedText.includes(k)) || textDensity > 400;
+                    reason = "Verification Failed: This does not look like a valid Qualification Document. Please upload a clear original copy.";
+                }
               } else if (type === "ID_PROOF") {
                 if (subType === "PAN") {
                   const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax"];

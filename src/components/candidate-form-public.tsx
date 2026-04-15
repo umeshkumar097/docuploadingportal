@@ -282,6 +282,12 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           
           const mobile = m.personalMobileNo || m.officeMobileNo;
           if (mobile && !form.getValues("mobileNumber")) form.setValue("mobileNumber", mobile, { shouldValidate: true });
+          
+          if (m.addressLine1 && !form.getValues("addressLine1")) form.setValue("addressLine1", m.addressLine1, { shouldValidate: true });
+          if (m.addressLine2 && !form.getValues("addressLine2")) form.setValue("addressLine2", m.addressLine2, { shouldValidate: true });
+          if (m.bookLanguage && !form.getValues("bookLanguage")) form.setValue("bookLanguage", m.bookLanguage, { shouldValidate: true });
+          if (m.trainingLanguage && !form.getValues("trainingLanguage")) form.setValue("trainingLanguage", m.trainingLanguage, { shouldValidate: true });
+          if (m.examCenter && !form.getValues("examCenter")) form.setValue("examCenter", m.examCenter, { shouldValidate: true });
         } else {
           setNominationStatus("blocked");
           setLookupError("YOU ARE NOT NOMINATED FOR THIS BATCH");
@@ -301,6 +307,9 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!token || nominationStatus !== "nominated") return;
+    
+    // Explicit safety check: if we somehow got here without the user clicking the button
+    // (e.g., browser-specific form submission on entry), we can verify state here.
     setIsSubmitting(true);
     try {
       await fetch(`/api/candidate/${token}/heartbeat`, {
