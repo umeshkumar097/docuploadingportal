@@ -52,6 +52,7 @@ model Candidate {
   bookLanguage     String?
   trainingLanguage String?
   examCenter       String?
+  trainingMonth    String?
   client           Client?         @relation(fields: [clientId], references: [id])
   documents        Document[]
 }
@@ -98,6 +99,7 @@ model MasterEmployee {
   city                  String?
   pincode               String?
   phase                 String?  @default("Phase 1")
+  trainingMonth         String?
 }
 
 model AddressRecord {

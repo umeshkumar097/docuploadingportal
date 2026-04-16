@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
           city: String(row["City"] || "").trim(),
           pincode: String(row["Pincode"] || "").trim(),
           draBatch: String(row["DRA Batch"] || "").trim(),
+          trainingMonth: String(row["Training Month"] || row["Month"] || "").trim(),
         });
       }
     }

@@ -56,6 +56,7 @@ const formSchema = z.object({
   bookLanguage: z.string().optional(),
   trainingLanguage: z.string().optional(),
   examCenter: z.string().optional(),
+  trainingMonth: z.string().optional(),
 });
 
 interface CandidateFormPublicProps {
@@ -106,6 +107,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       bookLanguage: "",
       trainingLanguage: "",
       examCenter: "",
+      trainingMonth: "",
     },
   });
 
@@ -202,6 +204,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
               bookLanguage: value.bookLanguage || undefined,
               trainingLanguage: value.trainingLanguage || undefined,
               examCenter: value.examCenter || undefined,
+              trainingMonth: value.trainingMonth || undefined,
             }),
           });
         } catch (err) {
@@ -271,6 +274,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             if (ext.bookLanguage) form.setValue("bookLanguage", ext.bookLanguage);
             if (ext.trainingLanguage) form.setValue("trainingLanguage", ext.trainingLanguage);
             if (ext.examCenter) form.setValue("examCenter", ext.examCenter);
+            if (ext.trainingMonth) form.setValue("trainingMonth", ext.trainingMonth);
           }
 
           if (m.employeeName && !form.getValues("name")) form.setValue("name", m.employeeName, { shouldValidate: true });
@@ -288,6 +292,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           if (m.bookLanguage && !form.getValues("bookLanguage")) form.setValue("bookLanguage", m.bookLanguage, { shouldValidate: true });
           if (m.trainingLanguage && !form.getValues("trainingLanguage")) form.setValue("trainingLanguage", m.trainingLanguage, { shouldValidate: true });
           if (m.examCenter && !form.getValues("examCenter")) form.setValue("examCenter", m.examCenter, { shouldValidate: true });
+          if (m.trainingMonth && !form.getValues("trainingMonth")) form.setValue("trainingMonth", m.trainingMonth, { shouldValidate: true });
         } else {
           setNominationStatus("blocked");
           setLookupError("YOU ARE NOT NOMINATED FOR THIS BATCH");

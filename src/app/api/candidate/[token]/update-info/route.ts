@@ -17,7 +17,7 @@ export async function PATCH(
     const { 
       name, employer, mobileNumber, employeeId, idType, idNumber, 
       residentialState, city, pincode, phase, isDraCertified,
-      addressLine1, addressLine2, bookLanguage, trainingLanguage, examCenter
+      addressLine1, addressLine2, bookLanguage, trainingLanguage, examCenter, trainingMonth
     } = body;
 
     // Validate if candidate exists
@@ -54,6 +54,7 @@ export async function PATCH(
         ...(bookLanguage !== undefined && { bookLanguage }),
         ...(trainingLanguage !== undefined && { trainingLanguage }),
         ...(examCenter !== undefined && { examCenter }),
+        ...(trainingMonth !== undefined && { trainingMonth }),
         lastActiveAt: new Date(),
         currentStep: "PERSONAL_INFO_DONE"
       },
@@ -74,6 +75,7 @@ export async function PATCH(
         bookLanguage: true,
         trainingLanguage: true,
         examCenter: true,
+        trainingMonth: true,
         lastActiveAt: true,
         currentStep: true
       }

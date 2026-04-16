@@ -39,6 +39,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [companyFilter, setCompanyFilter] = useState("all");
   const [phaseFilter, setPhaseFilter] = useState("all");
   const [clientFilter, setClientFilter] = useState("all");
+  const [trainingMonthFilter, setTrainingMonthFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
   const [activeTab, setActiveTab] = useState<"submitted" | "no-submit" | "login">("submitted");
 
   const uniquePhases = useMemo(() => {
@@ -54,6 +56,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const uniqueClients = useMemo(() => {
     const clients = candidates.map(c => c.client?.name).filter(Boolean);
     return Array.from(new Set(clients)).sort();
+  }, [candidates]);
+
+  const uniqueTrainingMonths = useMemo(() => {
+    const months = candidates.map(c => c.trainingMonth).filter(Boolean);
+    return Array.from(new Set(months)).sort();
   }, [candidates]);
 
   const filteredCandidates = useMemo(() => {
@@ -78,10 +85,17 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const matchesCompany = companyFilter === "all" || c.employer === companyFilter;
       const matchesPhase = phaseFilter === "all" || c.phase === phaseFilter;
       const matchesClient = clientFilter === "all" || c.client?.name === clientFilter;
+      const matchesMonth = trainingMonthFilter === "all" || c.trainingMonth === trainingMonthFilter;
       
-      return matchesSearch && matchesCompany && matchesPhase && matchesClient;
+      let matchesDate = true;
+      if (dateFilter) {
+        const cDate = new Date(c.createdAt).toISOString().split('T')[0];
+        matchesDate = cDate === dateFilter;
+      }
+      
+      return matchesSearch && matchesCompany && matchesPhase && matchesClient && matchesMonth && matchesDate;
     });
-  }, [candidates, searchQuery, companyFilter, phaseFilter, clientFilter, activeTab]);
+  }, [candidates, searchQuery, companyFilter, phaseFilter, clientFilter, trainingMonthFilter, dateFilter, activeTab]);
 
   const handleDeleteClick = (id: string, name: string) => {
     setCandidateToDelete({ id, name });
@@ -355,6 +369,38 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 <option key={phase} value={phase}>{phase}</option>
               ))}
             </select>
+          </div>
+
+          <div className="relative flex-1 md:flex-none">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <select
+              className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 min-w-[170px]"
+              value={trainingMonthFilter}
+              onChange={(e) => setTrainingMonthFilter(e.target.value)}
+            >
+              <option value="all">All Months (Training)</option>
+              {uniqueTrainingMonths.map(month => (
+                <option key={month as string} value={month as string}>{month as string}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="relative flex-1 md:flex-none">
+            <Input 
+              type="date"
+              className="h-12 rounded-2xl bg-accent/20 border-accent/30 focus:bg-background transition-all text-sm font-bold text-muted-foreground appearance-none min-w-[160px] cursor-pointer"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              title="Filter by submission date"
+            />
+            {dateFilter && (
+              <button 
+                onClick={() => setDateFilter("")} 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground hover:text-red-500"
+              >
+                Clear
+              </button>
+            )}
           </div>
           
           <Button 
