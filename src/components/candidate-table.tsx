@@ -38,6 +38,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
   const [phaseFilter, setPhaseFilter] = useState("all");
+  const [clientFilter, setClientFilter] = useState("all");
   const [activeTab, setActiveTab] = useState<"submitted" | "no-submit" | "login">("submitted");
 
   const uniquePhases = useMemo(() => {
@@ -48,6 +49,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const uniqueCompanies = useMemo(() => {
     const companies = candidates.map(c => c.employer).filter(Boolean);
     return Array.from(new Set(companies)).sort();
+  }, [candidates]);
+
+  const uniqueClients = useMemo(() => {
+    const clients = candidates.map(c => c.client?.name).filter(Boolean);
+    return Array.from(new Set(clients)).sort();
   }, [candidates]);
 
   const filteredCandidates = useMemo(() => {
@@ -71,10 +77,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       
       const matchesCompany = companyFilter === "all" || c.employer === companyFilter;
       const matchesPhase = phaseFilter === "all" || c.phase === phaseFilter;
+      const matchesClient = clientFilter === "all" || c.client?.name === clientFilter;
       
-      return matchesSearch && matchesCompany && matchesPhase;
+      return matchesSearch && matchesCompany && matchesPhase && matchesClient;
     });
-  }, [candidates, searchQuery, companyFilter, phaseFilter, activeTab]);
+  }, [candidates, searchQuery, companyFilter, phaseFilter, clientFilter, activeTab]);
 
   const handleDeleteClick = (id: string, name: string) => {
     setCandidateToDelete({ id, name });
@@ -314,7 +321,23 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
               >
                 <option value="all">All Companies</option>
                 {uniqueCompanies.map(company => (
-                  <option key={company} value={company}>{company}</option>
+                  <option key={company} value={company as string}>{company as string}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {role === "ADMIN" && (
+            <div className="relative flex-1 md:flex-none hidden xl:block">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <select
+                className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 min-w-[200px]"
+                value={clientFilter}
+                onChange={(e) => setClientFilter(e.target.value)}
+              >
+                <option value="all">All Links (Clients)</option>
+                {uniqueClients.map(clientName => (
+                  <option key={clientName as string} value={clientName as string}>{clientName as string}</option>
                 ))}
               </select>
             </div>

@@ -56,6 +56,7 @@ export default async function DashboardPage() {
       where: whereClause,
       orderBy: { createdAt: "desc" },
       include: { 
+        client: { select: { name: true } },
         documents: true,
         _count: { select: { documents: true } } 
       },
