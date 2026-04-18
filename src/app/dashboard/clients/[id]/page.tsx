@@ -67,6 +67,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 </p>
               </div>
             </div>
+          </div>
         </div>
       </div>
 
