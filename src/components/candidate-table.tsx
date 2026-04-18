@@ -510,6 +510,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                         {candidate.trainingMonth}
                       </Badge>
                     )}
+                    {candidate.isDraCertified && (
+                      <Badge variant="outline" className="text-[9px] px-2 py-0.5 border-blue-500/20 text-blue-600 font-bold uppercase tracking-widest bg-blue-500/5 rounded-lg w-fit">
+                        DRA Certified
+                      </Badge>
+                    )}
                     {!candidate.phase && !candidate.trainingMonth && (
                       <span className="text-[10px] text-muted-foreground italic font-medium">N/A</span>
                     )}
@@ -518,7 +523,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 <TableCell className="py-6 font-medium text-sm text-muted-foreground">{candidate.employer || "N/A"}</TableCell>
                 <TableCell className="py-6 text-center">
                   <span className="text-sm font-bold text-foreground">
-                      {candidate._count?.documents || candidate.documents?.length || 0} <span className="text-muted-foreground font-normal">/ {candidate.isDraCertified ? "1" : "4"}</span>
+                      {candidate.isDraCertified 
+                        ? (candidate.documents?.filter((d: any) => d.type === "DRA_CERTIFICATE").length || 0)
+                        : (candidate._count?.documents || candidate.documents?.length || 0)
+                      } 
+                      <span className="text-muted-foreground font-normal"> / {candidate.isDraCertified ? "1" : "4"}</span>
                   </span>
                 </TableCell>
                  <TableCell className="py-6 pr-8 text-right">
