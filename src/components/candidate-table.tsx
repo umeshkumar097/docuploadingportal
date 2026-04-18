@@ -77,7 +77,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
 
       // Other Filters
       const q = searchQuery.toLowerCase();
-      const matchesSearch = 
+      const matchesSearch = !q ||
         (c.name?.toLowerCase().includes(q)) ||
         (c.employeeId?.toLowerCase().includes(q)) ||
         (c.mobileNumber?.includes(searchQuery));
