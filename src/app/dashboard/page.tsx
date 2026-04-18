@@ -67,7 +67,7 @@ export default async function DashboardPage() {
 
     const submittedCount = candidates.filter((c: any) => c.status !== "PENDING" || (c._count?.documents ?? c.documents?.length ?? 0) >= 4).length;
     const partialCount = candidates.filter((c: any) => c.status === "PENDING" && (c._count?.documents ?? c.documents?.length ?? 0) > 0 && (c._count?.documents ?? c.documents?.length ?? 0) < 4).length;
-    const loginOnlyCount = candidates.filter((c: any) => c.status === "PENDING" && (c._count?.documents === 0 || !c.documents || c.documents.length === 0) && (c.employeeId || c.name)).length;
+    const loginOnlyCount = candidates.filter((c: any) => c.status === "PENDING" && (c._count?.documents === 0 || !c.documents || c.documents.length === 0)).length;
 
     const stats = [
       { label: "Submitted", value: submittedCount, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },

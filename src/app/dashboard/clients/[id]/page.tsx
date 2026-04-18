@@ -6,8 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   ChevronLeft, 
   Building2, 
-  Users, 
-  FileBarChart,
   Settings2,
   ListFilter
 } from "lucide-react";
@@ -69,32 +67,6 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 </p>
               </div>
             </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="glass-card px-6 py-4 rounded-2xl border border-primary/5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <Users className="h-5 w-5" />
-                </div>
-                <div>
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">Total Candidates</p>
-                    <p className="text-xl font-black text-foreground">{candidates.length}</p>
-                </div>
-            </div>
-            <div className="glass-card px-6 py-4 rounded-2xl border border-primary/5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-                    <FileBarChart className="h-5 w-5" />
-                </div>
-                <div>
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">Completion Rate</p>
-                    <p className="text-xl font-black text-foreground">
-                        {candidates.length > 0 
-                            ? `${Math.round((candidates.filter((c: any) => c._count.documents >= 4).length / candidates.length) * 100)}%`
-                            : "0%"}
-                    </p>
-                </div>
-            </div>
-          </div>
         </div>
       </div>
 

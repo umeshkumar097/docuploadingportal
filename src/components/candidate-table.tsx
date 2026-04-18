@@ -69,7 +69,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const docCount = c._count?.documents ?? c.documents?.length ?? 0;
       const isSubmitted = c.status !== "PENDING" || docCount >= 4;
       const isNoSubmit = c.status === "PENDING" && docCount > 0 && docCount < 4;
-      const isLogin = c.status === "PENDING" && docCount === 0 && (c.employeeId || c.name);
+      const isLogin = c.status === "PENDING" && docCount === 0;
 
       if (activeTab === "submitted" && !isSubmitted) return false;
       if (activeTab === "no-submit" && !isNoSubmit) return false;
@@ -308,7 +308,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           onClick={() => setActiveTab("login")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "login" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          Login ({candidates.filter(c => c.status === "PENDING" && (c._count?.documents === 0 || c.documents?.length === 0) && (c.employeeId || c.name)).length})
+          Login ({candidates.filter(c => c.status === "PENDING" && (c._count?.documents === 0 || !c.documents || c.documents.length === 0)).length})
         </button>
       </div>
 
