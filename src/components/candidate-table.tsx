@@ -475,7 +475,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 />
               </TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest pl-2">Candidate</TableHead>
-              <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Phase</TableHead>
+              <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Timeline</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest">Employer</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest text-center">Docs</TableHead>
               <TableHead className="py-5 font-bold text-muted-foreground uppercase text-[10px] tracking-widest pr-8 text-right">Action</TableHead>
@@ -498,14 +498,22 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                       <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{candidate.employeeId || candidate.id}</span>
                   </div>
                 </TableCell>
-                <TableCell className="py-6">
-                  {candidate.phase ? (
-                    <Badge variant="outline" className="text-[9px] px-2 py-0.5 border-primary/20 text-primary font-bold uppercase tracking-widest bg-primary/5 rounded-lg">
-                      {candidate.phase}
-                    </Badge>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground italic font-medium">N/A</span>
-                  )}
+                <TableCell className="py-5">
+                  <div className="flex flex-col gap-1 items-start">
+                    {candidate.phase && (
+                      <Badge variant="outline" className="text-[9px] px-2 py-0.5 border-primary/20 text-primary font-bold uppercase tracking-widest bg-primary/5 rounded-lg w-fit">
+                        {candidate.phase}
+                      </Badge>
+                    )}
+                    {candidate.trainingMonth && (
+                      <Badge variant="outline" className="text-[9px] px-2 py-0.5 border-amber-500/20 text-amber-600 font-bold uppercase tracking-widest bg-amber-500/5 rounded-lg w-fit">
+                        {candidate.trainingMonth}
+                      </Badge>
+                    )}
+                    {!candidate.phase && !candidate.trainingMonth && (
+                      <span className="text-[10px] text-muted-foreground italic font-medium">N/A</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="py-6 font-medium text-sm text-muted-foreground">{candidate.employer || "N/A"}</TableCell>
                 <TableCell className="py-6 text-center">
