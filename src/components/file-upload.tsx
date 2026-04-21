@@ -130,7 +130,8 @@ export function FileUpload({
       console.log(`Processing ${file.name}...`);
       const { blob, isGrayscale } = await processImage(file);
       
-      if (isGrayscale) {
+      // Exempt signatures from grayscale check as they are usually black ink on white paper
+      if (isGrayscale && type !== "SIGNATURE") {
         setStatus("error");
         setErrorMessage("Upload Rejected - Please upload an original coloured copy. Black & White copies are not accepted.");
         return;
@@ -169,9 +170,9 @@ export function FileUpload({
                     reason = "This looks like a document. Please upload a clear passport-size photograph.";
                 }
               } else if (type === "SIGNATURE") {
-                if (textDensity > 250) { 
+                if (textDensity > 400) { // Increased from 250 to allow more variance in scans
                     isValid = false;
-                    reason = "Signature should not contain much text. Please upload a clear scan of your signature (Blue or Black ink allowed).";
+                    reason = "Signature should not contain much text. Please upload a clear scan of your signature (Blue or Black ink allowed on white paper).";
                 }
               } else if (type === "QUALIFICATION") {
                 const negativeKeywords = ["aadhaar", "unique identification", "government of india", "permanent account", "income tax department", "pan card", "election commission", "voter id", "driving licence", "identity card"];
@@ -281,7 +282,9 @@ export function FileUpload({
                 <p className="text-sm font-bold text-foreground">Select File</p>
                 <div className="flex flex-col">
                   <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">Camera or Image up to {formatSize(maxSizeKB)}</p>
-                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight mt-1">Note: Only Original Coloured Copies Accepted</p>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight mt-1">
+                    Note: {type === "SIGNATURE" ? "Clear Blue or Black Ink Accepted" : "Only Original Coloured Copies Accepted"}
+                  </p>
                   {description && (
                     <p className="text-[10px] text-primary font-bold uppercase tracking-tight mt-1">{description}</p>
                   )}
