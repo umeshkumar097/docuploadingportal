@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { uploadDocument } from "@/lib/actions/upload";
 import { Upload, CheckCircle2, AlertCircle, Loader2, FileText, User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,9 @@ export function FileUpload({
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  // SSR Stability Guard: Prevent hydration mismatches and browser API access during server pass
+  useEffect(() => { setMounted(true); }, []);
 
   const checkIsGrayscale = (ctx: CanvasRenderingContext2D, width: number, height: number): boolean => {
     const imageData = ctx.getImageData(0, 0, width, height);
@@ -130,8 +133,11 @@ export function FileUpload({
       console.log(`Processing ${file.name}...`);
       const { blob, isGrayscale } = await processImage(file);
       
-      // Exempt signatures from grayscale check as they are usually black ink on white paper
-      if (isGrayscale && type !== "SIGNATURE") {
+      // Exempt signatures AND qualifications from grayscale check
+      // Signatures are usually black ink, and many degrees (especially Hindi ones) are high-contrast/BW scans
+      const isExempt = type === "SIGNATURE" || type === "QUALIFICATION";
+      
+      if (isGrayscale && !isExempt) {
         setStatus("error");
         setErrorMessage("Upload Rejected - Please upload an original coloured copy. Black & White copies are not accepted.");
         return;
@@ -238,6 +244,14 @@ export function FileUpload({
     }
   };
 
+  if (!mounted) {
+    return (
+      <div className="h-40 w-full border-2 border-dashed border-primary/5 bg-accent/10 rounded-[1.5rem] animate-pulse flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
+        Securing slot...
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between px-1">
@@ -284,7 +298,7 @@ export function FileUpload({
                 <div className="flex flex-col">
                   <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">Camera or Image up to {formatSize(maxSizeKB)}</p>
                   <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight mt-1">
-                    Note: {type === "SIGNATURE" ? "Clear Blue or Black Ink Accepted" : "Only Original Coloured Copies Accepted"}
+                    Note: {(type === "SIGNATURE" || type === "QUALIFICATION") ? "Clear Blue/Black Ink or Scans Accepted" : "Only Original Coloured Copies Accepted"}
                   </p>
                   {description && (
                     <p className="text-[10px] text-primary font-bold uppercase tracking-tight mt-1">{description}</p>
