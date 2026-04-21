@@ -183,10 +183,11 @@ export function FileUpload({
                     reason = "Verification Failed: This looks like an Identity Proof (Aadhaar/PAN/Voter ID). Please upload an Educational Qualification document (Marksheet/Certificate) in this slot.";
                 } else {
                     const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate", "12th", "hsc", "h.s.c", "ssc", "higher", "senior", "inter", "institute", "vocational", "education", "examination", "arts", "exam", "marksheet", "b.com", "b.a", "b.sc", "m.com", "m.a", "m.sc", "rollno", "pass", "college", "regular"];
-                    // If it contains keywords OR has decent text density (typical of a marksheet/table)
-                    // Lowered threshold to 400 to account for older or lower-resolution scans
-                    isValid = keywords.some(k => extractedText.includes(k)) || textDensity > 400;
-                    reason = "Verification Failed: This does not look like a valid Qualification Document. Please upload a clear original copy.";
+                    
+                    // Relaxed for Hindi/Local language certs: 
+                    // As long as it's not an ID Proof, allow it if it has SOME text (density > 50)
+                    isValid = textDensity > 50 || keywords.some(k => extractedText.includes(k));
+                    reason = "Verification Failed: This does not look like a valid document. Please upload a clear original copy.";
                 }
               } else if (type === "ID_PROOF") {
                 if (subType === "PAN") {

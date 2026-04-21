@@ -334,31 +334,29 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
 
   const isDraCertified = form.watch("isDraCertified");
 
-  const checkMandatory = (field: string) => {
-    if (!config || !config[field]) return true; // Disabled means not mandatory
+  const checkMandatory = (field: string, formFieldName?: string) => {
+    const checkField = formFieldName || field;
+    if (!config || !config[field] || config[field] === "DISABLED") return true; 
     if (config[field] === "MANDATORY") {
-      return !!form.watch(field as any);
+      return !!form.watch(checkField as any);
     }
-    return true; // Optional means filled is OK
+    return true; 
   };
 
   const allFieldsFilled = isDraCertified 
     ? (form.watch("employeeId") && form.watch("originalDegree"))
     : (form.watch("name") && 
        form.watch("employer") && 
-       form.watch("residentialState") && 
        form.watch("mobileNumber") && 
        form.watch("employeeId") && 
        form.watch("idType") && 
-       form.watch("city") &&
-       form.watch("pincode") &&
        form.watch("idNumber") &&
        form.watch("originalDegree") &&
+       checkMandatory("state", "residentialState") &&
+       checkMandatory("city") &&
+       checkMandatory("pincode") &&
        checkMandatory("addressLine1") &&
        checkMandatory("addressLine2") &&
-       checkMandatory("city") &&
-       checkMandatory("state") &&
-       checkMandatory("pincode") &&
        checkMandatory("bookLanguage") &&
        checkMandatory("trainingLanguage") &&
        checkMandatory("examCenter")
