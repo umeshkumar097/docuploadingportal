@@ -15,8 +15,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
-import { FileUpload } from "./file-upload";
 import { Checkbox } from "@/components/ui/checkbox";
+import dynamic from "next/dynamic";
+
+const FileUpload = dynamic(() => import("./file-upload").then(mod => mod.FileUpload), {
+  ssr: false,
+  loading: () => (
+    <div className="h-40 w-full border-2 border-dashed border-primary/5 bg-accent/10 rounded-[1.5rem] animate-pulse flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
+      Securing slot...
+    </div>
+  )
+});
 import { 
   User, 
   Building2, 

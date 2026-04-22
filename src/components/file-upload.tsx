@@ -35,9 +35,6 @@ export function FileUpload({
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-  // SSR Stability Guard: Prevent hydration mismatches and browser API access during server pass
-  useEffect(() => { setMounted(true); }, []);
 
   const checkIsGrayscale = (ctx: CanvasRenderingContext2D, width: number, height: number): boolean => {
     const imageData = ctx.getImageData(0, 0, width, height);
@@ -243,14 +240,6 @@ export function FileUpload({
       setErrorMessage(error.message || "Verification failed");
     }
   };
-
-  if (!mounted) {
-    return (
-      <div className="h-40 w-full border-2 border-dashed border-primary/5 bg-accent/10 rounded-[1.5rem] animate-pulse flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
-        Securing slot...
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-3">
