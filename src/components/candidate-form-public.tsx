@@ -143,7 +143,12 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
               body: JSON.stringify({ clientId })
             });
             const confData = await confRes.json();
-            if (confData.clientConfig) setConfig(confData.clientConfig);
+            if (confData.clientConfig) {
+              setConfig({
+                ...confData.clientConfig.formConfig,
+                examCenters: confData.clientConfig.examCenters
+              });
+            }
             
             setIsInitializing(false);
             return;
@@ -165,7 +170,12 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           localStorage.setItem("cruxdoc_id", data.candidate.id);
           setToken(data.candidate.token);
           setCandidateId(data.candidate.id);
-          if (data.clientConfig) setConfig(data.clientConfig);
+          if (data.clientConfig) {
+            setConfig({
+              ...data.clientConfig.formConfig,
+              examCenters: data.clientConfig.examCenters
+            });
+          }
         }
       } catch (err) {
         console.error("Failed to initialize session", err);
