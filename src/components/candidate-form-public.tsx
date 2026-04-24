@@ -18,7 +18,7 @@ import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import dynamic from "next/dynamic";
 
-const FileUpload = dynamic(() => import("./file-upload").then(mod => mod.FileUpload), {
+const FileUpload = dynamic(() => import("./file-upload"), {
   ssr: false,
   loading: () => (
     <div className="h-40 w-full border-2 border-dashed border-primary/5 bg-accent/10 rounded-[1.5rem] animate-pulse flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
@@ -855,7 +855,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
 
               <div className="flex justify-center">
                 <Button 
-                    type="submit" 
+                    type="button" 
+                    onClick={() => form.handleSubmit(onSubmit)()}
                     disabled={!isFormReady || isSubmitting}
                     className={`h-20 px-16 rounded-[2.5rem] font-black text-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${isFormReady ? "bg-primary text-primary-foreground shadow-primary/40" : "bg-muted text-muted-foreground opacity-50"}`}
                 >

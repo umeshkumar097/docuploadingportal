@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { FileUpload } from "./file-upload";
+import FileUpload from "./file-upload";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   User, 

@@ -19,7 +19,7 @@ interface FileUploadProps {
   subType?: string;
 }
 
-export function FileUpload({ 
+export default function FileUpload({ 
   candidateId, 
   type, 
   label, 
@@ -35,6 +35,11 @@ export function FileUpload({
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const checkIsGrayscale = (ctx: CanvasRenderingContext2D, width: number, height: number): boolean => {
     const imageData = ctx.getImageData(0, 0, width, height);
@@ -111,6 +116,8 @@ export function FileUpload({
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     let file = e.target.files?.[0];
     if (!file) return;
 
@@ -240,6 +247,14 @@ export function FileUpload({
       setErrorMessage(error.message || "Verification failed");
     }
   };
+
+  if (!mounted) {
+    return (
+      <div className="h-40 w-full border-2 border-dashed border-primary/5 bg-accent/10 rounded-[1.5rem] animate-pulse flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
+        Securing slot...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
