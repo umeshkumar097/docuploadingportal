@@ -324,9 +324,12 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!token || nominationStatus !== "nominated") return;
+
+    if (!allDocsUploaded) {
+      alert("Please upload all mandatory documents before finalizing.");
+      return;
+    }
     
-    // Explicit safety check: if we somehow got here without the user clicking the button
-    // (e.g., browser-specific form submission on entry), we can verify state here.
     setIsSubmitting(true);
     try {
       await fetch(`/api/candidate/${token}/heartbeat`, {
@@ -868,10 +871,12 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 <Button 
                     type="button" 
                     onClick={() => form.handleSubmit(onSubmit)()}
-                    disabled={!isFormReady || isSubmitting}
-                    className={`h-20 px-16 rounded-[2.5rem] font-black text-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${isFormReady ? "bg-primary text-primary-foreground shadow-primary/40" : "bg-muted text-muted-foreground opacity-50"}`}
+                    disabled={isSubmitting}
+                    className={`h-20 px-16 rounded-[2.5rem] font-black text-xl shadow-2xl transition-all hover:scale-105 active:scale-95 ${nominationStatus === "nominated" ? "bg-primary text-primary-foreground shadow-primary/40" : "bg-muted text-muted-foreground opacity-50"}`}
                 >
-                  {isSubmitting ? "Finalizing..." : nominationStatus === "blocked" ? "Not Nominated" : "Finalize Submission"}
+                  {isSubmitting ? "Finalizing..." : 
+                   nominationStatus === "blocked" ? "Not Nominated" : 
+                   "Finalize Submission"}
                 </Button>
               </div>
             </div>
