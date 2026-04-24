@@ -16,16 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import dynamic from "next/dynamic";
-
-const FileUpload = dynamic(() => import("./file-upload"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-40 w-full border-2 border-dashed border-primary/5 bg-accent/10 rounded-[1.5rem] animate-pulse flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
-      Securing slot...
-    </div>
-  )
-});
+import FileUpload from "./file-upload";
 import { 
   User, 
   Building2, 
@@ -78,6 +69,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   const [candidateId, setCandidateId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [config, setConfig] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -185,6 +177,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
     };
 
     initSession();
+    setMounted(true);
   }, [clientId]);
 
   // 2. Heartbeat Polling
@@ -797,8 +790,15 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   <h3 className="text-2xl font-black uppercase italic">Upload Documents</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {isDraCertified ? (
+                {!mounted ? (
+                  Array.from({ length: isDraCertified ? 1 : 4 }).map((_, i) => (
+                    <div key={i} className="h-40 w-full border-2 border-dashed border-primary/5 bg-accent/10 rounded-[1.5rem] animate-pulse flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
+                      Securing slot...
+                    </div>
+                  ))
+                ) : isDraCertified ? (
                   <FileUpload 
+                    key="DRA_CERTIFICATE"
                     candidateId={candidateId as string} 
                     type="DRA_CERTIFICATE" 
                     label="DRA Certificate" 
@@ -810,9 +810,10 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   />
                 ) : (
                   <>
-                    <FileUpload candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
-                    <FileUpload candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
+                    <FileUpload key="PHOTO" candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
+                    <FileUpload key="QUALIFICATION" candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
                     <FileUpload 
+                      key="ID_PROOF"
                       candidateId={candidateId as string} 
                       type="ID_PROOF" 
                       label="Identity Proof" 
@@ -823,7 +824,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                       onOcrSuccess={(val) => form.setValue("idNumber", val, { shouldValidate: true })}
                       subType={form.watch("idType")}
                     />
-                    <FileUpload candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
+                    <FileUpload key="SIGNATURE" candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
                   </>
                 )}
               </div>
