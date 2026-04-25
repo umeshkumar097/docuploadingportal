@@ -57,9 +57,7 @@ const formSchema = z.object({
   }).optional(),
   isDraCertified: z.boolean(),
   idNumber: z.string().optional(),
-  highestQualification: z.enum(["GRADUATE", "UNDERGRADUATE"], {
-    required_error: "Please select your highest qualification level",
-  }),
+  highestQualification: z.string().min(1, "Please select your highest qualification level"),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -650,49 +648,60 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   )}
                 </div>
               </div>
-            <FormField
-              control={form.control}
-              name="highestQualification"
-              render={({ field }) => (
-                <FormItem className="space-y-4">
-                  <FormLabel className="text-sm font-black uppercase tracking-widest text-primary">Highest Qualification Level <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div 
-                        onClick={() => field.onChange("GRADUATE")}
-                        className={`p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${field.value === "GRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10 hover:border-primary/20"}`}
-                      >
-                        <Building2 className={`h-6 w-6 ${field.value === "GRADUATE" ? "text-primary" : "text-muted-foreground"}`} />
-                        <span className={`text-sm font-black uppercase tracking-tight ${field.value === "GRADUATE" ? "text-primary" : "text-muted-foreground"}`}>Graduate / PG</span>
-                      </div>
-                      <div 
-                        onClick={() => field.onChange("UNDERGRADUATE")}
-                        className={`p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${field.value === "UNDERGRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10 hover:border-primary/20"}`}
-                      >
-                        <User className={`h-6 w-6 ${field.value === "UNDERGRADUATE" ? "text-primary" : "text-muted-foreground"}`} />
-                        <span className={`text-sm font-black uppercase tracking-tight ${field.value === "UNDERGRADUATE" ? "text-primary" : "text-muted-foreground"}`}>10th / 12th / UG</span>
-                      </div>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {form.watch("highestQualification") === "GRADUATE" && (
-              <div className="bg-red-500/10 border-2 border-red-500/20 rounded-2xl p-6 flex items-start gap-4 animate-in slide-in-from-top-2 duration-500">
-                <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0">
-                  <AlertCircle className="h-6 w-6" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-black text-red-600 uppercase tracking-wider text-sm">Strict Requirement for Graduates</h4>
-                  <p className="text-red-700 text-xs font-bold leading-relaxed">
-                    You MUST upload your **ORIGINAL UNIVERSITY DEGREE**. 
-                    Marksheets (Final year or Semester) are **NOT ACCEPTABLE** and will lead to immediate rejection.
-                  </p>
-                </div>
-              </div>
             )}
+            
+            <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8 animate-in fade-in slide-in-from-bottom-4">
+              <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                      <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-xl font-bold uppercase tracking-tight">Qualification Verification</h3>
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="highestQualification"
+                render={({ field }) => (
+                  <FormItem className="space-y-4">
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Highest Qualification Level <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div 
+                          onClick={() => field.onChange("GRADUATE")}
+                          className={`p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${field.value === "GRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10 hover:border-primary/20"}`}
+                        >
+                          <Building2 className={`h-6 w-6 ${field.value === "GRADUATE" ? "text-primary" : "text-muted-foreground"}`} />
+                          <span className={`text-sm font-black uppercase tracking-tight ${field.value === "GRADUATE" ? "text-primary" : "text-muted-foreground"}`}>Graduate / PG</span>
+                        </div>
+                        <div 
+                          onClick={() => field.onChange("UNDERGRADUATE")}
+                          className={`p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${field.value === "UNDERGRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10 hover:border-primary/20"}`}
+                        >
+                          <User className={`h-6 w-6 ${field.value === "UNDERGRADUATE" ? "text-primary" : "text-muted-foreground"}`} />
+                          <span className={`text-sm font-black uppercase tracking-tight ${field.value === "UNDERGRADUATE" ? "text-primary" : "text-muted-foreground"}`}>10th / 12th / UG</span>
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.watch("highestQualification") === "GRADUATE" && (
+                <div className="bg-red-500/10 border-2 border-red-500/20 rounded-2xl p-6 flex items-start gap-4 animate-in slide-in-from-top-2 duration-500">
+                  <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0">
+                    <AlertCircle className="h-6 w-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-black text-red-600 uppercase tracking-wider text-sm">Strict Requirement for Graduates</h4>
+                    <p className="text-red-700 text-xs font-bold leading-relaxed">
+                      You MUST upload your **ORIGINAL UNIVERSITY DEGREE**. 
+                      Marksheets (Final year or Semester) are **NOT ACCEPTABLE** and will lead to immediate rejection.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Dynamic Section: Preferred Exam Center */}
             {!isDraCertified && config && config.examCenter !== "DISABLED" && (
