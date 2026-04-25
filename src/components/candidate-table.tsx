@@ -66,10 +66,20 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const filteredCandidates = useMemo(() => {
     return candidates.filter((c: any) => {
       // Identity Category Filter
-      const docCount = c._count?.documents ?? c.documents?.length ?? 0;
-      const isSubmitted = c.status !== "PENDING" || docCount >= 4;
-      const isNoSubmit = c.status === "PENDING" && docCount > 0 && docCount < 4;
-      const isLogin = c.status === "PENDING" && docCount === 0;
+      const isDra = c.isDraCertified;
+      const docs = c.documents || [];
+      const docCount = isDra 
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+      
+      const isSubmitted = c.status === "READY" || (isDra ? docCount >= 1 : docCount >= 4);
+      const isNoSubmit = c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
+      
+      // Login: Status PENDING, No Docs for their mode, has name/ID, and active in last 30 minutes
+      const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const lastActive = new Date(c.lastActiveAt || c.createdAt);
+      const isActive = lastActive > thirtyMinsAgo;
+      const isLogin = c.status === "PENDING" && docCount === 0 && (c.name || c.employeeId) && isActive;
 
       if (activeTab === "submitted" && !isSubmitted) return false;
       if (activeTab === "no-submit" && !isNoSubmit) return false;
@@ -296,26 +306,37 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           onClick={() => setActiveTab("submitted")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "submitted" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          Submitted ({candidates.filter(c => c.status !== "PENDING" || (c._count?.documents ?? c.documents?.length ?? 0) >= 4).length})
+          Submitted ({candidates.filter(c => {
+            const dc = (c.documents || []).filter((d: any) => c.isDraCertified ? d.type === "DRA_CERTIFICATE" : d.type !== "DRA_CERTIFICATE").length;
+            return c.status === "READY" || (c.isDraCertified ? dc >= 1 : dc >= 4);
+          }).length})
         </button>
         <button
           onClick={() => setActiveTab("no-submit")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "no-submit" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          No Submit ({candidates.filter(c => c.status === "PENDING" && (c._count?.documents ?? c.documents?.length ?? 0) > 0 && (c._count?.documents ?? c.documents?.length ?? 0) < 4).length})
+          No Submit ({candidates.filter(c => {
+             const dc = (c.documents || []).filter((d: any) => c.isDraCertified ? d.type === "DRA_CERTIFICATE" : d.type !== "DRA_CERTIFICATE").length;
+             return c.status === "PENDING" && dc > 0 && (c.isDraCertified ? dc < 1 : dc < 4);
+          }).length})
         </button>
         <button
           onClick={() => setActiveTab("login")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "login" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          Login ({candidates.filter(c => c.status === "PENDING" && (c._count?.documents === 0 || !c.documents || c.documents.length === 0)).length})
+          Login ({candidates.filter(c => {
+            const lastActive = new Date(c.lastActiveAt || c.createdAt);
+            const isActive = lastActive > new Date(Date.now() - 30 * 60 * 1000);
+            const dc = (c.documents || []).filter((d: any) => c.isDraCertified ? d.type === "DRA_CERTIFICATE" : d.type !== "DRA_CERTIFICATE").length;
+            return c.status === "PENDING" && dc === 0 && (c.name || c.employeeId) && isActive;
+          }).length})
         </button>
       </div>
 
       {/* Search and Filters Bar */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between pb-2">
         <div className="relative w-full md:w-96 group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-primary group-focus-within:scale-110 transition-all" />
           <Input 
             placeholder="Search by Name, Emp ID, or Mobile..." 
             className="pl-10 h-12 rounded-2xl bg-accent/20 border-accent/30 focus:bg-background transition-all"
@@ -525,7 +546,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                   <span className="text-sm font-bold text-foreground">
                       {candidate.isDraCertified 
                         ? (candidate.documents?.filter((d: any) => d.type === "DRA_CERTIFICATE").length || 0)
-                        : (candidate._count?.documents || candidate.documents?.length || 0)
+                        : (candidate.documents?.filter((d: any) => d.type !== "DRA_CERTIFICATE").length || 0)
                       } 
                       <span className="text-muted-foreground font-normal"> / {candidate.isDraCertified ? "1" : "4"}</span>
                   </span>
