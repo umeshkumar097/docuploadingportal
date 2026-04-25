@@ -204,14 +204,16 @@ export default function FileUpload({
                 // 3. Strict Check: Degree vs Marksheet
                 else if (isGraduate) {
                     const degreeKeywords = ["degree", "certificate", "passing", "convocation", "provisional", "university", "doctor", "bachelor", "master", "conferred"];
-                    const marksheetKeywords = ["marksheet", "marks", "statement of marks", "semester", "year", "result", "grade card", "subjects", "maximum", "obtained"];
+                    // Strictly forbidden words that indicate a school marksheet or non-degree doc
+                    const forbiddenKeywords = ["marksheet", "marks", "subject", "semester", "year", "total", "obtained", "maximum", "10th", "12th", "secondary", "intermediate", "senior", "school", "matriculation", "hsc", "ssc", "grade card", "result"];
                     
                     const hasDegreeText = degreeKeywords.some(k => extractedText.includes(k));
-                    const hasMarksheetText = marksheetKeywords.some(k => extractedText.includes(k));
+                    const foundForbidden = forbiddenKeywords.filter(k => extractedText.includes(k));
 
-                    if (hasMarksheetText && !hasDegreeText) {
+                    if (foundForbidden.length > 0) {
                         isValid = false;
-                        reason = "Degree Required: You have uploaded a Marksheet. Graduates must upload their ORIGINAL UNIVERSITY DEGREE certificate only.";
+                        const word = foundForbidden[0].toUpperCase();
+                        reason = `Degree Required: This looks like a ${word} document. Graduates MUST upload their ORIGINAL UNIVERSITY DEGREE certificate only.`;
                     } else if (!hasDegreeText) {
                         isValid = false;
                         reason = "Invalid Degree: This does not look like a University Degree certificate. Please upload a clear original coloured copy.";
@@ -219,9 +221,16 @@ export default function FileUpload({
                 } else {
                     // Undergraduate/Marksheet check
                     const marksheetKeywords = ["marksheet", "marks", "statement", "board", "secondary", "higher", "10th", "12th", "ssc", "hsc", "passing", "certificate", "intermediate", "matriculation"];
+                    const forbiddenForUG = ["degree", "convocation", "university", "conferred", "doctor", "bachelor", "master"];
+                    
                     const hasMarksheetText = marksheetKeywords.some(k => extractedText.includes(k));
+                    const foundForbidden = forbiddenForUG.filter(k => extractedText.includes(k));
 
-                    if (!hasMarksheetText) {
+                    if (foundForbidden.length > 0) {
+                        isValid = false;
+                        const word = foundForbidden[0].toUpperCase();
+                        reason = `Marksheet Required: This looks like a ${word} document. Undergraduates MUST upload their 10th or 12th marksheet only.`;
+                    } else if (!hasMarksheetText) {
                         isValid = false;
                         reason = "Marksheet Required: This does not look like a valid Marksheet. Please upload your original 10th, 12th, or UG marksheet.";
                     }
