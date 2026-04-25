@@ -29,7 +29,7 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
   const session = await auth();
   const candidate = await prisma.candidate.findUnique({
     where: { id },
-    include: { documents: true },
+    include: { documents: true, client: true },
   });
 
   if (!candidate) notFound();
@@ -42,11 +42,11 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
             <Link 
-                href="/dashboard" 
+                href={candidate.clientId ? `/dashboard/clients/${candidate.clientId}` : "/dashboard"} 
                 className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors group mb-4"
             >
                 <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                Back to Dashboard
+                {candidate.client?.name ? `Back to ${candidate.client.name}` : "Back to Dashboard"}
             </Link>
             <h2 className="text-4xl font-black tracking-tight text-foreground">
                 {candidate.name}'s <span className="text-primary/80">Profile</span>
