@@ -203,9 +203,9 @@ export default function FileUpload({
                 }
                 // 3. Strict Check: Degree vs Marksheet
                 else if (isGraduate) {
-                    const degreeKeywords = ["degree", "certificate", "passing", "convocation", "provisional", "university", "doctor", "bachelor", "master", "conferred"];
+                    const degreeKeywords = ["degree", "certificate", "passing", "convocation", "university", "doctor", "bachelor", "master", "conferred"];
                     // Strictly forbidden words that indicate a school marksheet or non-degree doc
-                    const forbiddenKeywords = ["marksheet", "marks", "subject", "semester", "year", "total", "obtained", "maximum", "10th", "12th", "secondary", "intermediate", "senior", "school", "matriculation", "hsc", "ssc", "grade card", "result"];
+                    const forbiddenKeywords = ["marksheet", "marks", "subject", "semester", "year", "total", "obtained", "maximum", "10th", "12th", "secondary", "intermediate", "senior", "school", "matriculation", "hsc", "ssc", "grade card", "result", "provisional", "migration"];
                     
                     const hasDegreeText = degreeKeywords.some(k => extractedText.includes(k));
                     const foundForbidden = forbiddenKeywords.filter(k => extractedText.includes(k));
@@ -213,7 +213,7 @@ export default function FileUpload({
                     if (foundForbidden.length > 0) {
                         isValid = false;
                         const word = foundForbidden[0].toUpperCase();
-                        reason = `Degree Required: This looks like a ${word} document. Graduates MUST upload their ORIGINAL UNIVERSITY DEGREE certificate only.`;
+                        reason = `Degree Required: This looks like a ${word} document. Graduates MUST upload their ORIGINAL UNIVERSITY DEGREE certificate only. Provisional or Migration certificates are NOT allowed.`;
                     } else if (!hasDegreeText) {
                         isValid = false;
                         reason = "Invalid Degree: This does not look like a University Degree certificate. Please upload a clear original coloured copy.";

@@ -877,17 +877,29 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 ) : (
                   <>
                     <FileUpload key="PHOTO" candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
-                    <FileUpload 
-                      key="QUALIFICATION" 
-                      candidateId={candidateId as string} 
-                      type="QUALIFICATION" 
-                      label={form.watch("highestQualification") === "GRADUATE" ? "Original University Degree" : "Marksheet (10th/12th)"} 
-                      maxSizeKB={10240} 
-                      mandatory={true} 
-                      initialSuccess={uploadedDocs.has("QUALIFICATION")} 
-                      onUploadSuccess={handleUploadSuccess} 
-                      description={form.watch("highestQualification") === "GRADUATE" ? "Only Degree Certificate allowed (No Marksheets)" : "Upload your 10th or 12th Marksheet"}
-                    />
+                    {form.watch("highestQualification") ? (
+                      <FileUpload 
+                        key="QUALIFICATION" 
+                        candidateId={candidateId as string} 
+                        type="QUALIFICATION" 
+                        label={form.watch("highestQualification") === "GRADUATE" ? "Original University Degree" : "Marksheet (10th/12th)"} 
+                        maxSizeKB={10240} 
+                        mandatory={true} 
+                        initialSuccess={uploadedDocs.has("QUALIFICATION")} 
+                        onUploadSuccess={handleUploadSuccess} 
+                        description={form.watch("highestQualification") === "GRADUATE" ? "Only Original Degree allowed. Provisional/Migration NOT allowed." : "Upload your 10th or 12th Marksheet"}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-12 rounded-[2rem] bg-accent/10 border-2 border-dashed border-accent/30 gap-4 opacity-60">
+                        <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                          <Lock className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Upload Locked</p>
+                          <p className="text-xs font-medium text-muted-foreground/60 mt-1 px-4 italic">Select Qualification Level above to unlock</p>
+                        </div>
+                      </div>
+                    )}
                     <FileUpload 
                       key="ID_PROOF"
                       candidateId={candidateId as string} 
