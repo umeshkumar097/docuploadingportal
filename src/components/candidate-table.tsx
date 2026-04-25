@@ -333,24 +333,35 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         </button>
       </div>
 
-      {/* Search and Filters Bar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between pb-2">
-        <div className="relative w-full md:w-96 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-primary group-focus-within:scale-110 transition-all" />
-          <Input 
-            placeholder="Search by Name, Emp ID, or Mobile..." 
-            className="pl-10 h-12 rounded-2xl bg-accent/20 border-accent/30 focus:bg-background transition-all"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {/* Search Bar - Dedicated Prominent Row */}
+      <div className="relative group max-w-2xl">
+        <div className="absolute left-1.5 top-1/2 -translate-y-1/2 h-11 w-11 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 z-10 transition-transform group-focus-within:scale-105">
+          <Search className="h-5 w-5 text-primary-foreground" />
         </div>
+        <Input 
+          placeholder="Search candidates by Name, Employee ID, or Mobile Number..." 
+          className="pl-16 h-14 rounded-2xl bg-background border-2 border-primary/5 shadow-sm focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all text-base font-medium placeholder:text-muted-foreground/60"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button 
+            onClick={() => setSearchQuery("")}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-accent text-muted-foreground transition-colors font-bold text-xs uppercase tracking-widest"
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+      {/* Filters Bar */}
+      <div className="flex flex-col md:flex-row gap-3 items-center justify-start pb-2">
+        <div className="flex flex-wrap gap-3 w-full">
           {role === "ADMIN" && (
-            <div className="relative flex-1 md:flex-none">
+            <div className="relative flex-1 min-w-[180px]">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <select
-                className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 min-w-[200px]"
+                className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 w-full"
                 value={companyFilter}
                 onChange={(e) => setCompanyFilter(e.target.value)}
               >
@@ -363,10 +374,10 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           )}
 
           {role === "ADMIN" && (
-            <div className="relative flex-1 md:flex-none hidden xl:block">
+            <div className="relative flex-1 min-w-[200px] hidden xl:block">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <select
-                className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 min-w-[200px]"
+                className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 w-full"
                 value={clientFilter}
                 onChange={(e) => setClientFilter(e.target.value)}
               >
@@ -378,10 +389,10 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
             </div>
           )}
 
-          <div className="relative flex-1 md:flex-none">
+          <div className="relative flex-1 min-w-[140px]">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <select
-              className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 min-w-[150px]"
+              className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 w-full"
               value={phaseFilter}
               onChange={(e) => setPhaseFilter(e.target.value)}
             >
@@ -392,24 +403,24 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
             </select>
           </div>
 
-          <div className="relative flex-1 md:flex-none">
+          <div className="relative flex-1 min-w-[160px]">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <select
-              className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 min-w-[170px]"
+              className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 w-full"
               value={trainingMonthFilter}
               onChange={(e) => setTrainingMonthFilter(e.target.value)}
             >
-              <option value="all">All Months (Training)</option>
+              <option value="all">All Months</option>
               {uniqueTrainingMonths.map(month => (
                 <option key={month as string} value={month as string}>{month as string}</option>
               ))}
             </select>
           </div>
 
-          <div className="relative flex-1 md:flex-none">
+          <div className="relative flex-1 min-w-[140px]">
             <Input 
               type="date"
-              className="h-12 rounded-2xl bg-accent/20 border-accent/30 focus:bg-background transition-all text-sm font-bold text-muted-foreground appearance-none min-w-[160px] cursor-pointer"
+              className="h-12 rounded-2xl bg-accent/20 border-accent/30 focus:bg-background transition-all text-sm font-bold text-muted-foreground appearance-none w-full cursor-pointer"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
               title="Filter by submission date"
@@ -430,7 +441,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
             className="h-12 rounded-2xl px-6 font-bold border-accent/30 hover:bg-primary hover:text-primary-foreground transition-all gap-2"
           >
             <Download className="h-4 w-4" />
-            Export Filtered Excel
+            Excel
           </Button>
         </div>
       </div>
