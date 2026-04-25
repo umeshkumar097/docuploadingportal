@@ -37,7 +37,8 @@ import {
   FileText,
   Loader2,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
