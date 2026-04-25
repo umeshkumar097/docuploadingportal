@@ -252,8 +252,16 @@ export default function FileUpload({
                   reason = "Verification Failed: Please upload a clear original coloured Aadhaar Card image.";
                 } else if (subType === "DL") {
                   const dlKeywords = ["driving", "licence", "license", "transport", "authority", "dl", "mvd", "parivahan"];
-                  isValid = dlKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: Please upload a clear original coloured Driving License.";
+                  const panKeywords = ["income tax", "permanent account"];
+                  const isPan = panKeywords.some(k => extractedText.includes(k));
+                  
+                  if (isPan) {
+                      isValid = false;
+                      reason = "Verification Failed: You have uploaded a PAN Card. Please upload your original Driving License.";
+                  } else {
+                      isValid = dlKeywords.some(k => extractedText.includes(k));
+                      reason = "Verification Failed: Please upload a clear original coloured Driving License.";
+                  }
                 } else if (subType === "PASSPORT") {
                   const passportKeywords = ["passport", "republic", "india", "bhartiya", "ganrajya", "specimen"];
                   isValid = passportKeywords.some(k => extractedText.includes(k));
@@ -266,8 +274,6 @@ export default function FileUpload({
               }
           } catch (ocrErr) {
               console.error("[OCR Error] Skipping AI Verification:", ocrErr);
-              // Fallback: If OCR fails (e.g. worker crash), we allow the upload but log the error
-              // This prevents the whole component from crashing for the user
           }
       }
 
@@ -277,11 +283,24 @@ export default function FileUpload({
         return;
       }
 
-      // 4. Extract specific values (PAN/Aadhaar) if needed
-      const panMatch = ocrResult.data.text.match(/[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}/i);
-      if (panMatch) onOcrSuccess?.(panMatch[0].toUpperCase());
-      const aadhaarMatch = ocrResult.data.text.match(/\d{4}\s?\d{4}\s?\d{4}/);
-      if (aadhaarMatch) onOcrSuccess?.(aadhaarMatch[0].replace(/\s/g, ""));
+      // 4. Extract specific values (PAN/Aadhaar/DL/Passport)
+      const rawText = ocrResult.data.text;
+      
+      // PAN: ABCDE1234F
+      const panMatch = rawText.match(/[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}/i);
+      if (panMatch && subType === "PAN") onOcrSuccess?.(panMatch[0].toUpperCase());
+      
+      // Aadhaar: 1234 5678 9012
+      const aadhaarMatch = rawText.match(/\d{4}\s?\d{4}\s?\d{4}/);
+      if (aadhaarMatch && subType === "AADHAAR") onOcrSuccess?.(aadhaarMatch[0].replace(/\s/g, ""));
+
+      // DL: SS-RR-YYYY-NNNNNNN or similar (Generic: 2 letters + 13 chars)
+      const dlMatch = rawText.match(/[a-zA-Z]{2}[0-9\s\-]{10,15}/);
+      if (dlMatch && subType === "DL") onOcrSuccess?.(dlMatch[0].replace(/[\s\-]/g, "").toUpperCase());
+
+      // Passport: Z1234567
+      const passportMatch = rawText.match(/[a-zA-Z][0-9]{7}/);
+      if (passportMatch && subType === "PASSPORT") onOcrSuccess?.(passportMatch[0].toUpperCase());
 
       const formData = new FormData();
       formData.append("candidateId", candidateId);
