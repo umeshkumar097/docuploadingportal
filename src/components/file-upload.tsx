@@ -185,33 +185,74 @@ export default function FileUpload({
                     reason = "Signature should not contain much text. Please upload a clear scan of your signature (Blue or Black ink allowed on white paper).";
                 }
               } else if (type === "QUALIFICATION") {
-                const negativeKeywords = ["aadhaar", "unique identification", "government of india", "permanent account", "income tax department", "pan card", "election commission", "voter id", "driving licence", "identity card"];
-                const isIdProof = negativeKeywords.some(k => extractedText.includes(k));
+                const extractedText = ocrResult.data.text.toLowerCase();
+                const isGraduate = label.toLowerCase().includes("degree");
+
+                // 1. Block ID Proofs from this slot
+                const idKeywords = ["aadhaar", "unique identification", "government of india", "permanent account", "pan card", "election commission", "voter id", "driving licence", "identity card"];
+                const isIdProof = idKeywords.some(k => extractedText.includes(k));
 
                 if (isIdProof) {
                     isValid = false;
-                    reason = "Verification Failed: This looks like an Identity Proof (Aadhaar/PAN/Voter ID). Please upload an Educational Qualification document (Marksheet/Certificate) in this slot.";
-                } else {
-                    const keywords = ["degree", "certificate", "marks", "university", "board", "passing", "provisional", "diploma", "graduate", "statement", "result", "secondary", "intermediate", "12th", "hsc", "h.s.c", "ssc", "higher", "senior", "inter", "institute", "vocational", "education", "examination", "arts", "exam", "marksheet", "b.com", "b.a", "b.sc", "m.com", "m.a", "m.sc", "rollno", "pass", "college", "regular"];
+                    reason = "Verification Failed: This looks like an Identity Proof. Please upload your original Educational Document (Degree/Marksheet) here.";
+                } 
+                // 2. Block Photos/Selfies (Low text density)
+                else if (textDensity < 80) {
+                    isValid = false;
+                    reason = "Verification Failed: This looks like a photo or an invalid document. Please upload a clear original scan of your document.";
+                }
+                // 3. Strict Check: Degree vs Marksheet
+                else if (isGraduate) {
+                    const degreeKeywords = ["degree", "certificate", "passing", "convocation", "provisional", "university", "doctor", "bachelor", "master", "conferred"];
+                    const marksheetKeywords = ["marksheet", "marks", "statement of marks", "semester", "year", "result", "grade card", "subjects", "maximum", "obtained"];
                     
-                    // Relaxed for Hindi/Local language certs: 
-                    // As long as it's not an ID Proof, allow it if it has SOME text (density > 50)
-                    isValid = textDensity > 50 || keywords.some(k => extractedText.includes(k));
-                    reason = "Verification Failed: This does not look like a valid document. Please upload a clear original copy.";
+                    const hasDegreeText = degreeKeywords.some(k => extractedText.includes(k));
+                    const hasMarksheetText = marksheetKeywords.some(k => extractedText.includes(k));
+
+                    if (hasMarksheetText && !hasDegreeText) {
+                        isValid = false;
+                        reason = "Degree Required: You have uploaded a Marksheet. Graduates must upload their ORIGINAL UNIVERSITY DEGREE certificate only.";
+                    } else if (!hasDegreeText) {
+                        isValid = false;
+                        reason = "Invalid Degree: This does not look like a University Degree certificate. Please upload a clear original coloured copy.";
+                    }
+                } else {
+                    // Undergraduate/Marksheet check
+                    const marksheetKeywords = ["marksheet", "marks", "statement", "board", "secondary", "higher", "10th", "12th", "ssc", "hsc", "passing", "certificate", "intermediate", "matriculation"];
+                    const hasMarksheetText = marksheetKeywords.some(k => extractedText.includes(k));
+
+                    if (!hasMarksheetText) {
+                        isValid = false;
+                        reason = "Marksheet Required: This does not look like a valid Marksheet. Please upload your original 10th, 12th, or UG marksheet.";
+                    }
                 }
               } else if (type === "ID_PROOF") {
-                if (subType === "PAN") {
+                const negativeIdKeywords = ["degree", "marksheet", "certificate", "university", "passing", "provisional", "board", "marks", "education"];
+                const containsQualifcationText = negativeIdKeywords.some(k => extractedText.includes(k));
+
+                if (containsQualifcationText) {
+                    isValid = false;
+                    reason = "Verification Failed: This looks like an Educational Document. Please upload your original Government ID Card here.";
+                } else if (subType === "PAN") {
                   const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax"];
                   isValid = panKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: Please upload a clear original PAN Card image.";
+                  reason = "Verification Failed: Please upload a clear original coloured PAN Card image.";
                 } else if (subType === "AADHAAR") {
                   const aadhaarKeywords = ["aadhaar", "unique", "government", "india", "female", "male", "dob", "address", "enrollment", "vid"];
                   isValid = aadhaarKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: Please upload a clear original Aadhaar Card image.";
+                  reason = "Verification Failed: Please upload a clear original coloured Aadhaar Card image.";
+                } else if (subType === "DL") {
+                  const dlKeywords = ["driving", "licence", "license", "transport", "authority", "dl", "mvd", "parivahan"];
+                  isValid = dlKeywords.some(k => extractedText.includes(k));
+                  reason = "Verification Failed: Please upload a clear original coloured Driving License.";
+                } else if (subType === "PASSPORT") {
+                  const passportKeywords = ["passport", "republic", "india", "bhartiya", "ganrajya", "specimen"];
+                  isValid = passportKeywords.some(k => extractedText.includes(k));
+                  reason = "Verification Failed: Please upload a clear original coloured Passport image.";
                 } else {
                   const idKeywords = ["aadhaar", "unique", "government", "india", "dob", "income tax", "permanent account", "pan", "driving", "license", "election", "voter", "passport", "signature"];
                   isValid = idKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: This does not look like a valid ID Proof.";
+                  reason = "Verification Failed: This does not look like a valid Government ID Proof.";
                 }
               }
           } catch (ocrErr) {

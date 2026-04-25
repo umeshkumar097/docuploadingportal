@@ -57,6 +57,9 @@ const formSchema = z.object({
   }).optional(),
   isDraCertified: z.boolean(),
   idNumber: z.string().optional(),
+  highestQualification: z.enum(["GRADUATE", "UNDERGRADUATE"], {
+    required_error: "Please select your highest qualification level",
+  }),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -647,6 +650,48 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   )}
                 </div>
               </div>
+            <FormField
+              control={form.control}
+              name="highestQualification"
+              render={({ field }) => (
+                <FormItem className="space-y-4">
+                  <FormLabel className="text-sm font-black uppercase tracking-widest text-primary">Highest Qualification Level <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div 
+                        onClick={() => field.onChange("GRADUATE")}
+                        className={`p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${field.value === "GRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10 hover:border-primary/20"}`}
+                      >
+                        <Building2 className={`h-6 w-6 ${field.value === "GRADUATE" ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className={`text-sm font-black uppercase tracking-tight ${field.value === "GRADUATE" ? "text-primary" : "text-muted-foreground"}`}>Graduate / PG</span>
+                      </div>
+                      <div 
+                        onClick={() => field.onChange("UNDERGRADUATE")}
+                        className={`p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${field.value === "UNDERGRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10 hover:border-primary/20"}`}
+                      >
+                        <User className={`h-6 w-6 ${field.value === "UNDERGRADUATE" ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className={`text-sm font-black uppercase tracking-tight ${field.value === "UNDERGRADUATE" ? "text-primary" : "text-muted-foreground"}`}>10th / 12th / UG</span>
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {form.watch("highestQualification") === "GRADUATE" && (
+              <div className="bg-red-500/10 border-2 border-red-500/20 rounded-2xl p-6 flex items-start gap-4 animate-in slide-in-from-top-2 duration-500">
+                <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-black text-red-600 uppercase tracking-wider text-sm">Strict Requirement for Graduates</h4>
+                  <p className="text-red-700 text-xs font-bold leading-relaxed">
+                    You MUST upload your **ORIGINAL UNIVERSITY DEGREE**. 
+                    Marksheets (Final year or Semester) are **NOT ACCEPTABLE** and will lead to immediate rejection.
+                  </p>
+                </div>
+              </div>
             )}
 
             {/* Dynamic Section: Preferred Exam Center */}
@@ -823,7 +868,17 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 ) : (
                   <>
                     <FileUpload key="PHOTO" candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
-                    <FileUpload key="QUALIFICATION" candidateId={candidateId as string} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
+                    <FileUpload 
+                      key="QUALIFICATION" 
+                      candidateId={candidateId as string} 
+                      type="QUALIFICATION" 
+                      label={form.watch("highestQualification") === "GRADUATE" ? "Original University Degree" : "Marksheet (10th/12th)"} 
+                      maxSizeKB={10240} 
+                      mandatory={true} 
+                      initialSuccess={uploadedDocs.has("QUALIFICATION")} 
+                      onUploadSuccess={handleUploadSuccess} 
+                      description={form.watch("highestQualification") === "GRADUATE" ? "Only Degree Certificate allowed (No Marksheets)" : "Upload your 10th or 12th Marksheet"}
+                    />
                     <FileUpload 
                       key="ID_PROOF"
                       candidateId={candidateId as string} 
@@ -835,6 +890,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                       onUploadSuccess={handleUploadSuccess} 
                       onOcrSuccess={(val) => form.setValue("idNumber", val, { shouldValidate: true })}
                       subType={form.watch("idType")}
+                      description="Upload official Government ID only. Company IDs or Degree certificates are NOT allowed here."
                     />
                     <FileUpload key="SIGNATURE" candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
                   </>
