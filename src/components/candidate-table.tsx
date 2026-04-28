@@ -42,17 +42,20 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [dateFilter, setDateFilter] = useState("");
   const [activeTab, setActiveTab] = useState<"submitted" | "no-submit" | "login">("submitted");
 
+  const getEffectiveMonth = (c: any) => {
+    return c.trainingMonth || new Date(c.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' });
+  };
+
   const [trainingMonthFilter, setTrainingMonthFilter] = useState<string>(() => {
     if (!candidates || candidates.length === 0) return "all";
     
     const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
-    const match = candidates.find((c: any) => c.trainingMonth && c.trainingMonth.toLowerCase().includes(currentMonthName.toLowerCase()));
+    const match = candidates.find((c: any) => getEffectiveMonth(c).toLowerCase().includes(currentMonthName.toLowerCase()));
     
-    if (match) return match.trainingMonth;
+    if (match) return getEffectiveMonth(match);
     
-    // Fallback: Use the most recent candidate's training month (since candidates are ordered by createdAt desc)
-    const mostRecent = candidates.find((c: any) => c.trainingMonth);
-    return mostRecent ? mostRecent.trainingMonth : "all";
+    const mostRecent = candidates[0]; // candidates are ordered by createdAt desc
+    return mostRecent ? getEffectiveMonth(mostRecent) : "all";
   });
 
   const uniquePhases = useMemo(() => {
@@ -71,7 +74,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   }, [candidates]);
 
   const uniqueTrainingMonths = useMemo(() => {
-    const months = candidates.map(c => c.trainingMonth).filter(Boolean);
+    const months = candidates.map(c => getEffectiveMonth(c)).filter(Boolean);
     return Array.from(new Set(months)).sort();
   }, [candidates]);
 
@@ -87,7 +90,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const matchesCompany = companyFilter === "all" || c.employer === companyFilter;
       const matchesPhase = phaseFilter === "all" || c.phase === phaseFilter;
       const matchesClient = clientFilter === "all" || c.client?.name === clientFilter;
-      const matchesMonth = trainingMonthFilter === "all" || c.trainingMonth === trainingMonthFilter;
+      const matchesMonth = trainingMonthFilter === "all" || getEffectiveMonth(c) === trainingMonthFilter;
       
       let matchesDate = true;
       if (dateFilter) {
