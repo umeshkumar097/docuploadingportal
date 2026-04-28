@@ -43,9 +43,16 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [activeTab, setActiveTab] = useState<"submitted" | "no-submit" | "login">("submitted");
 
   const [trainingMonthFilter, setTrainingMonthFilter] = useState<string>(() => {
+    if (!candidates || candidates.length === 0) return "all";
+    
     const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
     const match = candidates.find((c: any) => c.trainingMonth && c.trainingMonth.toLowerCase().includes(currentMonthName.toLowerCase()));
-    return match ? match.trainingMonth : "all";
+    
+    if (match) return match.trainingMonth;
+    
+    // Fallback: Use the most recent candidate's training month (since candidates are ordered by createdAt desc)
+    const mostRecent = candidates.find((c: any) => c.trainingMonth);
+    return mostRecent ? mostRecent.trainingMonth : "all";
   });
 
   const uniquePhases = useMemo(() => {
