@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2, CheckCircle2, Search, Filter, Download } from "lucide-react";
+import { AlertCircle, ChevronRight, FileArchive, Loader2, Trash2, CheckCircle2, Search, Filter, Download, Clock, Users, Database } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { deleteCandidate, bulkDeleteCandidates } from "@/lib/actions/verification";
@@ -39,9 +39,14 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [companyFilter, setCompanyFilter] = useState("all");
   const [phaseFilter, setPhaseFilter] = useState("all");
   const [clientFilter, setClientFilter] = useState("all");
-  const [trainingMonthFilter, setTrainingMonthFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
   const [activeTab, setActiveTab] = useState<"submitted" | "no-submit" | "login">("submitted");
+
+  const [trainingMonthFilter, setTrainingMonthFilter] = useState<string>(() => {
+    const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
+    const match = candidates.find((c: any) => c.trainingMonth && c.trainingMonth.toLowerCase().includes(currentMonthName.toLowerCase()));
+    return match ? match.trainingMonth : "all";
+  });
 
   const uniquePhases = useMemo(() => {
     const phases = candidates.map(c => c.phase).filter(Boolean);
@@ -63,28 +68,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
     return Array.from(new Set(months)).sort();
   }, [candidates]);
 
-  const filteredCandidates = useMemo(() => {
+  const filteredForStats = useMemo(() => {
     return candidates.filter((c: any) => {
-      // Identity Category Filter
-      const isDra = c.isDraCertified;
-      const docs = c.documents || [];
-      const docCount = isDra 
-        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
-        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
-      
-      const isSubmitted = c.status === "READY" || (isDra ? docCount >= 1 : docCount >= 4);
-      const isNoSubmit = c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
-      
-      // Login: Status PENDING, No Docs for their mode, has name/ID, and active in last 30 minutes
-      const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
-      const lastActive = new Date(c.lastActiveAt || c.createdAt);
-      const isActive = lastActive > thirtyMinsAgo;
-      const isLogin = c.status === "PENDING" && docCount === 0 && (c.name || c.employeeId) && isActive;
-
-      if (activeTab === "submitted" && !isSubmitted) return false;
-      if (activeTab === "no-submit" && !isNoSubmit) return false;
-      if (activeTab === "login" && !isLogin) return false;
-
       // Other Filters
       const q = searchQuery.toLowerCase();
       const matchesSearch = !q ||
@@ -105,7 +90,72 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       
       return matchesSearch && matchesCompany && matchesPhase && matchesClient && matchesMonth && matchesDate;
     });
-  }, [candidates, searchQuery, companyFilter, phaseFilter, clientFilter, trainingMonthFilter, dateFilter, activeTab]);
+  }, [candidates, searchQuery, companyFilter, phaseFilter, clientFilter, trainingMonthFilter, dateFilter]);
+
+  const filteredCandidates = useMemo(() => {
+    return filteredForStats.filter((c: any) => {
+      // Identity Category Filter
+      const isDra = c.isDraCertified;
+      const docs = c.documents || [];
+      const docCount = isDra 
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+      
+      const isSubmitted = c.status === "READY" || (isDra ? docCount >= 1 : docCount >= 4);
+      const isNoSubmit = c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
+      
+      // Login: Status PENDING, No Docs for their mode, has name/ID, and active in last 30 minutes
+      const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const lastActive = new Date(c.lastActiveAt || c.createdAt);
+      const isActive = lastActive > thirtyMinsAgo;
+      const isLogin = c.status === "PENDING" && docCount === 0 && (c.name || c.employeeId) && isActive;
+
+      if (activeTab === "submitted" && !isSubmitted) return false;
+      if (activeTab === "no-submit" && !isNoSubmit) return false;
+      if (activeTab === "login" && !isLogin) return false;
+
+      return true;
+    });
+  }, [filteredForStats, activeTab]);
+
+  const stats = useMemo(() => {
+    const submittedCount = filteredForStats.filter((c: any) => {
+      const isDra = c.isDraCertified;
+      const docs = c.documents || [];
+      const docCount = isDra 
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+      return c.status === "READY" || (isDra ? docCount >= 1 : docCount >= 4);
+    }).length;
+
+    const partialCount = filteredForStats.filter((c: any) => {
+      const isDra = c.isDraCertified;
+      const docs = c.documents || [];
+      const docCount = isDra 
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+      return c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
+    }).length;
+
+    const loginOnlyCount = filteredForStats.filter((c: any) => {
+      const isDra = c.isDraCertified;
+      const docs = c.documents || [];
+      const docCount = isDra 
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+      const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const lastActive = new Date(c.lastActiveAt || c.createdAt);
+      const isActive = lastActive > thirtyMinsAgo;
+      return c.status === "PENDING" && docCount === 0 && (c.name || c.employeeId) && isActive;
+    }).length;
+
+    return [
+      { label: "Submitted", value: submittedCount, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+      { label: "Partial (No Submit)", value: partialCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
+      { label: "Identified (Login)", value: loginOnlyCount, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+      { label: "Total Reach", value: filteredForStats.length, icon: Database, color: "text-violet-500", bg: "bg-violet-500/10" },
+    ];
+  }, [filteredForStats]);
 
   const handleDeleteClick = (id: string, name: string) => {
     setCandidateToDelete({ id, name });
@@ -299,7 +349,23 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
     XLSX.writeFile(workbook, filename);
   };
 
-  return (    <div className="space-y-6">
+  return (
+    <div className="space-y-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {stats.map((stat: any, i: number) => (
+          <div key={i} className="glass-card p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+            <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} w-fit mb-4 group-hover:scale-110 transition-transform`}>
+              <stat.icon className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+              <h3 className="text-3xl font-black text-foreground">{stat.value}</h3>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Category Tabs */}
       <div className="flex flex-wrap gap-2 pb-2">
         <button

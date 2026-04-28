@@ -63,19 +63,6 @@ export default async function DashboardPage() {
     });
 
 
-    const totalCandidates = candidates.length;
-
-    const submittedCount = candidates.filter((c: any) => c.status !== "PENDING" || (c._count?.documents ?? c.documents?.length ?? 0) >= 4).length;
-    const partialCount = candidates.filter((c: any) => c.status === "PENDING" && (c._count?.documents ?? c.documents?.length ?? 0) > 0 && (c._count?.documents ?? c.documents?.length ?? 0) < 4).length;
-    const loginOnlyCount = candidates.filter((c: any) => c.status === "PENDING" && (c._count?.documents === 0 || !c.documents || c.documents.length === 0)).length;
-
-    const stats = [
-      { label: "Submitted", value: submittedCount, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-      { label: "Partial (No Submit)", value: partialCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
-      { label: "Identified (Login)", value: loginOnlyCount, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-      { label: "Total Reach", value: candidates.length, icon: Database, color: "text-violet-500", bg: "bg-violet-500/10" },
-    ];
-
     return (
       <div className="space-y-10">
         {/* Header Section */}
@@ -97,21 +84,6 @@ export default async function DashboardPage() {
                   </span>
               </div>
           </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat: any, i: number) => (
-            <div key={i} className="glass-card p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
-              <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} w-fit mb-4 group-hover:scale-110 transition-transform`}>
-                <stat.icon className="h-6 w-6" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-                <h3 className="text-3xl font-black text-foreground">{stat.value}</h3>
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Table Section */}
