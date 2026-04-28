@@ -382,7 +382,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           onClick={() => setActiveTab("submitted")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "submitted" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          Submitted ({candidates.filter(c => {
+          Submitted ({filteredForStats.filter((c: any) => {
             const dc = (c.documents || []).filter((d: any) => c.isDraCertified ? d.type === "DRA_CERTIFICATE" : d.type !== "DRA_CERTIFICATE").length;
             return c.status === "READY" || (c.isDraCertified ? dc >= 1 : dc >= 4);
           }).length})
@@ -391,7 +391,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           onClick={() => setActiveTab("no-submit")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "no-submit" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          No Submit ({candidates.filter(c => {
+          No Submit ({filteredForStats.filter((c: any) => {
              const dc = (c.documents || []).filter((d: any) => c.isDraCertified ? d.type === "DRA_CERTIFICATE" : d.type !== "DRA_CERTIFICATE").length;
              return c.status === "PENDING" && dc > 0 && (c.isDraCertified ? dc < 1 : dc < 4);
           }).length})
@@ -400,7 +400,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           onClick={() => setActiveTab("login")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "login" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
-          Login ({candidates.filter(c => {
+          Login ({filteredForStats.filter((c: any) => {
             const lastActive = new Date(c.lastActiveAt || c.createdAt);
             const isActive = lastActive > new Date(Date.now() - 30 * 60 * 1000);
             const dc = (c.documents || []).filter((d: any) => c.isDraCertified ? d.type === "DRA_CERTIFICATE" : d.type !== "DRA_CERTIFICATE").length;
