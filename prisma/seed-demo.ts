@@ -102,10 +102,16 @@ async function main() {
   ]
 
   for (const emp of demoEmployees) {
+    const seedData = { ...emp, uploadMonth: "Demo" }
     await prisma.masterEmployee.upsert({
-      where: { employeeId: emp.employeeId },
-      update: emp,
-      create: emp,
+      where: { 
+        employeeId_uploadMonth: { 
+          employeeId: emp.employeeId, 
+          uploadMonth: "Demo" 
+        } 
+      },
+      update: seedData,
+      create: seedData,
     })
   }
 
