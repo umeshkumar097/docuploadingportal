@@ -25,6 +25,9 @@ export async function GET(req: NextRequest) {
             { whatsappNo: { contains: mobileNumber } }
           ] : [])
         ]
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     });
 
@@ -44,10 +47,11 @@ export async function GET(req: NextRequest) {
     });
 
     const completedCandidate = allRelatedCandidates.find((c: any) => 
-      c.status !== "PENDING" || c._count.documents >= 4
+      (c.status !== "PENDING" || c._count.documents >= 4) && !c.canReupload
     );
 
-    const existingCandidate = allRelatedCandidates.find((c: any) => c.status === "PENDING");
+    const reuploadCandidate = allRelatedCandidates.find((c: any) => c.canReupload);
+    const existingCandidate = allRelatedCandidates.find((c: any) => c.status === "PENDING") || reuploadCandidate;
 
     return NextResponse.json({ 
       success: true, 
@@ -57,6 +61,8 @@ export async function GET(req: NextRequest) {
       existingCandidate: existingCandidate ? {
         token: existingCandidate.token,
         id: existingCandidate.id,
+        canReupload: existingCandidate.canReupload,
+        highestQualification: existingCandidate.highestQualification,
         uploadedDocumentTypes: (await prisma.document.findMany({
           where: { candidateId: existingCandidate.id },
           select: { type: true }

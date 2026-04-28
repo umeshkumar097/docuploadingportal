@@ -17,6 +17,7 @@ interface FileUploadProps {
   onUploadSuccess?: (type: string) => void;
   onOcrSuccess?: (extractedText: string) => void;
   subType?: string;
+  canReupload?: boolean;
 }
 
 export default function FileUpload({ 
@@ -29,7 +30,8 @@ export default function FileUpload({
   initialSuccess, 
   onUploadSuccess, 
   onOcrSuccess,
-  subType 
+  subType,
+  canReupload
 }: FileUploadProps) {
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">(initialSuccess ? "success" : "idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -395,16 +397,24 @@ export default function FileUpload({
 
           {status === "success" && (
             <>
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center animate-in zoom-in duration-300 overflow-hidden border border-emerald-500/20">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center animate-in zoom-in duration-300 overflow-hidden border border-emerald-500/20 relative">
                 {previewUrl ? (
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
                   <FileText className="h-6 w-6" />
                 )}
+                {canReupload && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Upload className="h-4 w-4 text-white animate-bounce" />
+                  </div>
+                )}
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-bold text-emerald-600">Verification Ready</p>
-                <p className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">{fileName}</p>
+                <p className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px] mb-1">{fileName || "Document Secured"}</p>
+                {canReupload && (
+                  <p className="text-[9px] font-black bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-lg py-1 px-2 uppercase tracking-tighter animate-pulse">Click to Replace Document</p>
+                )}
               </div>
             </>
           )}

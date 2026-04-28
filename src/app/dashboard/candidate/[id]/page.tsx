@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { updateCandidateStatus, updateDocumentStatus, deleteDocument } from "@/lib/actions/verification";
+import { updateCandidateStatus, updateDocumentStatus, deleteDocument, toggleReupload } from "@/lib/actions/verification";
 import { auth } from "@/auth";
 import { CopyButton } from "@/components/copy-button";
 import { 
@@ -17,7 +17,8 @@ import {
   Building2,
   Phone,
   CreditCard,
-  Trash2
+  Trash2,
+  RotateCw
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -85,6 +86,21 @@ export default async function CandidateDetailPage({ params }: { params: Promise<
                         <Button type="submit" size="lg" variant="ghost" className="rounded-2xl h-14 px-8 font-black border-2 border-red-500/20 text-red-500 hover:bg-red-500/10 group">
                             <XSquare className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                             Reject Candidate
+                        </Button>
+                    </form>
+
+                    <form action={async () => {
+                        "use server";
+                        await toggleReupload(candidate.id, !candidate.canReupload);
+                    }}>
+                        <Button 
+                            type="submit" 
+                            size="lg" 
+                            variant="outline" 
+                            className={`rounded-2xl h-14 px-8 font-black transition-all group ${candidate.canReupload ? "bg-amber-500 text-white border-none hover:bg-amber-600 shadow-lg shadow-amber-500/20" : "border-2 border-primary/20 text-primary hover:bg-primary/10"}`}
+                        >
+                            <RotateCw className={`h-5 w-5 mr-2 group-hover:rotate-180 transition-transform duration-500 ${candidate.canReupload ? "animate-spin-slow" : ""}`} />
+                            {candidate.canReupload ? "Disable Correction" : "Allow Correction"}
                         </Button>
                     </form>
                 </div>

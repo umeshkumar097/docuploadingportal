@@ -90,6 +90,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   const router = useRouter();
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const [uploadedDocs, setUploadedDocs] = useState<Set<string>>(new Set());
+  const [canReupload, setCanReupload] = useState(false);
 
   const handleUploadSuccess = (type: string) => {
     setUploadedDocs(prev => {
@@ -284,6 +285,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             const ext = result.existingCandidate;
             setToken(ext.token);
             setCandidateId(ext.id);
+            setCanReupload(ext.canReupload || false);
             localStorage.setItem("cruxdoc_token", ext.token);
             localStorage.setItem("cruxdoc_id", ext.id);
             
@@ -292,6 +294,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             }
 
             // Sync form values from existing candidate
+            if (ext.highestQualification) form.setValue("highestQualification", ext.highestQualification);
             if (ext.addressLine1) form.setValue("addressLine1", ext.addressLine1);
             if (ext.addressLine2) form.setValue("addressLine2", ext.addressLine2);
             if (ext.bookLanguage) form.setValue("bookLanguage", ext.bookLanguage);
@@ -696,8 +699,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   <div className="space-y-1">
                     <h4 className="font-black text-red-600 uppercase tracking-wider text-sm">Strict Requirement for Graduates</h4>
                     <p className="text-red-700 text-xs font-bold leading-relaxed">
-                      You MUST upload your **ORIGINAL UNIVERSITY DEGREE**. 
-                      Marksheets (Final year or Semester) are **NOT ACCEPTABLE** and will lead to immediate rejection.
+                      You MUST upload your **ORIGINAL COLOURED UNIVERSITY DEGREE**. 
+                      Marksheets, Provisional, Migration, or **Black & White copies** are **STRICTLY PROHIBITED** and will lead to immediate rejection.
                     </p>
                   </div>
                 </div>
@@ -877,7 +880,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                   />
                 ) : (
                   <>
-                    <FileUpload key="PHOTO" candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
+                    <FileUpload key="PHOTO" candidateId={candidateId as string} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} canReupload={canReupload} />
                     {form.watch("highestQualification") ? (
                       <FileUpload 
                         key="QUALIFICATION" 
@@ -888,7 +891,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                         mandatory={true} 
                         initialSuccess={uploadedDocs.has("QUALIFICATION")} 
                         onUploadSuccess={handleUploadSuccess} 
-                        description={form.watch("highestQualification") === "GRADUATE" ? "Only Original Degree allowed. Provisional/Migration NOT allowed." : "Upload your 10th or 12th Marksheet"}
+                        canReupload={canReupload}
+                        description={form.watch("highestQualification") === "GRADUATE" ? "Original COLOURED Degree ONLY. Provisional/Migration/B&W NOT allowed." : "Original COLOURED Marksheet ONLY. Black & White copies NOT allowed."}
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center p-12 rounded-[2rem] bg-accent/10 border-2 border-dashed border-accent/30 gap-4 opacity-60">
@@ -897,7 +901,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                         </div>
                         <div className="text-center">
                           <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Upload Locked</p>
-                          <p className="text-xs font-medium text-muted-foreground/60 mt-1 px-4 italic">Select Qualification Level above to unlock</p>
+                          <p className="text-xs font-medium text-muted-foreground/60 mt-1 px-4 italic text-red-500/70">Coloured copies ONLY. Select Level to unlock.</p>
                         </div>
                       </div>
                     )}
@@ -912,9 +916,10 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                       onUploadSuccess={handleUploadSuccess} 
                       onOcrSuccess={(val) => form.setValue("idNumber", val, { shouldValidate: true })}
                       subType={form.watch("idType")}
+                      canReupload={canReupload}
                       description="Upload official Government ID only. Company IDs or Degree certificates are NOT allowed here."
                     />
-                    <FileUpload key="SIGNATURE" candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
+                    <FileUpload key="SIGNATURE" candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} canReupload={canReupload} />
                   </>
                 )}
               </div>

@@ -53,6 +53,8 @@ model Candidate {
   trainingLanguage String?
   examCenter       String?
   trainingMonth    String?
+  highestQualification String?
+  canReupload      Boolean         @default(false)
   client           Client?         @relation(fields: [clientId], references: [id])
   documents        Document[]
 }
@@ -72,7 +74,7 @@ model Document {
 
 model MasterEmployee {
   id                    String   @id @default(cuid())
-  employeeId            String   @unique
+  employeeId            String
   employeeName          String?
   state                 String?
   reportingManagerId    String?
@@ -100,6 +102,9 @@ model MasterEmployee {
   pincode               String?
   phase                 String?  @default("Phase 1")
   trainingMonth         String?
+  uploadMonth           String   @default("Legacy")
+
+  @@unique([employeeId, uploadMonth])
 }
 
 model AddressRecord {

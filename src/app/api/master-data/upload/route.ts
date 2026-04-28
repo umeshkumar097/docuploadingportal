@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
           pincode: String(row["Pincode"] || "").trim(),
           draBatch: String(row["DRA Batch"] || "").trim(),
           trainingMonth: String(row["Training Month"] || row["Month"] || "").trim(),
+          uploadMonth: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
         });
       }
     }

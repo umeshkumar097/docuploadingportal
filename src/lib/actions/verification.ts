@@ -76,3 +76,11 @@ export async function bulkDeleteCandidates(ids: string[]) {
 
   revalidatePath("/dashboard", "layout");
 }
+
+export async function toggleReupload(id: string, canReupload: boolean) {
+  await prisma.candidate.update({
+    where: { id },
+    data: { canReupload },
+  });
+  revalidatePath("/dashboard", "layout");
+}

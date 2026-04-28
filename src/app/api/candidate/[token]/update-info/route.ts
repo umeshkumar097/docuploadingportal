@@ -17,7 +17,8 @@ export async function PATCH(
     const { 
       name, employer, mobileNumber, employeeId, idType, idNumber, 
       residentialState, city, pincode, phase, isDraCertified,
-      addressLine1, addressLine2, bookLanguage, trainingLanguage, examCenter, trainingMonth
+      addressLine1, addressLine2, bookLanguage, trainingLanguage, examCenter, trainingMonth,
+      highestQualification
     } = body;
 
     // Validate if candidate exists
@@ -29,8 +30,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid token" }, { status: 404 });
     }
 
-    // Block updates if already completed
-    if (candidate.status === "READY") {
+    // Block updates if already completed AND re-upload not explicitly allowed
+    if (candidate.status === "READY" && !candidate.canReupload) {
       return NextResponse.json({ error: "Candidate session already finalised" }, { status: 403 });
     }
 
@@ -55,6 +56,7 @@ export async function PATCH(
         ...(trainingLanguage !== undefined && { trainingLanguage }),
         ...(examCenter !== undefined && { examCenter }),
         ...(trainingMonth !== undefined && { trainingMonth }),
+        ...(highestQualification !== undefined && { highestQualification }),
         lastActiveAt: new Date(),
         currentStep: "PERSONAL_INFO_DONE"
       },
@@ -76,6 +78,7 @@ export async function PATCH(
         trainingLanguage: true,
         examCenter: true,
         trainingMonth: true,
+        highestQualification: true,
         lastActiveAt: true,
         currentStep: true
       }
