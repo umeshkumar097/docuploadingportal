@@ -75,6 +75,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No valid employee records found in file" }, { status: 400 });
     }
 
+    const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+    const incomingEmployeeIds = allFormattedData.map(d => d.employeeId);
+
+    // Find which IDs already exist in the current upload month
+    const existingRecords = await prisma.masterEmployee.findMany({
+      where: {
+        uploadMonth: currentMonth,
+        employeeId: { in: incomingEmployeeIds }
+      },
+      select: { employeeId: true }
+    });
+
+    const existingIdsSet = new Set(existingRecords.map((r: { employeeId: string }) => r.employeeId));
+
+    // Filter out the duplicates to return as a report
+    const duplicateData = allFormattedData.filter((d: any) => existingIdsSet.has(d.employeeId));
+
     // High-performance batch insertion, skipping existing IDs as requested
     const result = await prisma.masterEmployee.createMany({
         data: allFormattedData,
@@ -83,7 +100,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ 
         success: true, 
-        message: `Successfully processed ${allFormattedData.length} records. ${result.count} new records added.` 
+        message: `Successfully processed ${allFormattedData.length} records. ${result.count} new records added.`,
+        duplicates: duplicateData
     });
 
   } catch (error: any) {

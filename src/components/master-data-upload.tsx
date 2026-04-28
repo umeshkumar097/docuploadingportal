@@ -26,10 +26,13 @@ export function MasterDataUpload() {
     setMessage("");
   };
 
+  const [duplicateCount, setDuplicateCount] = useState<number>(0);
+
   const handleUpload = async () => {
     if (!file) return;
 
     setStatus("uploading");
+    setDuplicateCount(0);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("phase", phase);
@@ -49,6 +52,35 @@ export function MasterDataUpload() {
       setStatus("success");
       setMessage(data.message || "Upload successful!");
       setFile(null);
+
+      // Handle duplicate report download
+      if (data.duplicates && data.duplicates.length > 0) {
+        setDuplicateCount(data.duplicates.length);
+        
+        // Dynamic import of XLSX to avoid bloating the initial client bundle
+        const XLSX = await import("xlsx");
+        
+        const worksheet = XLSX.utils.json_to_sheet(data.duplicates.map((d: any) => ({
+          "Employee Id": d.employeeId,
+          "Employee Name": d.employeeName,
+          "State": d.state,
+          "Vendor": d.vendor,
+          "Phase": d.phase,
+          "Active Status": d.activeStatus,
+          "Reporting Manager Name": d.reportingManagerName,
+          "Skip Level Manager Name": d.skipLevelManagerName,
+          "City": d.city,
+          "Pincode": d.pincode,
+          "DRA Batch": d.draBatch,
+          "Training Month": d.trainingMonth
+        })));
+        
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Skipped Duplicates");
+        
+        XLSX.writeFile(workbook, `Skipped_Duplicates_${new Date().getTime()}.xlsx`);
+      }
+
     } catch (err: any) {
       console.error(err);
       setStatus("error");
@@ -97,9 +129,16 @@ export function MasterDataUpload() {
         )}
 
         {status === "success" && (
-          <div className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in duration-300">
-            <CheckCircle2 className="h-5 w-5" />
-            <p className="font-bold text-sm tracking-tight">{message}</p>
+          <div className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 p-4 rounded-2xl flex flex-col gap-2 animate-in zoom-in duration-300">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5" />
+              <p className="font-bold text-sm tracking-tight">{message}</p>
+            </div>
+            {duplicateCount > 0 && (
+              <p className="text-xs font-semibold text-emerald-700 bg-emerald-500/10 p-2 rounded-xl mt-1">
+                ⚠️ {duplicateCount} duplicates were skipped. An Excel report containing these records has been downloaded automatically.
+              </p>
+            )}
           </div>
         )}
 
