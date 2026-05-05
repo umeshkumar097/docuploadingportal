@@ -43,7 +43,7 @@ export default function FileUpload({
     setMounted(true);
   }, []);
 
-  const checkIsGrayscale = (ctx: CanvasRenderingContext2D, width: number, height: number): boolean => {
+  const getColorVariance = (ctx: CanvasRenderingContext2D, width: number, height: number): number => {
     const imageData = ctx.getImageData(0, 0, width, height);
     const data = imageData.data;
     let totalVariance = 0;
@@ -61,10 +61,10 @@ export default function FileUpload({
 
     const avgVariance = totalVariance / sampleSize;
     console.log("[Color Analysis] Avg Variance:", avgVariance);
-    return avgVariance < 15; // Threshold for B&W/Grayscale
+    return avgVariance;
   };
 
-  const processImage = (file: File): Promise<{ blob: Blob; isGrayscale: boolean }> => {
+  const processImage = (file: File): Promise<{ blob: Blob; isGrayscale: boolean; colorVariance: number }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -92,16 +92,16 @@ export default function FileUpload({
             return;
           }
           ctx.drawImage(img, 0, 0, width, height);
-          
-          const isGrayscale = checkIsGrayscale(ctx, width, height);
+          const colorVariance = getColorVariance(ctx, width, height);
+          const isGrayscale = colorVariance < 15; // Threshold for B&W/Grayscale
 
           canvas.toBlob(
             (blob) => {
-              if (blob) resolve({ blob, isGrayscale });
+              if (blob) resolve({ blob, isGrayscale, colorVariance });
               else reject(new Error("Canvas toBlob failed"));
             },
             "image/jpeg",
-            0.8
+            0.95
           );
         };
         img.onerror = () => reject(new Error("Failed to load image"));
@@ -137,7 +137,7 @@ export default function FileUpload({
 
       // 1. Image Processing: JPEG Conversion + Color Analysis
       console.log(`Processing ${file.name}...`);
-      const { blob, isGrayscale } = await processImage(file);
+      const { blob, isGrayscale, colorVariance } = await processImage(file);
       
       // Exempt signatures AND qualifications from grayscale check
       // Signatures are usually black ink, and many degrees (especially Hindi ones) are high-contrast/BW scans
@@ -185,6 +185,9 @@ export default function FileUpload({
                 if (textDensity > 400) { // Increased from 250 to allow more variance in scans
                     isValid = false;
                     reason = "Signature should not contain much text. Please upload a clear scan of your signature (Blue or Black ink allowed on white paper).";
+                } else if (colorVariance > 40) {
+                    isValid = false;
+                    reason = "Verification Failed: This looks like a colorful photograph. Please upload a clear scan of your signature on white paper.";
                 }
               } else if (type === "QUALIFICATION") {
                 const extractedText = ocrResult.data.text.toLowerCase();
