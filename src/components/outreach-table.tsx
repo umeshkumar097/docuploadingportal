@@ -40,23 +40,42 @@ export function OutreachTable({ data }: OutreachTableProps) {
 
   const handleExportExcel = () => {
     const dataToExport = filteredData.map(m => ({
-      "Name": m.employeeName || "N/A",
-      "Whatsapp Number": m.whatsappNo || "N/A",
       "Employee ID": m.employeeId || "N/A",
-      "Vendor": m.vendor || "N/A"
+      "Employee Name": m.employeeName || "N/A",
+      "Phase": m.phase || "N/A",
+      "Vendor": m.vendor || "N/A",
+      "WhatsApp Number": m.whatsappNo || "N/A",
+      "Personal Mobile": m.personalMobileNo || "N/A",
+      "Office Mobile": m.officeMobileNo || "N/A",
+      "Email": m.email || "N/A",
+      "State": m.state || "N/A",
+      "City": m.city || "N/A",
+      "Pincode": m.pincode || "N/A",
+      "Address Line 1": m.addressLine1 || "N/A",
+      "Address Line 2": m.addressLine2 || "N/A",
+      "Region": m.region2 || "N/A",
+      "Location": m.location2 || "N/A",
+      "Reporting Manager ID": m.reportingManagerId || "N/A",
+      "Reporting Manager Name": m.reportingManagerName || "N/A",
+      "Reporting Manager Group": m.reportingManagerGroup || "N/A",
+      "Skip Level Manager ID": m.skipLevelManagerId || "N/A",
+      "Skip Level Manager Name": m.skipLevelManagerName || "N/A",
+      "Active Status": m.activeStatus || "N/A",
+      "DRA Batch": m.draBatch || "N/A",
+      "Book Language": m.bookLanguage || "N/A",
+      "Training Language": m.trainingLanguage || "N/A",
+      "Exam Center": m.examCenter || "N/A",
+      "Training Month": m.trainingMonth || "N/A",
+      "Upload Month": m.uploadMonth || "N/A",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Outreach List");
     
-    // Set column widths
-    worksheet["!cols"] = [
-      { wch: 30 }, // Name
-      { wch: 20 }, // WhatsApp
-      { wch: 15 }, // Emp ID
-      { wch: 20 }, // Vendor
-    ];
+    // Auto-size columns (rough approximation)
+    const maxWidths = Object.keys(dataToExport[0] || {}).map(key => ({ wch: Math.max(key.length, 15) }));
+    worksheet["!cols"] = maxWidths;
 
     const filename = `Outreach-List-${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(workbook, filename);
