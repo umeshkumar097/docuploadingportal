@@ -925,7 +925,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 )}
               </div>
 
-              {uploadedDocs.has("ID_PROOF") && form.watch("idNumber") && !isDraCertified && (
+              {uploadedDocs.has("ID_PROOF") && !isDraCertified && (
                 <div className="mt-8 pt-8 border-t border-primary/10 animate-in slide-in-from-top-4 duration-500">
                   <FormField
                     control={form.control}
