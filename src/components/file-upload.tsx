@@ -64,13 +64,14 @@ export default function FileUpload({
     return avgVariance;
   };
 
-  const processImage = (file: File): Promise<{ blob: Blob; ocrBlob: Blob; isGrayscale: boolean; colorVariance: number }> => {
+  const processImage = (file: File): Promise<{ blob: Blob; isGrayscale: boolean; colorVariance: number }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement("canvas");
+          // Scale down for analysis if too large
           const maxDim = 1200;
           let width = img.width;
           let height = img.height;
@@ -92,31 +93,12 @@ export default function FileUpload({
           }
           ctx.drawImage(img, 0, 0, width, height);
           const colorVariance = getColorVariance(ctx, width, height);
-          const isGrayscale = colorVariance < 15;
+          const isGrayscale = colorVariance < 15; // Threshold for B&W/Grayscale
 
-          // 1. Get original blob for storage
           canvas.toBlob(
             (blob) => {
-              if (!blob) {
-                reject(new Error("Original blob failed"));
-                return;
-              }
-
-              // 2. Apply OCR optimization (High contrast, Grayscale)
-              ctx.filter = "contrast(1.4) grayscale(1)";
-              ctx.drawImage(img, 0, 0, width, height);
-              
-              canvas.toBlob(
-                (ocrBlob) => {
-                   if (!ocrBlob) {
-                     reject(new Error("OCR blob failed"));
-                     return;
-                   }
-                   resolve({ blob, ocrBlob, isGrayscale, colorVariance });
-                },
-                "image/jpeg",
-                0.90
-              );
+              if (blob) resolve({ blob, isGrayscale, colorVariance });
+              else reject(new Error("Canvas toBlob failed"));
             },
             "image/jpeg",
             0.95
@@ -251,100 +233,6 @@ export default function FileUpload({
 
                     if (foundForbidden.length > 0) {
                         isValid = false;
-      const { blob, ocrBlob, isGrayscale, colorVariance } = await processImage(file);
-      
-      // Exempt signatures AND qualifications from grayscale check
-      // Signatures are usually black ink, and many degrees (especially Hindi ones) are high-contrast/BW scans
-      const isExempt = type === "SIGNATURE" || type === "QUALIFICATION";
-      
-      if (isGrayscale && !isExempt) {
-        setStatus("error");
-        setErrorMessage("Upload Rejected - Please upload an original coloured copy. Black & White copies are not accepted.");
-        return;
-      }
-
-      const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
-      file = new File([blob], newName, { type: "image/jpeg" });
-      const ocrFile = new File([ocrBlob], "ocr_" + newName, { type: "image/jpeg" });
-      setFileName(newName);
-
-      // 2. Size Validation (post-conversion)
-      if (file.size > maxSizeKB * 1024) {
-        setStatus("error");
-        setErrorMessage(`Too large. Max ${formatSize(maxSizeKB)}.`);
-        return;
-      }
-
-      // 3. AI Document Verification (Strict & Blocking)
-      // Only run OCR for items that NEED text verification to save resources and prevent crashes
-      let isValid = true;
-      let reason = "";
-      let ocrResult: any = null;
-
-      if (type === "QUALIFICATION" || type === "ID_PROOF" || type === "PHOTO" || type === "SIGNATURE") {
-          console.log(`[AI Verification] Starting scan for ${type}...`);
-          try {
-              const Tesseract = (await import("tesseract.js")).default;
-              // Use the OCR-optimized file for Tesseract
-              ocrResult = await Tesseract.recognize(ocrFile, "eng");
-              const extractedText = ocrResult.data.text.toLowerCase();
-              const textDensity = extractedText.length;
-              
-              console.log(`[AI Verification] Raw Text Length: ${textDensity}`);
-              
-              if (type === "PHOTO") {
-                if (textDensity > 200) { 
-                    isValid = false;
-                    reason = "This looks like a document. Please upload a clear passport-size photograph.";
-                }
-              } else if (type === "SIGNATURE") {
-                if (textDensity > 400) { // Increased from 250 to allow more variance in scans
-                    isValid = false;
-                    reason = "Signature should not contain much text. Please upload a clear scan of your signature.";
-                } else if (colorVariance > 40) {
-                    isValid = false;
-                    reason = "Verification Failed: This looks like a colorful photograph. Please upload a clear scan of your signature on white paper.";
-                }
-              } else if (type === "QUALIFICATION") {
-                const idKeywords = ["aadhaar", "unique identification", "government of india", "permanent account", "pan card", "election commission", "voter id", "driving licence", "identity card"];
-                const isIdProof = idKeywords.some(k => extractedText.includes(k));
-
-                if (isIdProof) {
-                    isValid = false;
-                    reason = "Verification Failed: You have uploaded an ID Proof. Please upload your original Marksheet/Degree here.";
-                } 
-                // 2. Block Photos/Selfies (Low text density)
-                else if (textDensity < 80) {
-                    isValid = false;
-                    reason = "Verification Failed: This looks like a photo or an invalid document. Please upload a clear original scan of your document.";
-                }
-                // 3. Strict Check: Degree vs Marksheet
-                else if (label.toLowerCase().includes("degree")) {
-                    const degreeKeywords = ["degree", "certificate", "passing", "convocation", "university", "doctor", "bachelor", "master", "conferred"];
-                    // Strictly forbidden words that indicate a school marksheet or non-degree doc
-                    const forbiddenKeywords = ["marksheet", "marks", "subject", "semester", "year", "total", "obtained", "maximum", "10th", "12th", "secondary", "intermediate", "senior", "school", "matriculation", "hsc", "ssc", "grade card", "result", "provisional", "migration"];
-                    
-                    const hasDegreeText = degreeKeywords.some(k => extractedText.includes(k));
-                    const foundForbidden = forbiddenKeywords.filter(k => extractedText.includes(k));
-
-                    if (foundForbidden.length > 0) {
-                        isValid = false;
-                        const word = foundForbidden[0].toUpperCase();
-                        reason = `Degree Required: This looks like a ${word} document. Graduates MUST upload their ORIGINAL UNIVERSITY DEGREE certificate only. Provisional or Migration certificates are NOT allowed.`;
-                    } else if (!hasDegreeText) {
-                        isValid = false;
-                        reason = "Invalid Degree: This does not look like a University Degree certificate. Please upload a clear original coloured copy.";
-                    }
-                } else {
-                    // Undergraduate/Marksheet check
-                    const marksheetKeywords = ["marksheet", "marks", "statement", "board", "secondary", "higher", "10th", "12th", "ssc", "hsc", "passing", "certificate", "intermediate", "matriculation"];
-                    const forbiddenForUG = ["degree", "convocation", "university", "conferred", "doctor", "bachelor", "master"];
-                    
-                    const hasMarksheetText = marksheetKeywords.some(k => extractedText.includes(k));
-                    const foundForbidden = forbiddenForUG.filter(k => extractedText.includes(k));
-
-                    if (foundForbidden.length > 0) {
-                        isValid = false;
                         const word = foundForbidden[0].toUpperCase();
                         reason = `Marksheet Required: This looks like a ${word} document. Undergraduates MUST upload their 10th or 12th marksheet only.`;
                     } else if (!hasMarksheetText) {
@@ -368,11 +256,19 @@ export default function FileUpload({
                   isValid = aadhaarKeywords.some(k => extractedText.includes(k));
                   reason = "Verification Failed: Please upload a clear original coloured Aadhaar Card image.";
                 } else if (subType === "DL") {
-                  const dlKeywords = ["driving", "licence", "license", "authority", "parivahan"];
-                  isValid = dlKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: Please upload a clear original coloured Driving License.";
+                  const dlKeywords = ["driving", "licence", "license", "transport", "authority", "dl", "mvd", "parivahan"];
+                  const panKeywords = ["income tax", "permanent account"];
+                  const isPan = panKeywords.some(k => extractedText.includes(k));
+                  
+                  if (isPan) {
+                      isValid = false;
+                      reason = "Verification Failed: You have uploaded a PAN Card. Please upload your original Driving License.";
+                  } else {
+                      isValid = dlKeywords.some(k => extractedText.includes(k));
+                      reason = "Verification Failed: Please upload a clear original coloured Driving License.";
+                  }
                 } else if (subType === "PASSPORT") {
-                  const passportKeywords = ["passport", "republic", "india", "bhartiya", "ganrajya"];
+                  const passportKeywords = ["passport", "republic", "india", "bhartiya", "ganrajya", "specimen"];
                   isValid = passportKeywords.some(k => extractedText.includes(k));
                   reason = "Verification Failed: Please upload a clear original coloured Passport image.";
                 } else {
@@ -393,235 +289,23 @@ export default function FileUpload({
       }
 
       // 4. Extract specific values (PAN/Aadhaar/DL/Passport)
-      const rawText = ocrResult?.data?.text || "";
-      console.log("[OCR] Extracted Raw Text:", rawText);
+      const rawText = ocrResult.data.text;
       
-      // Improve extraction by cleaning text (common OCR errors)
-      const cleanText = rawText.replace(/\n/g, " ").replace(/\s\s+/g, " ");
-
-      if (subType === "PAN") {
-        // PAN: ABCDE1234F (allowing common confusions like O/0, I/1)
-        const panMatch = cleanText.match(/[a-zA-Z]{5}[0-9O]{4}[a-zA-Z]{1}/i);
-        if (panMatch) {
-            let pan = panMatch[0].toUpperCase().replace(/O/g, "0");
-            onOcrSuccess?.(pan);
-        }
-      } else if (subType === "AADHAAR") {
-        const aadhaarMatch = cleanText.match(/\d{4}\s?\d{4}\s?\d{4}/);
-        if (aadhaarMatch) onOcrSuccess?.(aadhaarMatch[0].replace(/\s/g, ""));
-      } else if (subType === "DL") {
-        const dlMatch = cleanText.match(/[a-zA-Z]{2}[0-9\s\-]{10,15}/);
-        if (dlMatch) onOcrSuccess?.(dlMatch[0].replace(/[\s\-]/g, "").toUpperCase());
-      } else if (subType === "PASSPORT") {
-        const passportMatch = cleanText.match(/[a-zA-Z][0-9]{7}/);
-        if (passportMatch) onOcrSuccess?.(passportMatch[0].toUpperCase());
-      }
-
-      const formData = new FormData();
-      formData.append("candidateId", candidateId);
-      formData.append("type", type);
-      formData.append("file", file);
-
-      await uploadDocument(formData);
-      setStatus("success");
-      onUploadSuccess?.(type);
-    } catch (error: any) {
-      console.error(error);
-      setStatus("error");
-      setErrorMessage(error.message || "Verification failed");
-    }
-  };
-
-  const formatSize = (kb: number) => {
-    if (kb >= 1024) return `${(kb / 1024).toFixed(0)}MB`;
-    return `${kb}KB`;
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    let file = e.target.files?.[0];
-    if (!file) return;
-
-    setFileName(file.name);
-    
-    if (!file.type.startsWith("image/")) {
-      setStatus("error");
-      setErrorMessage("Please capture or select an image.");
-      return;
-    }
-
-    setPreviewUrl(URL.createObjectURL(file));
-    try {
-      setStatus("uploading");
-
-      // 1. Image Processing: JPEG Conversion + Color Analysis
-      console.log(`Processing ${file.name}...`);
-      const { blob, ocrBlob, isGrayscale, colorVariance } = await processImage(file);
+      // PAN: ABCDE1234F
+      const panMatch = rawText.match(/[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}/i);
+      if (panMatch && subType === "PAN") onOcrSuccess?.(panMatch[0].toUpperCase());
       
-      // Exempt signatures AND qualifications from grayscale check
-      // Signatures are usually black ink, and many degrees (especially Hindi ones) are high-contrast/BW scans
-      const isExempt = type === "SIGNATURE" || type === "QUALIFICATION";
-      
-      if (isGrayscale && !isExempt) {
-        setStatus("error");
-        setErrorMessage("Upload Rejected - Please upload an original coloured copy. Black & White copies are not accepted.");
-        return;
-      }
+      // Aadhaar: 1234 5678 9012
+      const aadhaarMatch = rawText.match(/\d{4}\s?\d{4}\s?\d{4}/);
+      if (aadhaarMatch && subType === "AADHAAR") onOcrSuccess?.(aadhaarMatch[0].replace(/\s/g, ""));
 
-      const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
-      file = new File([blob], newName, { type: "image/jpeg" });
-      const ocrFile = new File([ocrBlob], "ocr_" + newName, { type: "image/jpeg" });
-      setFileName(newName);
+      // DL: SS-RR-YYYY-NNNNNNN or similar (Generic: 2 letters + 13 chars)
+      const dlMatch = rawText.match(/[a-zA-Z]{2}[0-9\s\-]{10,15}/);
+      if (dlMatch && subType === "DL") onOcrSuccess?.(dlMatch[0].replace(/[\s\-]/g, "").toUpperCase());
 
-      // 2. Size Validation (post-conversion)
-      if (file.size > maxSizeKB * 1024) {
-        setStatus("error");
-        setErrorMessage(`Too large. Max ${formatSize(maxSizeKB)}.`);
-        return;
-      }
-
-      // 3. AI Document Verification (Strict & Blocking)
-      // Only run OCR for items that NEED text verification to save resources and prevent crashes
-      let isValid = true;
-      let reason = "";
-      let ocrResult: any = null;
-
-      if (type === "QUALIFICATION" || type === "ID_PROOF" || type === "PHOTO" || type === "SIGNATURE") {
-          console.log(`[AI Verification] Starting scan for ${type}...`);
-          try {
-              const Tesseract = (await import("tesseract.js")).default;
-              // Use the OCR-optimized file for Tesseract
-              ocrResult = await Tesseract.recognize(ocrFile, "eng");
-              const extractedText = ocrResult.data.text.toLowerCase();
-              const textDensity = extractedText.length;
-              
-              console.log(`[AI Verification] Raw Text Length: ${textDensity}`);
-              
-              if (type === "PHOTO") {
-                if (textDensity > 200) { 
-                    isValid = false;
-                    reason = "This looks like a document. Please upload a clear passport-size photograph.";
-                }
-              } else if (type === "SIGNATURE") {
-                if (textDensity > 400) { // Increased from 250 to allow more variance in scans
-                    isValid = false;
-                    reason = "Signature should not contain much text. Please upload a clear scan of your signature.";
-                } else if (colorVariance > 40) {
-                    isValid = false;
-                    reason = "Verification Failed: This looks like a colorful photograph. Please upload a clear scan of your signature on white paper.";
-                }
-              } else if (type === "QUALIFICATION") {
-                const idKeywords = ["aadhaar", "unique identification", "government of india", "permanent account", "pan card", "election commission", "voter id", "driving licence", "identity card"];
-                const isIdProof = idKeywords.some(k => extractedText.includes(k));
-
-                if (isIdProof) {
-                    isValid = false;
-                    reason = "Verification Failed: You have uploaded an ID Proof. Please upload your original Marksheet/Degree here.";
-                } 
-                // 2. Block Photos/Selfies (Low text density)
-                else if (textDensity < 80) {
-                    isValid = false;
-                    reason = "Verification Failed: This looks like a photo or an invalid document. Please upload a clear original scan of your document.";
-                }
-                // 3. Strict Check: Degree vs Marksheet
-                else if (label.toLowerCase().includes("degree")) {
-                    const degreeKeywords = ["degree", "certificate", "passing", "convocation", "university", "doctor", "bachelor", "master", "conferred"];
-                    // Strictly forbidden words that indicate a school marksheet or non-degree doc
-                    const forbiddenKeywords = ["marksheet", "marks", "subject", "semester", "year", "total", "obtained", "maximum", "10th", "12th", "secondary", "intermediate", "senior", "school", "matriculation", "hsc", "ssc", "grade card", "result", "provisional", "migration"];
-                    
-                    const hasDegreeText = degreeKeywords.some(k => extractedText.includes(k));
-                    const foundForbidden = forbiddenKeywords.filter(k => extractedText.includes(k));
-
-                    if (foundForbidden.length > 0) {
-                        isValid = false;
-                        const word = foundForbidden[0].toUpperCase();
-                        reason = `Degree Required: This looks like a ${word} document. Graduates MUST upload their ORIGINAL UNIVERSITY DEGREE certificate only. Provisional or Migration certificates are NOT allowed.`;
-                    } else if (!hasDegreeText) {
-                        isValid = false;
-                        reason = "Invalid Degree: This does not look like a University Degree certificate. Please upload a clear original coloured copy.";
-                    }
-                } else {
-                    // Undergraduate/Marksheet check
-                    const marksheetKeywords = ["marksheet", "marks", "statement", "board", "secondary", "higher", "10th", "12th", "ssc", "hsc", "passing", "certificate", "intermediate", "matriculation"];
-                    const forbiddenForUG = ["degree", "convocation", "university", "conferred", "doctor", "bachelor", "master"];
-                    
-                    const hasMarksheetText = marksheetKeywords.some(k => extractedText.includes(k));
-                    const foundForbidden = forbiddenForUG.filter(k => extractedText.includes(k));
-
-                    if (foundForbidden.length > 0) {
-                        isValid = false;
-                        const word = foundForbidden[0].toUpperCase();
-                        reason = `Marksheet Required: This looks like a ${word} document. Undergraduates MUST upload their 10th or 12th marksheet only.`;
-                    } else if (!hasMarksheetText) {
-                        isValid = false;
-                        reason = "Marksheet Required: This does not look like a valid Marksheet. Please upload your original 10th, 12th, or UG marksheet.";
-                    }
-                }
-              } else if (type === "ID_PROOF") {
-                const negativeIdKeywords = ["degree", "marksheet", "certificate", "university", "passing", "provisional", "board", "marks", "education"];
-                const containsQualifcationText = negativeIdKeywords.some(k => extractedText.includes(k));
-
-                if (containsQualifcationText) {
-                    isValid = false;
-                    reason = "Verification Failed: This looks like an Educational Document. Please upload your original Government ID Card here.";
-                } else if (subType === "PAN") {
-                  const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax"];
-                  isValid = panKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: Please upload a clear original coloured PAN Card image.";
-                } else if (subType === "AADHAAR") {
-                  const aadhaarKeywords = ["aadhaar", "unique", "government", "india", "female", "male", "dob", "address", "enrollment", "vid"];
-                  isValid = aadhaarKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: Please upload a clear original coloured Aadhaar Card image.";
-                } else if (subType === "DL") {
-                  const dlKeywords = ["driving", "licence", "license", "authority", "parivahan"];
-                  isValid = dlKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: Please upload a clear original coloured Driving License.";
-                } else if (subType === "PASSPORT") {
-                  const passportKeywords = ["passport", "republic", "india", "bhartiya", "ganrajya"];
-                  isValid = passportKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: Please upload a clear original coloured Passport image.";
-                } else {
-                  const idKeywords = ["aadhaar", "unique", "government", "india", "dob", "income tax", "permanent account", "pan", "driving", "license", "election", "voter", "passport", "signature"];
-                  isValid = idKeywords.some(k => extractedText.includes(k));
-                  reason = "Verification Failed: This does not look like a valid Government ID Proof.";
-                }
-              }
-          } catch (ocrErr) {
-              console.error("[OCR Error] Skipping AI Verification:", ocrErr);
-          }
-      }
-
-      if (!isValid) {
-        setStatus("error");
-        setErrorMessage(reason);
-        return;
-      }
-
-      // 4. Extract specific values (PAN/Aadhaar/DL/Passport)
-      const rawText = ocrResult?.data?.text || "";
-      console.log("[OCR] Extracted Raw Text:", rawText);
-      
-      // Improve extraction by cleaning text (common OCR errors)
-      const cleanText = rawText.replace(/\n/g, " ").replace(/\s\s+/g, " ");
-
-      if (subType === "PAN") {
-        // PAN: ABCDE1234F (allowing common confusions like O/0, I/1)
-        const panMatch = cleanText.match(/[a-zA-Z]{5}[0-9O]{4}[a-zA-Z]{1}/i);
-        if (panMatch) {
-            let pan = panMatch[0].toUpperCase().replace(/O/g, "0");
-            onOcrSuccess?.(pan);
-        }
-      } else if (subType === "AADHAAR") {
-        const aadhaarMatch = cleanText.match(/\d{4}\s?\d{4}\s?\d{4}/);
-        if (aadhaarMatch) onOcrSuccess?.(aadhaarMatch[0].replace(/\s/g, ""));
-      } else if (subType === "DL") {
-        const dlMatch = cleanText.match(/[a-zA-Z]{2}[0-9\s\-]{10,15}/);
-        if (dlMatch) onOcrSuccess?.(dlMatch[0].replace(/[\s\-]/g, "").toUpperCase());
-      } else if (subType === "PASSPORT") {
-        const passportMatch = cleanText.match(/[a-zA-Z][0-9]{7}/);
-        if (passportMatch) onOcrSuccess?.(passportMatch[0].toUpperCase());
-      }
+      // Passport: Z1234567
+      const passportMatch = rawText.match(/[a-zA-Z][0-9]{7}/);
+      if (passportMatch && subType === "PASSPORT") onOcrSuccess?.(passportMatch[0].toUpperCase());
 
       const formData = new FormData();
       formData.append("candidateId", candidateId);
