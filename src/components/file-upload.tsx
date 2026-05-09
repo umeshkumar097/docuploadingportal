@@ -230,25 +230,25 @@ export default function FileUpload({
                 .replace(/O/g, "0")
                 .replace(/I/g, "1")
                 .replace(/L/g, "1");
-            onOcrSuccess?.(extractedVal);
+            onOcrSuccess?.(extractedVal as string);
         }
       } else if (subType === "AADHAAR") {
         const aadhaarMatch = cleanText.match(/[0-9]{4}[ \-]?[0-9]{4}[ \-]?[0-9]{4}/);
         if (aadhaarMatch) {
             extractedVal = aadhaarMatch[0].replace(/[ \-]/g, "");
-            onOcrSuccess?.(extractedVal);
+            onOcrSuccess?.(extractedVal as string);
         }
       } else if (subType === "DL") {
         const dlMatch = cleanText.match(/[a-zA-Z]{2}[0-9\s\-]{10,15}/);
         if (dlMatch) {
             extractedVal = dlMatch[0].replace(/[\s\-]/g, "").toUpperCase();
-            onOcrSuccess?.(extractedVal);
+            onOcrSuccess?.(extractedVal as string);
         }
       } else if (subType === "PASSPORT") {
         const passportMatch = cleanText.match(/[a-zA-Z][0-9]{7}/);
         if (passportMatch) {
             extractedVal = passportMatch[0].toUpperCase();
-            onOcrSuccess?.(extractedVal);
+            onOcrSuccess?.(extractedVal as string);
         }
       }
 
