@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import dynamic from "next/dynamic";
@@ -932,10 +933,26 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     render={({ field }) => (
                       <FormItem className="space-y-3">
                         <FormLabel className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                           Confirm {form.watch("idType") || "ID"} Number <span className="text-red-500">*</span>
+                           {form.watch("idType") || "ID"} Number <span className="text-red-500">*</span>
                         </FormLabel>
-                        <p className="text-xs text-muted-foreground mb-4 italic">The ID number has been automatically extracted. Please confirm or correct it if needed.</p>
-                        <FormControl><Input placeholder={`Enter your ${form.watch("idType") || "ID"} number`} className="h-14 rounded-2xl bg-primary/10 border-2 border-primary/30 px-6 font-bold text-lg text-primary shadow-inner" {...field} /></FormControl>
+                        <p className="text-xs text-muted-foreground mb-4 italic">
+                          {field.value 
+                            ? "The ID number has been successfully extracted and locked for security." 
+                            : "Waiting for ID extraction... Please ensure you upload a clear original copy."}
+                        </p>
+                        <FormControl>
+                          <Input 
+                            placeholder={field.value ? "" : `Enter your ${form.watch("idType") || "ID"} number`} 
+                            className={cn(
+                              "h-14 rounded-2xl border-2 px-6 font-bold text-lg shadow-inner transition-all",
+                              field.value 
+                                ? "bg-emerald-500/5 border-emerald-500/30 text-emerald-700 cursor-not-allowed" 
+                                : "bg-primary/10 border-primary/30 text-primary"
+                            )} 
+                            {...field} 
+                            readOnly={!!field.value}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
