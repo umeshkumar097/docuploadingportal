@@ -99,7 +99,7 @@ export default function FileUpload({
               }
 
               // Apply OCR optimization for the second blob
-              ctx.filter = "contrast(1.5) grayscale(1)";
+              ctx.filter = "contrast(1.4) grayscale(1)";
               ctx.drawImage(img, 0, 0, width, height);
               
               canvas.toBlob(
@@ -192,19 +192,11 @@ export default function FileUpload({
                 }
               } else if (type === "ID_PROOF") {
                 if (subType === "PAN") {
-                  const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax", "dept", "govt"];
-                  isValid = panKeywords.some(k => extractedText.includes(k));
-                  // If we find a valid-looking PAN number, we override keyword check
-                  const panMatch = extractedText.match(/[a-z]{5}[0-9o]{4}[a-z]{1}/i);
-                  if (panMatch) isValid = true;
-                  reason = "Invalid PAN Card. Please upload a clear original coloured copy.";
+                  isValid = ["income tax", "permanent account", "pan"].some(k => extractedText.includes(k));
+                  reason = "Invalid PAN Card. Please upload a clear coloured original.";
                 } else if (subType === "AADHAAR") {
-                  const aadhaarKeywords = ["aadhaar", "unique", "government", "india", "female", "male", "dob", "enrollment", "vid"];
-                  isValid = aadhaarKeywords.some(k => extractedText.includes(k));
-                  // If we find 12 digits, we override
-                  const aadhaarMatch = extractedText.match(/[0-9]{4}[ \-]?[0-9]{4}[ \-]?[0-9]{4}/);
-                  if (aadhaarMatch) isValid = true;
-                  reason = "Invalid Aadhaar. Please upload a clear original coloured copy.";
+                  isValid = ["aadhaar", "unique", "government", "india"].some(k => extractedText.includes(k));
+                  reason = "Invalid Aadhaar. Please upload a clear coloured original.";
                 }
               }
           } catch (ocrErr) {
@@ -223,21 +215,11 @@ export default function FileUpload({
       const cleanText = rawText.replace(/\n/g, " ").replace(/\s\s+/g, " ");
 
       if (subType === "PAN") {
-        // Handle common OCR mistakes (O/0, I/1, L/1) and spaces
-        const panMatch = cleanText.match(/[A-Z]{5}[0-9OIL\s]{4}[A-Z]{1}/i);
-        if (panMatch) {
-            let pan = panMatch[0].toUpperCase()
-                .replace(/\s/g, "")
-                .replace(/O/g, "0")
-                .replace(/I/g, "1")
-                .replace(/L/g, "1");
-            onOcrSuccess?.(pan);
-        }
+        const panMatch = cleanText.match(/[a-zA-Z]{5}[0-9O]{4}[a-zA-Z]{1}/i);
+        if (panMatch) onOcrSuccess?.(panMatch[0].toUpperCase().replace(/O/g, "0"));
       } else if (subType === "AADHAAR") {
-        const aadhaarMatch = cleanText.match(/[0-9]{4}[ \-]?[0-9]{4}[ \-]?[0-9]{4}/);
-        if (aadhaarMatch) {
-            onOcrSuccess?.(aadhaarMatch[0].replace(/[ \-]/g, ""));
-        }
+        const aadhaarMatch = cleanText.match(/\d{4}\s?\d{4}\s?\d{4}/);
+        if (aadhaarMatch) onOcrSuccess?.(aadhaarMatch[0].replace(/\s/g, ""));
       } else if (subType === "DL") {
         const dlMatch = cleanText.match(/[a-zA-Z]{2}[0-9\s\-]{10,15}/);
         if (dlMatch) onOcrSuccess?.(dlMatch[0].replace(/[\s\-]/g, "").toUpperCase());
@@ -296,12 +278,7 @@ export default function FileUpload({
               </div>
             </>
           )}
-          {status === "uploading" && (
-             <div className="flex flex-col items-center gap-2">
-               <Loader2 className="h-6 w-6 animate-spin text-primary" />
-               <p className="text-[10px] font-bold text-primary animate-pulse">EXTRACTING ID...</p>
-             </div>
-          )}
+          {status === "uploading" && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
           {status === "success" && (
             <div className="w-12 h-12 rounded-2xl overflow-hidden border border-emerald-500/20">
               {previewUrl ? <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" /> : <FileText className="h-6 w-6" />}
