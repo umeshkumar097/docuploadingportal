@@ -98,7 +98,7 @@ export default function FileUpload({
                 return;
               }
 
-              // Apply OCR optimization for the second blob
+              // Apply OCR optimization
               ctx.filter = "contrast(1.5) grayscale(1)";
               ctx.drawImage(img, 0, 0, width, height);
               
@@ -194,14 +194,12 @@ export default function FileUpload({
                 if (subType === "PAN") {
                   const panKeywords = ["income tax", "permanent account", "pan", "father", "income", "tax", "dept", "govt"];
                   isValid = panKeywords.some(k => extractedText.includes(k));
-                  // If we find a valid-looking PAN number, we override keyword check
                   const panMatch = extractedText.match(/[a-z]{5}[0-9o]{4}[a-z]{1}/i);
                   if (panMatch) isValid = true;
                   reason = "Invalid PAN Card. Please upload a clear original coloured copy.";
                 } else if (subType === "AADHAAR") {
                   const aadhaarKeywords = ["aadhaar", "unique", "government", "india", "female", "male", "dob", "enrollment", "vid"];
                   isValid = aadhaarKeywords.some(k => extractedText.includes(k));
-                  // If we find 12 digits, we override
                   const aadhaarMatch = extractedText.match(/[0-9]{4}[ \-]?[0-9]{4}[ \-]?[0-9]{4}/);
                   if (aadhaarMatch) isValid = true;
                   reason = "Invalid Aadhaar. Please upload a clear original coloured copy.";
@@ -221,29 +219,43 @@ export default function FileUpload({
       // Extraction logic
       const rawText = ocrResult?.data?.text || "";
       const cleanText = rawText.replace(/\n/g, " ").replace(/\s\s+/g, " ");
+      console.log(`[OCR Extraction] SubType: ${subType}, Text: ${cleanText}`);
 
+      let extractedVal: string | null = null;
       if (subType === "PAN") {
-        // Handle common OCR mistakes (O/0, I/1, L/1) and spaces
-        const panMatch = cleanText.match(/[A-Z]{5}[0-9OIL\s]{4}[A-Z]{1}/i);
+        const panMatch = cleanText.match(/[A-Z]{5}[^A-Z0-9]{0,3}[0-9OIL]{4}[^A-Z0-9]{0,3}[A-Z]{1}/i);
         if (panMatch) {
-            let pan = panMatch[0].toUpperCase()
-                .replace(/\s/g, "")
+            extractedVal = panMatch[0].toUpperCase()
+                .replace(/[^A-Z0-9]/g, "")
                 .replace(/O/g, "0")
                 .replace(/I/g, "1")
                 .replace(/L/g, "1");
-            onOcrSuccess?.(pan);
+            onOcrSuccess?.(extractedVal);
         }
       } else if (subType === "AADHAAR") {
         const aadhaarMatch = cleanText.match(/[0-9]{4}[ \-]?[0-9]{4}[ \-]?[0-9]{4}/);
         if (aadhaarMatch) {
-            onOcrSuccess?.(aadhaarMatch[0].replace(/[ \-]/g, ""));
+            extractedVal = aadhaarMatch[0].replace(/[ \-]/g, "");
+            onOcrSuccess?.(extractedVal);
         }
       } else if (subType === "DL") {
         const dlMatch = cleanText.match(/[a-zA-Z]{2}[0-9\s\-]{10,15}/);
-        if (dlMatch) onOcrSuccess?.(dlMatch[0].replace(/[\s\-]/g, "").toUpperCase());
+        if (dlMatch) {
+            extractedVal = dlMatch[0].replace(/[\s\-]/g, "").toUpperCase();
+            onOcrSuccess?.(extractedVal);
+        }
       } else if (subType === "PASSPORT") {
         const passportMatch = cleanText.match(/[a-zA-Z][0-9]{7}/);
-        if (passportMatch) onOcrSuccess?.(passportMatch[0].toUpperCase());
+        if (passportMatch) {
+            extractedVal = passportMatch[0].toUpperCase();
+            onOcrSuccess?.(extractedVal);
+        }
+      }
+
+      if (type === "ID_PROOF" && subType && !extractedVal) {
+          setStatus("error");
+          setErrorMessage("Could not extract ID number. Please upload a clearer, original coloured copy.");
+          return;
       }
 
       const formData = new FormData();
