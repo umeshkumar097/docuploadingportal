@@ -17,8 +17,9 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const inputBuffer = Buffer.from(arrayBuffer);
 
-    // Improve image quality before OCR using sharp
+    // Improve image quality and RESIZE before OCR to speed up
     const processedBuffer = await sharp(inputBuffer)
+      .resize(1000) // Resize to 1000px width for faster OCR
       .grayscale()
       .sharpen()
       .normalize()
