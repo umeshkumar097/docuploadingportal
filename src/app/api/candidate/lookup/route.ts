@@ -2,76 +2,80 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
+  console.log("--- LOOKUP API START ---");
   try {
     const { searchParams } = new URL(req.url);
-    const employeeId = searchParams.get("employeeId")?.trim();
-    const mobileNumber = searchParams.get("mobileNumber")?.trim();
-    const clientId = searchParams.get("clientId")?.trim();
+    const employeeId = searchParams.get("employeeId");
+    const mobileNumber = searchParams.get("mobileNumber");
+    const clientId = searchParams.get("clientId");
+
+    console.log(`Params: emp=${employeeId}, mobile=${mobileNumber}, client=${clientId}`);
 
     if (!employeeId && !mobileNumber) {
-      return NextResponse.json({ error: "Employee ID or Mobile Number is required" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Missing ID or Mobile" }, { status: 400 });
     }
 
+    // Ultra-simple query to prevent any 500 error
     const employeeData = await prisma.masterEmployee.findFirst({
       where: {
-        OR: [
-          ...(employeeId ? [
-            { employeeId: { equals: employeeId, mode: "insensitive" as const } },
-            { employeeId: { contains: employeeId, mode: "insensitive" as const } }
-          ] : []),
-          ...(mobileNumber ? [
-            { personalMobileNo: { contains: mobileNumber } }, 
-            { officeMobileNo: { contains: mobileNumber } },
-            { whatsappNo: { contains: mobileNumber } }
-          ] : [])
+        AND: [
+          clientId ? { clientId: clientId } : {},
+          employeeId ? { employeeId: employeeId } : {}
         ]
-      },
-      orderBy: {
-        createdAt: 'desc'
       }
     });
 
-    const allRelatedCandidates = await prisma.candidate.findMany({
-      where: {
-        OR: [
-          ...(employeeId ? [
-            { employeeId: { equals: employeeId, mode: "insensitive" as const } },
-            { employeeId: { contains: employeeId, mode: "insensitive" as const } }
-          ] : []),
-          ...(mobileNumber ? [{ mobileNumber: { contains: mobileNumber } }] : [])
-        ]
-      },
-      include: {
-        _count: { select: { documents: true } }
-      }
+    console.log("Master Data Found:", !!employeeData);
+
+    if (!employeeData) {
+        return NextResponse.json({ success: true, found: false });
+    }
+
+    // If master data found, check for candidates
+    const candidates = await prisma.candidate.findMany({
+        where: {
+            OR: [
+                { employeeId: employeeData.employeeId },
+                { mobileNumber: employeeData.personalMobileNo || "NONE" }
+            ]
+        },
+        include: {
+            _count: { select: { documents: true } }
+        }
     });
 
-    const completedCandidate = allRelatedCandidates.find((c: any) => 
-      (c.status !== "PENDING" || c._count.documents >= 4) && !c.canReupload
-    );
+    const completedCandidate = candidates.find((c: any) => c.status === "COMPLETED");
+    const pendingCandidate = candidates.find((c: any) => c.status === "PENDING") || candidates.find((c: any) => c.canReupload);
 
-    const reuploadCandidate = allRelatedCandidates.find((c: any) => c.canReupload);
-    const existingCandidate = allRelatedCandidates.find((c: any) => c.status === "PENDING") || reuploadCandidate;
+    let existingCandidate = null;
+    if (pendingCandidate) {
+        const docs = await prisma.document.findMany({
+            where: { candidateId: pendingCandidate.id },
+            select: { type: true }
+        });
+        existingCandidate = {
+            token: pendingCandidate.token,
+            id: pendingCandidate.id,
+            canReupload: pendingCandidate.canReupload,
+            highestQualification: pendingCandidate.highestQualification,
+            uploadedDocumentTypes: docs.map((d: any) => d.type)
+        };
+    }
 
     return NextResponse.json({ 
       success: true, 
       found: true, 
       data: employeeData,
       alreadySubmitted: !!completedCandidate,
-      existingCandidate: existingCandidate ? {
-        token: existingCandidate.token,
-        id: existingCandidate.id,
-        canReupload: existingCandidate.canReupload,
-        highestQualification: existingCandidate.highestQualification,
-        uploadedDocumentTypes: (await prisma.document.findMany({
-          where: { candidateId: existingCandidate.id },
-          select: { type: true }
-        })).map((d: any) => d.type)
-      } : null
+      existingCandidate
     });
 
   } catch (error: any) {
-    console.error("Lookup Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("CRITICAL LOOKUP ERROR:", error);
+    return NextResponse.json({ 
+        success: false, 
+        error: "Database Error", 
+        details: error.message 
+    }, { status: 500 });
   }
 }

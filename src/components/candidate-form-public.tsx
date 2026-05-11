@@ -111,10 +111,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       mobileNumber: "",
       employeeId: "",
       phase: "",
-      idType: undefined,
+      idType: "",
       idNumber: "",
       isDraCertified: false,
       originalDegree: false,
+      highestQualification: "",
       addressLine1: "",
       addressLine2: "",
       bookLanguage: "",
@@ -265,14 +266,24 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
         if (hasMobile) qs += `${qs ? "&" : ""}mobileNumber=${encodeURIComponent(mobileWatch)}`;
         if (clientId) qs += `${qs ? "&" : ""}clientId=${encodeURIComponent(clientId)}`;
         
+        console.log(`[LOOKUP REQUEST] Emp: ${empIdWatch}, Mobile: ${mobileWatch}, Client: ${clientId}`);
         const res = await fetch(`/api/candidate/lookup?${qs}`, { signal: abortController.signal });
         const result = await res.json();
+        
+        console.log(`[LOOKUP RESPONSE]`, result);
         
         if (result.success && result.data) {
           const m = result.data;
           setNominationStatus("nominated");
           setLookupError(null);
           
+          // Auto-fill from master data
+          if (m.employeeName) form.setValue("name", m.employeeName, { shouldValidate: true });
+          if (m.personalMobileNo) form.setValue("mobileNumber", m.personalMobileNo, { shouldValidate: true });
+          if (m.whatsappNo && !m.personalMobileNo) form.setValue("mobileNumber", m.whatsappNo, { shouldValidate: true });
+          if (m.residentialState) form.setValue("residentialState", m.residentialState, { shouldValidate: true });
+          if (m.city) form.setValue("city", m.city, { shouldValidate: true });
+
           // Prevent re-submission if already completed
           if (result.alreadySubmitted) {
             setNominationStatus("blocked");
@@ -892,6 +903,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                         initialSuccess={uploadedDocs.has("QUALIFICATION")} 
                         onUploadSuccess={handleUploadSuccess} 
                         canReupload={canReupload}
+                        subType={form.watch("highestQualification")}
                         description={form.watch("highestQualification") === "GRADUATE" ? "Original COLOURED Degree ONLY. Provisional/Migration/B&W NOT allowed." : "Original COLOURED Marksheet ONLY. Black & White copies NOT allowed."}
                       />
                     ) : (

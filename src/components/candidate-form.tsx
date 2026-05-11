@@ -340,7 +340,16 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <FileUpload candidateId={candidateId} type="PHOTO" label="Photograph" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("PHOTO")} onUploadSuccess={handleUploadSuccess} />
-              <FileUpload candidateId={candidateId} type="QUALIFICATION" label="Qualification" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("QUALIFICATION")} onUploadSuccess={handleUploadSuccess} />
+              <FileUpload 
+                candidateId={candidateId} 
+                type="QUALIFICATION" 
+                label="Qualification" 
+                maxSizeKB={10240} 
+                mandatory={true} 
+                initialSuccess={uploadedDocs.has("QUALIFICATION")} 
+                onUploadSuccess={handleUploadSuccess} 
+                subType={form.watch("highestQualification")}
+              />
               <FileUpload 
                 candidateId={candidateId} 
                 type="ID_PROOF" 
