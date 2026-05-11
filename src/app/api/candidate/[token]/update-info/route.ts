@@ -56,7 +56,10 @@ export async function PATCH(
         ...(trainingLanguage !== undefined && { trainingLanguage }),
         ...(examCenter !== undefined && { examCenter }),
         ...(trainingMonth !== undefined && { trainingMonth }),
-        ...(highestQualification !== undefined && { highestQualification }),
+        ...(highestQualification !== undefined && { 
+          highestQualification,
+          qualificationType: highestQualification // Sync for Excel export
+        }),
         lastActiveAt: new Date(),
         currentStep: "PERSONAL_INFO_DONE"
       },

@@ -232,6 +232,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
               trainingLanguage: value.trainingLanguage || undefined,
               examCenter: value.examCenter || undefined,
               trainingMonth: value.trainingMonth || undefined,
+              highestQualification: value.highestQualification || undefined,
             }),
           });
         } catch (err) {
