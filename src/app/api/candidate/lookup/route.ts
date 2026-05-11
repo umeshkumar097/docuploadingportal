@@ -50,7 +50,10 @@ export async function GET(req: NextRequest) {
     let existingCandidate = null;
     if (pendingCandidate) {
         const docs = await prisma.document.findMany({
-            where: { candidateId: pendingCandidate.id },
+            where: { 
+                candidateId: pendingCandidate.id,
+                status: { not: "REJECTED" }
+            },
             select: { type: true }
         });
         existingCandidate = {

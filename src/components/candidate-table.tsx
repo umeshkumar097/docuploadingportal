@@ -108,8 +108,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const isDra = c.isDraCertified;
       const docs = c.documents || [];
       const docCount = isDra 
-        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
-        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
       
       const isSubmitted = c.status === "READY" || (isDra ? docCount >= 1 : docCount >= 4);
       const isNoSubmit = c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
@@ -133,8 +133,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const isDra = c.isDraCertified;
       const docs = c.documents || [];
       const docCount = isDra 
-        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
-        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
       return c.status === "READY" || (isDra ? docCount >= 1 : docCount >= 4);
     }).length;
 
@@ -142,8 +142,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const isDra = c.isDraCertified;
       const docs = c.documents || [];
       const docCount = isDra 
-        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
-        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
       return c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
     }).length;
 
@@ -151,8 +151,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const isDra = c.isDraCertified;
       const docs = c.documents || [];
       const docCount = isDra 
-        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE").length
-        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE").length;
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
       const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
       const lastActive = new Date(c.lastActiveAt || c.createdAt);
       const isActive = lastActive > thirtyMinsAgo;
@@ -392,7 +392,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "no-submit" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
         >
           No Submit ({filteredForStats.filter((c: any) => {
-             const dc = (c.documents || []).filter((d: any) => c.isDraCertified ? d.type === "DRA_CERTIFICATE" : d.type !== "DRA_CERTIFICATE").length;
+             const dc = (c.documents || []).filter((d: any) => (c.isDraCertified ? d.type === "DRA_CERTIFICATE" : d.type !== "DRA_CERTIFICATE") && d.status !== "REJECTED").length;
              return c.status === "PENDING" && dc > 0 && (c.isDraCertified ? dc < 1 : dc < 4);
           }).length})
         </button>
@@ -637,8 +637,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                 <TableCell className="py-6 text-center">
                   <span className="text-sm font-bold text-foreground">
                       {candidate.isDraCertified 
-                        ? (candidate.documents?.filter((d: any) => d.type === "DRA_CERTIFICATE").length || 0)
-                        : (candidate.documents?.filter((d: any) => d.type !== "DRA_CERTIFICATE").length || 0)
+                        ? (candidate.documents?.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length || 0)
+                        : (candidate.documents?.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length || 0)
                       } 
                       <span className="text-muted-foreground font-normal"> / {candidate.isDraCertified ? "1" : "4"}</span>
                   </span>
