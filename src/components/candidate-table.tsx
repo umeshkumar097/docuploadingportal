@@ -324,6 +324,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         "ID Type": c.idType || "N/A",
         "ID Number": c.idNumber || "N/A",
         "Photo": getFriendlyStatus(docStatus["PHOTO"]),
+        "Category": c.qualificationType || "N/A",
         "Qualification": getFriendlyStatus(docStatus["QUALIFICATION"]),
         "ID Proof": idProofFinal,
         "Signature": getFriendlyStatus(docStatus["SIGNATURE"]),
@@ -615,6 +616,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                     {candidate.trainingMonth && (
                       <Badge variant="outline" className="text-[9px] px-2 py-0.5 border-amber-500/20 text-amber-600 font-bold uppercase tracking-widest bg-amber-500/5 rounded-lg w-fit">
                         {candidate.trainingMonth}
+                      </Badge>
+                    )}
+                    {candidate.qualificationType && (
+                      <Badge variant="outline" className={`text-[9px] px-2 py-0.5 border-2 font-black uppercase tracking-widest rounded-lg w-fit ${candidate.qualificationType === 'GRADUATE' ? 'border-emerald-500/20 text-emerald-600 bg-emerald-500/5' : 'border-indigo-500/20 text-indigo-600 bg-indigo-500/5'}`}>
+                        {candidate.qualificationType}
                       </Badge>
                     )}
                     {candidate.isDraCertified && (

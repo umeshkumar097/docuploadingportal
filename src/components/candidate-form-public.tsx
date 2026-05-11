@@ -59,6 +59,7 @@ const formSchema = z.object({
   isDraCertified: z.boolean(),
   idNumber: z.string().optional(),
   highestQualification: z.string().min(1, "Please select your highest qualification level"),
+  qualificationType: z.string().optional(),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -111,11 +112,12 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       mobileNumber: "",
       employeeId: "",
       phase: "",
-      idType: "",
+      idType: undefined,
       idNumber: "",
       isDraCertified: false,
       originalDegree: false,
       highestQualification: "",
+      qualificationType: "",
       addressLine1: "",
       addressLine2: "",
       bookLanguage: "",
@@ -283,6 +285,13 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           if (m.whatsappNo && !m.personalMobileNo) form.setValue("mobileNumber", m.whatsappNo, { shouldValidate: true });
           if (m.residentialState) form.setValue("residentialState", m.residentialState, { shouldValidate: true });
           if (m.city) form.setValue("city", m.city, { shouldValidate: true });
+          
+          // Auto-select qualification level based on master data category
+          if (m.qualificationType === "GRADUATE") {
+            form.setValue("highestQualification", "GRADUATE");
+          } else if (m.qualificationType === "UNDERGRADUATE") {
+            form.setValue("highestQualification", "UNDERGRADUATE");
+          }
 
           // Prevent re-submission if already completed
           if (result.alreadySubmitted) {

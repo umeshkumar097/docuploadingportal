@@ -54,6 +54,7 @@ model Candidate {
   examCenter       String?
   trainingMonth    String?
   highestQualification String?
+  qualificationType    String?
   canReupload      Boolean         @default(false)
   client           Client?         @relation(fields: [clientId], references: [id])
   documents        Document[]
@@ -76,6 +77,8 @@ model MasterEmployee {
   id                    String   @id @default(cuid())
   employeeId            String
   employeeName          String?
+  clientId              String?
+  qualificationType     String?
   state                 String?
   reportingManagerId    String?
   reportingManagerName  String?

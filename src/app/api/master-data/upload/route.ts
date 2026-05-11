@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
           city: String(row["City"] || "").trim(),
           pincode: String(row["Pincode"] || "").trim(),
           draBatch: String(row["DRA Batch"] || "").trim(),
+          qualificationType: String(row["Qualification Type"] || row["Category"] || row["Qualification"] || "").trim().toUpperCase(),
           trainingMonth: String(row["Training Month"] || row["Month"] || "").trim(),
           uploadMonth: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
         });

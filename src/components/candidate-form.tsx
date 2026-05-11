@@ -45,6 +45,8 @@ const formSchema = z.object({
     message: "Please select an ID type",
   }),
   idNumber: z.string().min(2, "ID Number is required"),
+  highestQualification: z.string().optional(),
+  qualificationType: z.string().optional(),
   originalDegree: z.boolean().refine((val) => val === true, {
     message: "You must confirm this is an original certificate",
   }),
@@ -348,7 +350,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 mandatory={true} 
                 initialSuccess={uploadedDocs.has("QUALIFICATION")} 
                 onUploadSuccess={handleUploadSuccess} 
-                subType={form.watch("highestQualification")}
+                subType={form.watch("highestQualification") as any}
               />
               <FileUpload 
                 candidateId={candidateId} 
@@ -358,7 +360,7 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 mandatory={true} 
                 initialSuccess={uploadedDocs.has("ID_PROOF")} 
                 onUploadSuccess={handleUploadSuccess} 
-                subType={form.watch("idType")}
+                subType={form.watch("idType") as any}
               />
               <FileUpload candidateId={candidateId} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
             </div>

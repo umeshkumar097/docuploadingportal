@@ -44,7 +44,7 @@ export async function extractIdFromImage(formData: FormData) {
         if (panMatch) {
             const raw = panMatch[0].replace(/[ \-]/g, "");
             // Apply corrections
-            idNumber = raw.split("").map((c, i) => {
+            idNumber = raw.split("").map((c: string, i: number) => {
                 if (i < 5 || i === 9) return c.replace("0", "O").replace("1", "I").replace("5", "S").replace("8", "B");
                 return c.replace("O", "0").replace("I", "1").replace("L", "1").replace("S", "5").replace("B", "8");
             }).join("");
