@@ -283,16 +283,36 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           // Auto-fill from master data
           if (m.employeeName) form.setValue("name", m.employeeName, { shouldValidate: true });
           if (m.personalMobileNo) form.setValue("mobileNumber", m.personalMobileNo, { shouldValidate: true });
-          if (m.whatsappNo && !m.personalMobileNo) form.setValue("mobileNumber", m.whatsappNo, { shouldValidate: true });
-          if (m.residentialState) form.setValue("residentialState", m.residentialState, { shouldValidate: true });
+          else if (m.whatsappNo) form.setValue("mobileNumber", m.whatsappNo, { shouldValidate: true });
+          else if (m.officeMobileNo) form.setValue("mobileNumber", m.officeMobileNo, { shouldValidate: true });
+
+          if (m.residentialState || m.state) form.setValue("residentialState", m.residentialState || m.state, { shouldValidate: true });
           if (m.city) form.setValue("city", m.city, { shouldValidate: true });
+          if (m.pincode) form.setValue("pincode", m.pincode, { shouldValidate: true });
           
-          // Auto-select qualification level based on master data category
-          if (m.qualificationType === "GRADUATE") {
-            form.setValue("highestQualification", "GRADUATE");
-          } else if (m.qualificationType === "UNDERGRADUATE") {
-            form.setValue("highestQualification", "UNDERGRADUATE");
+          // Employer mapping: Prioritize explicit employer field, fallback to vendor
+          const employerVal = m.employer || m.vendor || "";
+          if (employerVal) form.setValue("employer", employerVal, { shouldValidate: true });
+
+          // Qualification mapping: Handle both explicit level and type string
+          if (m.highestQualification) {
+            form.setValue("highestQualification", m.highestQualification);
+          } else if (m.qualificationType) {
+            const qType = m.qualificationType.toUpperCase();
+            if (qType.includes("GRADUATE") && !qType.includes("UNDER")) {
+              form.setValue("highestQualification", "GRADUATE");
+            } else if (qType.includes("UNDERGRADUATE") || qType.includes("10TH") || qType.includes("12TH") || qType.includes("UG")) {
+              form.setValue("highestQualification", "UNDERGRADUATE");
+            }
           }
+
+          if (m.addressLine1) form.setValue("addressLine1", m.addressLine1, { shouldValidate: true });
+          if (m.addressLine2) form.setValue("addressLine2", m.addressLine2, { shouldValidate: true });
+          if (m.bookLanguage) form.setValue("bookLanguage", m.bookLanguage, { shouldValidate: true });
+          if (m.trainingLanguage) form.setValue("trainingLanguage", m.trainingLanguage, { shouldValidate: true });
+          if (m.examCenter) form.setValue("examCenter", m.examCenter, { shouldValidate: true });
+          if (m.trainingMonth) form.setValue("trainingMonth", m.trainingMonth, { shouldValidate: true });
+          if (m.phase) form.setValue("phase", m.phase, { shouldValidate: true });
 
           // Prevent re-submission if already completed
           if (result.alreadySubmitted) {
@@ -323,23 +343,6 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             if (ext.examCenter) form.setValue("examCenter", ext.examCenter);
             if (ext.trainingMonth) form.setValue("trainingMonth", ext.trainingMonth);
           }
-
-          if (m.employeeName && !form.getValues("name")) form.setValue("name", m.employeeName, { shouldValidate: true });
-          if (m.vendor && !form.getValues("employer")) form.setValue("employer", m.vendor, { shouldValidate: true });
-          if (m.state && !form.getValues("residentialState")) form.setValue("residentialState", m.state, { shouldValidate: true });
-          if (m.city && !form.getValues("city")) form.setValue("city", m.city, { shouldValidate: true });
-          if (m.pincode && !form.getValues("pincode")) form.setValue("pincode", m.pincode, { shouldValidate: true });
-          if (m.phase) form.setValue("phase", m.phase, { shouldValidate: true });
-          
-          const mobile = m.personalMobileNo || m.officeMobileNo;
-          if (mobile && !form.getValues("mobileNumber")) form.setValue("mobileNumber", mobile, { shouldValidate: true });
-          
-          if (m.addressLine1 && !form.getValues("addressLine1")) form.setValue("addressLine1", m.addressLine1, { shouldValidate: true });
-          if (m.addressLine2 && !form.getValues("addressLine2")) form.setValue("addressLine2", m.addressLine2, { shouldValidate: true });
-          if (m.bookLanguage && !form.getValues("bookLanguage")) form.setValue("bookLanguage", m.bookLanguage, { shouldValidate: true });
-          if (m.trainingLanguage && !form.getValues("trainingLanguage")) form.setValue("trainingLanguage", m.trainingLanguage, { shouldValidate: true });
-          if (m.examCenter && !form.getValues("examCenter")) form.setValue("examCenter", m.examCenter, { shouldValidate: true });
-          if (m.trainingMonth && !form.getValues("trainingMonth")) form.setValue("trainingMonth", m.trainingMonth, { shouldValidate: true });
         } else {
           setNominationStatus("blocked");
           setLookupError("YOU ARE NOT NOMINATED FOR THIS BATCH");

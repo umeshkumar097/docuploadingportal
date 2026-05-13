@@ -99,6 +99,8 @@ model MasterEmployee {
   bookLanguage          String?
   trainingLanguage      String?
   examCenter            String?
+  employer              String?
+  highestQualification  String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   city                  String?

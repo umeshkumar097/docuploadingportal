@@ -35,43 +35,52 @@ export async function POST(req: NextRequest) {
       const data: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
       for (const row of data) {
-        const employeeId = String(row["Employee Id"] || "").trim();
+        const getVal = (keys: string[]) => {
+          for (const k of keys) {
+            if (row[k] !== undefined && row[k] !== null && row[k] !== "") return String(row[k]).trim();
+          }
+          return "";
+        };
+
+        const employeeId = getVal(["Employee Id", "Employee ID", "ID", "EmployeeID"]);
         if (!employeeId || seenEmployeeIds.has(employeeId)) continue;
 
         seenEmployeeIds.add(employeeId);
         
-        // Use override if provided, otherwise check row, otherwise default
         const phaseValue = (phaseOverride && phaseOverride.trim()) 
           ? phaseOverride.trim() 
-          : String(row["Phase"] || row["Phases"] || "Phase 1").trim();
+          : getVal(["Phase", "Phases"]) || "Phase 1";
 
         allFormattedData.push({
           employeeId,
-          employeeName: String(row["Employee Name"] || "").trim(),
-          state: String(row["State"] || "").trim(),
-          reportingManagerId: String(row["Reporting Manager ID"] || "").trim(),
-          reportingManagerName: String(row["Reporting Manager Name"] || "").trim(),
-          reportingManagerGroup: String(row["Reporting Manager Group"] || "").trim(),
-          skipLevelManagerId: String(row["Skip Level Manager ID"] || "").trim(),
-          skipLevelManagerName: String(row["Skip Level Manager Name"] || "").trim(),
-          activeStatus: String(row["Active Status"] || "").trim(),
-          email: String(row["Email"] || "").trim(),
-          officeMobileNo: String(row["Office Mobile No"] || "").trim(),
-          personalMobileNo: String(row["Personal Mobile No"] || "").trim(),
+          employeeName: getVal(["Employee Name", "Name", "NAME", "Full Name"]),
+          state: getVal(["State", "STATE"]),
+          reportingManagerId: getVal(["Reporting Manager ID", "Reporting Manager Id"]),
+          reportingManagerName: getVal(["Reporting Manager Name", "Reporting Manager Name"]),
+          reportingManagerGroup: getVal(["Reporting Manager Group", "Reporting Manager Group"]),
+          skipLevelManagerId: getVal(["Skip Level Manager ID", "Skip Level Manager Id"]),
+          skipLevelManagerName: getVal(["Skip Level Manager Name", "Skip Level Manager Name"]),
+          activeStatus: getVal(["Active Status", "Status"]),
+          email: getVal(["Email", "Email id", "Mail id", "Email ID"]),
+          officeMobileNo: getVal(["Office Mobile No", "Office Mobile"]),
+          personalMobileNo: getVal(["Personal Mobile No", "Contact Number ", "Mobile Number", "Mobile", "Contact Number"]),
           whatsappNo: String(row["Whatsapp No"] || "").trim(),
-          vendor: vendorNameLimit ? vendorNameLimit : String(row["Vendor"] || "").trim(),
+          vendor: vendorNameLimit ? vendorNameLimit : getVal(["Vendor", "VENDOR"]),
           phase: phaseValue,
           region2: String(row["Region 2"] || "").trim(),
           location2: String(row["Location2"] || "").trim(),
-          city: String(row["City"] || "").trim(),
-          pincode: String(row["Pincode"] || "").trim(),
-          draBatch: String(row["DRA Batch"] || "").trim(),
-          qualificationType: String(row["Qualification Type"] || row["Category"] || row["Qualification"] || "").trim().toUpperCase(),
-          trainingMonth: String(row["Training Month"] || row["Month"] || "").trim(),
+          city: getVal(["City", "CITY", "Location"]),
+          pincode: getVal(["Pincode", "Pincode ", "PINCODE"]),
+          draBatch: getVal(["DRA Batch", "Batch No", "Batch"]),
+          qualificationType: getVal(["Qualification Type", "Category", "Qualification", "Qualification ", "Highest Qualification"]).toUpperCase(),
+          trainingMonth: getVal(["Training Month", "Month"]),
           uploadMonth: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
           clientId: (clientIdOverride && clientIdOverride.trim()) 
             ? clientIdOverride.trim() 
-            : String(row["Client ID"] || row["ClientId"] || "").trim(),
+            : getVal(["Client ID", "ClientId", "Client"]),
+          addressLine1: getVal(["Address", "Adress line 1", "Address line 1", "Home Address"]),
+          highestQualification: getVal(["Qualification", "Qualification ", "Highest Qualification"]),
+          employer: getVal(["Employer", "Company name", "Company"]),
         });
       }
     }
