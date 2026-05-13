@@ -32,17 +32,20 @@ export async function GET(req: NextRequest) {
     }
 
     // If master data found, check for candidates
-    const candidates = await prisma.candidate.findMany({
-        where: {
-            OR: [
-                { employeeId: employeeData.employeeId },
-                { mobileNumber: employeeData.personalMobileNo || "NONE" }
-            ]
-        },
-        include: {
-            _count: { select: { documents: true } }
-        }
-    });
+    let candidates: any[] = [];
+    if (employeeData && employeeData.employeeId) {
+        candidates = await prisma.candidate.findMany({
+            where: {
+                OR: [
+                    { employeeId: employeeData.employeeId },
+                    employeeData.personalMobileNo ? { mobileNumber: employeeData.personalMobileNo } : { employeeId: "NONE_ID" }
+                ]
+            },
+            include: {
+                _count: { select: { documents: true } }
+            }
+        });
+    }
 
     const completedCandidate = candidates.find((c: any) => c.status === "COMPLETED");
     const pendingCandidate = candidates.find((c: any) => c.status === "PENDING") || candidates.find((c: any) => c.canReupload);
