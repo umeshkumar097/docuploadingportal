@@ -1,14 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { UploadCloud, FileSpreadsheet, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { UploadCloud, FileSpreadsheet, Loader2, AlertCircle, CheckCircle2, Building2 } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 export function MasterDataUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [phase, setPhase] = useState<string>("Phase 1");
+  const [clientId, setClientId] = useState<string>("");
+  const [clients, setClients] = useState<any[]>([]);
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
+  const [duplicateCount, setDuplicateCount] = useState<number>(0);
+
+  useEffect(() => {
+    fetch("/api/clients")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setClients(data.data);
+      });
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -26,16 +45,19 @@ export function MasterDataUpload() {
     setMessage("");
   };
 
-  const [duplicateCount, setDuplicateCount] = useState<number>(0);
-
   const handleUpload = async () => {
     if (!file) return;
+    if (!clientId) {
+        toast.error("Please select a client first");
+        return;
+    }
 
     setStatus("uploading");
     setDuplicateCount(0);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("phase", phase);
+    formData.append("clientId", clientId);
 
     try {
       const response = await fetch("/api/master-data/upload", {
@@ -53,13 +75,9 @@ export function MasterDataUpload() {
       setMessage(data.message || "Upload successful!");
       setFile(null);
 
-      // Handle duplicate report download
       if (data.duplicates && data.duplicates.length > 0) {
         setDuplicateCount(data.duplicates.length);
-        
-        // Dynamic import of XLSX to avoid bloating the initial client bundle
         const XLSX = await import("xlsx");
-        
         const worksheet = XLSX.utils.json_to_sheet(data.duplicates.map((d: any) => ({
           "Employee Id": d.employeeId,
           "Employee Name": d.employeeName,
@@ -77,7 +95,6 @@ export function MasterDataUpload() {
         
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Skipped Duplicates");
-        
         XLSX.writeFile(workbook, `Skipped_Duplicates_${new Date().getTime()}.xlsx`);
       }
 
@@ -90,8 +107,38 @@ export function MasterDataUpload() {
 
   return (
     <div className="glass-card p-8 rounded-3xl animate-in slide-in-from-bottom-2 duration-500">
-      <div className="space-y-6">
+      <div className="space-y-8">
         
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Select Client (Batch Mapping)</label>
+                <Select onValueChange={setClientId} value={clientId}>
+                    <SelectTrigger className="h-14 rounded-2xl bg-accent/30 border-2 border-primary/5 px-6 font-bold text-primary">
+                        <SelectValue placeholder="Select Client" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-primary/10 shadow-2xl">
+                        {clients.map(client => (
+                            <SelectItem key={client.id} value={client.id} className="rounded-xl font-bold py-3">
+                                {client.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Target Phase</label>
+                <input 
+                    type="text"
+                    value={phase}
+                    onChange={(e) => setPhase(e.target.value)}
+                    placeholder="e.g. Phase 1"
+                    disabled={status === "uploading"}
+                    className="w-full h-14 rounded-2xl bg-accent/30 border-2 border-primary/5 px-6 font-bold text-primary focus:border-primary/20 outline-none transition-all"
+                />
+            </div>
+        </div>
+
         <div className="w-full relative border-2 border-dashed border-primary/20 bg-accent/30 hover:bg-accent/50 transition-colors rounded-[2rem] p-10 flex flex-col items-center justify-center text-center cursor-pointer group">
           <input 
             type="file" 
@@ -120,7 +167,6 @@ export function MasterDataUpload() {
           )}
         </div>
 
-        {/* Status Indicators */}
         {status === "error" && (
           <div className="bg-destructive/10 text-destructive border border-destructive/20 p-4 rounded-2xl flex items-center gap-3 animate-in shake-in duration-300">
             <AlertCircle className="h-5 w-5" />
@@ -136,43 +182,29 @@ export function MasterDataUpload() {
             </div>
             {duplicateCount > 0 && (
               <p className="text-xs font-semibold text-emerald-700 bg-emerald-500/10 p-2 rounded-xl mt-1">
-                ⚠️ {duplicateCount} duplicates were skipped. An Excel report containing these records has been downloaded automatically.
+                ⚠️ {duplicateCount} duplicates were skipped. An Excel report has been downloaded automatically.
               </p>
             )}
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-4 border-t border-primary/5">
-          <div className="space-y-2 flex-1 max-w-xs">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Target Phase</label>
-            <input 
-              type="text"
-              value={phase}
-              onChange={(e) => setPhase(e.target.value)}
-              placeholder="e.g. Phase 1"
-              disabled={status === "uploading"}
-              className="w-full h-14 rounded-2xl bg-accent/30 border-2 border-primary/5 px-6 font-bold text-primary focus:border-primary/20 outline-none transition-all"
-            />
-          </div>
-
-          <Button 
+        <Button 
             onClick={handleUpload}
-            disabled={!file || status === "uploading"}
-            className="h-14 rounded-2xl px-10 font-bold tracking-wide shadow-lg shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.02]"
-          >
+            disabled={!file || !clientId || status === "uploading"}
+            className="w-full h-16 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.01] active:scale-[0.99]"
+        >
             {status === "uploading" ? (
               <>
                 <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                Processing Upload...
+                Processing Batch...
               </>
             ) : (
               <>
                 <UploadCloud className="h-5 w-5 mr-3" />
-                Upload Master Data
+                Finalize & Upload Master Data
               </>
             )}
-          </Button>
-        </div>
+        </Button>
       </div>
     </div>
   );
