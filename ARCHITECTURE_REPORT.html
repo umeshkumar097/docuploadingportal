@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Technical Architecture - CRUX</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-        
+
         body {
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
@@ -41,12 +42,34 @@
             letter-spacing: 2px;
         }
 
-        h1 { font-size: 42px; font-weight: 800; margin-bottom: 10px; letter-spacing: -2px; }
-        h2 { font-size: 24px; font-weight: 800; margin-top: 40px; border-left: 5px solid #000; padding-left: 15px; text-transform: uppercase; }
-        h3 { font-size: 18px; font-weight: 600; margin-top: 25px; color: #333; }
+        h1 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -2px;
+        }
 
-        p { margin-bottom: 20px; color: #444; }
-        
+        h2 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-top: 40px;
+            border-left: 5px solid #000;
+            padding-left: 15px;
+            text-transform: uppercase;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 25px;
+            color: #333;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: #444;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -54,7 +77,8 @@
             font-size: 14px;
         }
 
-        th, td {
+        th,
+        td {
             text-align: left;
             padding: 15px;
             border: 1px solid #eee;
@@ -85,11 +109,17 @@
         }
 
         @media print {
-            body { padding: 0; }
-            .no-print { display: none; }
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <div class="brand">CRUX</div>
@@ -100,7 +130,8 @@
     <p>A comprehensive technical breakdown of the CRUX Document Verification Ecosystem.</p>
 
     <div class="highlight-box">
-        <strong>Mission:</strong> To provide a secure, AI-driven, multi-tenant infrastructure for high-velocity document processing and verification.
+        <strong>Mission:</strong> To provide a secure, AI-driven, multi-tenant infrastructure for high-velocity document
+        processing and verification.
     </div>
 
     <h2>1. The Technology Stack</h2>
@@ -142,32 +173,41 @@
     </table>
 
     <h2>2. Infrastructure Components</h2>
-    
+
     <h3>2.1 Scalable Frontend</h3>
-    <p>Utilizing Next.js App Router, the application delivers near-instant load times through pre-rendering while maintaining a dynamic interface for real-time document status tracking.</p>
+    <p>Utilizing Next.js App Router, the application delivers near-instant load times through pre-rendering while
+        maintaining a dynamic interface for real-time document status tracking.</p>
 
     <h3>2.2 Multi-Tenant Data Layer</h3>
-    <p>The architecture employs a robust 'Tenant Isolation' strategy using unique Client IDs. This ensures that data from different organizations remains strictly segregated and secure within the shared PostgreSQL environment.</p>
+    <p>The architecture employs a robust 'Tenant Isolation' strategy using unique Client IDs. This ensures that data
+        from different organizations remains strictly segregated and secure within the shared PostgreSQL environment.
+    </p>
 
     <h3>2.3 Automated OCR Pipeline</h3>
-    <p>The system integrates directly with Google Cloud's Document AI. Upon upload, documents are processed via deep-learning models to extract PII (Personally Identifiable Information) with 99%+ accuracy, reducing manual audit time by 85%.</p>
+    <p>The system integrates directly with Google Cloud's Document AI. Upon upload, documents are processed via
+        deep-learning models to extract PII (Personally Identifiable Information) with 99%+ accuracy, reducing manual
+        audit time by 85%.</p>
 
     <h2>3. Security & Compliance</h2>
     <p>The platform is built with a security-first mindset:</p>
     <ul>
         <li><strong>Role-Based Access (RBAC):</strong> Strict permissions for Admin, Vendor, and Candidate roles.</li>
-        <li><strong>End-to-End Encryption:</strong> Documents are encrypted at rest in Cloudflare R2 and in transit via TLS 1.3.</li>
-        <li><strong>Audit Logging:</strong> Every action—from login to document approval—is timestamped and logged for compliance auditing.</li>
+        <li><strong>End-to-End Encryption:</strong> Documents are encrypted at rest in Cloudflare R2 and in transit via
+            TLS 1.3.</li>
+        <li><strong>Audit Logging:</strong> Every action—from login to document approval—is timestamped and logged for
+            compliance auditing.</li>
     </ul>
 
     <div class="footer">
-        &copy; 2026 CRUX Technologies LLP. All Rights Reserved. Confidential Document.
+        &copy; 2026 CRUX. All Rights Reserved. Confidential Document.
     </div>
 
     <div class="no-print" style="margin-top: 40px; text-align: center;">
-        <button onclick="window.print()" style="padding: 12px 24px; background: #000; color: #fff; border: none; border-radius: 8px; font-weight: 800; cursor: pointer;">
+        <button onclick="window.print()"
+            style="padding: 12px 24px; background: #000; color: #fff; border: none; border-radius: 8px; font-weight: 800; cursor: pointer;">
             DOWNLOAD AS PDF
         </button>
     </div>
 </body>
+
 </html>

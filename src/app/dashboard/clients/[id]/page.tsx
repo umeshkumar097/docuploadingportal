@@ -13,6 +13,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientFormConfig } from "@/components/client-form-config";
+import { ClientMasterUpload } from "@/components/client-master-upload";
+import { Database } from "lucide-react";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -76,6 +78,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <TabsTrigger value="candidates" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <ListFilter className="h-4 w-4 mr-2" /> Candidates
           </TabsTrigger>
+          <TabsTrigger value="master" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+            <Database className="h-4 w-4 mr-2" /> Master Data
+          </TabsTrigger>
           <TabsTrigger value="settings" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <Settings2 className="h-4 w-4 mr-2" /> Form Settings
           </TabsTrigger>
@@ -84,6 +89,15 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         <TabsContent value="candidates" className="animate-in slide-in-from-bottom-2 duration-300">
           <div className="bg-card/30 rounded-3xl p-1">
             <CandidateTable candidates={candidates} role={role || "ADMIN"} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="master" className="animate-in slide-in-from-bottom-2 duration-300">
+          <div className="max-w-2xl">
+            <ClientMasterUpload 
+              clientId={client.id} 
+              clientName={client.name} 
+            />
           </div>
         </TabsContent>
 

@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const phaseOverride = formData.get("phase") as string | null;
+    const clientIdOverride = formData.get("clientId") as string | null;
     
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -68,6 +69,9 @@ export async function POST(req: NextRequest) {
           qualificationType: String(row["Qualification Type"] || row["Category"] || row["Qualification"] || "").trim().toUpperCase(),
           trainingMonth: String(row["Training Month"] || row["Month"] || "").trim(),
           uploadMonth: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
+          clientId: (clientIdOverride && clientIdOverride.trim()) 
+            ? clientIdOverride.trim() 
+            : String(row["Client ID"] || row["ClientId"] || "").trim(),
         });
       }
     }
