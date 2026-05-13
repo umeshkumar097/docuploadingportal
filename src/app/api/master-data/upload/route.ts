@@ -87,7 +87,8 @@ export async function POST(req: NextRequest) {
     const existingRecords = await prisma.masterEmployee.findMany({
       where: {
         uploadMonth: currentMonth,
-        employeeId: { in: incomingEmployeeIds }
+        employeeId: { in: incomingEmployeeIds },
+        clientId: (clientIdOverride && clientIdOverride.trim()) ? clientIdOverride.trim() : undefined,
       },
       select: { employeeId: true }
     });

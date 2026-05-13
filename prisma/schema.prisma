@@ -107,7 +107,7 @@ model MasterEmployee {
   trainingMonth         String?
   uploadMonth           String   @default("Legacy")
 
-  @@unique([employeeId, uploadMonth])
+  @@unique([employeeId, uploadMonth, clientId])
 }
 
 model AddressRecord {
