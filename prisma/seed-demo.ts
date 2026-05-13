@@ -105,9 +105,10 @@ async function main() {
     const seedData = { ...emp, uploadMonth: "Demo" }
     await prisma.masterEmployee.upsert({
       where: { 
-        employeeId_uploadMonth: { 
+        employeeId_uploadMonth_clientId: { 
           employeeId: emp.employeeId, 
-          uploadMonth: "Demo" 
+          uploadMonth: "Demo",
+          clientId: "" // Default empty string for seed
         } 
       },
       update: seedData,
