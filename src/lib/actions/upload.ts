@@ -40,7 +40,15 @@ export async function uploadDocument(formData: FormData) {
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
-  const fileName = `${candidateId}/${type}-${Date.now()}-${file.name}`;
+
+  // Get candidate and client info for folder mapping
+  const candidate = await prisma.candidate.findUnique({
+    where: { id: candidateId },
+    include: { client: true }
+  });
+
+  const clientName = (candidate?.client?.name || "Global").replace(/[^a-zA-Z0-9]/g, "_");
+  const fileName = `${clientName}/${candidateId}/${type}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
 
   await s3.send(
     new PutObjectCommand({
