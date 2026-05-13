@@ -80,8 +80,8 @@ export async function GET(req: NextRequest) {
     console.error("CRITICAL LOOKUP ERROR:", error);
     return NextResponse.json({ 
         success: false, 
-        error: "Database Error", 
-        details: error.message 
+        error: "Internal Server Error", 
+        message: error.message
     }, { status: 500 });
   }
 }
