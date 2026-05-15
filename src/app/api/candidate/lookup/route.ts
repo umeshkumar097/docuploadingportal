@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    const completedCandidate = candidates.find((c: any) => c.status === "COMPLETED");
+    const completedCandidate = candidates.find((c: any) => c.status === "READY");
     const pendingCandidate = candidates.find((c: any) => c.status === "PENDING") || candidates.find((c: any) => c.canReupload);
 
     let existingCandidate = null;
