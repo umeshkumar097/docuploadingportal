@@ -4,10 +4,10 @@ import { sendSuccessEmail } from "@/lib/email";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ token: string }> | { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await params;
     const token = resolvedParams.token;
     
     if (!token) {
