@@ -60,10 +60,7 @@ export async function GET(req: NextRequest) {
             select: { type: true }
         });
         existingCandidate = {
-            token: pendingCandidate.token,
-            id: pendingCandidate.id,
-            canReupload: pendingCandidate.canReupload,
-            highestQualification: pendingCandidate.highestQualification,
+            ...pendingCandidate,
             uploadedDocumentTypes: docs.map((d: any) => d.type)
         };
     }

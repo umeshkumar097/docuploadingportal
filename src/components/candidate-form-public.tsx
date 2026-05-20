@@ -334,7 +334,16 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
               setUploadedDocs(new Set(ext.uploadedDocumentTypes));
             }
 
-            // Sync form values from existing candidate
+            // Sync form values from existing candidate (prioritizing previously saved candidate updates over master data)
+            if (ext.name) form.setValue("name", ext.name, { shouldValidate: true });
+            if (ext.mobileNumber) form.setValue("mobileNumber", ext.mobileNumber, { shouldValidate: true });
+            if (ext.employer) form.setValue("employer", ext.employer, { shouldValidate: true });
+            if (ext.residentialState) form.setValue("residentialState", ext.residentialState, { shouldValidate: true });
+            if (ext.city) form.setValue("city", ext.city, { shouldValidate: true });
+            if (ext.pincode) form.setValue("pincode", ext.pincode, { shouldValidate: true });
+            if (ext.idType) form.setValue("idType", ext.idType, { shouldValidate: true });
+            if (ext.idNumber) form.setValue("idNumber", ext.idNumber, { shouldValidate: true });
+            if (ext.isDraCertified !== undefined) form.setValue("isDraCertified", ext.isDraCertified, { shouldValidate: true });
             if (ext.highestQualification) form.setValue("highestQualification", ext.highestQualification);
             if (ext.addressLine1) form.setValue("addressLine1", ext.addressLine1);
             if (ext.addressLine2) form.setValue("addressLine2", ext.addressLine2);
@@ -370,6 +379,38 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
     
     setIsSubmitting(true);
     try {
+      // Clear any pending debounced auto-save timeout to avoid double-saves
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+
+      // Perform a final update-info PATCH save to ensure the database matches exactly what's on the screen
+      await fetch(`/api/candidate/${token}/update-info`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name || undefined,
+          employer: values.employer || undefined,
+          residentialState: values.residentialState || undefined,
+          city: values.city || undefined,
+          pincode: values.pincode || undefined,
+          mobileNumber: values.mobileNumber || undefined,
+          employeeId: values.employeeId || undefined,
+          phase: values.phase || undefined,
+          idType: values.idType || undefined,
+          idNumber: values.idNumber || undefined,
+          isDraCertified: values.isDraCertified ?? undefined,
+          addressLine1: values.addressLine1 || undefined,
+          addressLine2: values.addressLine2 || undefined,
+          bookLanguage: values.bookLanguage || undefined,
+          trainingLanguage: values.trainingLanguage || undefined,
+          examCenter: values.examCenter || undefined,
+          trainingMonth: values.trainingMonth || undefined,
+          highestQualification: values.highestQualification || undefined,
+        }),
+      });
+
+      // Complete submission heartbeat
       await fetch(`/api/candidate/${token}/heartbeat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
