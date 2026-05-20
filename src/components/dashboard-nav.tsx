@@ -18,7 +18,9 @@ import {
   Database,
   Building2,
   Globe,
-  MapPin
+  MapPin,
+  Ticket,
+  Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -36,6 +38,8 @@ const navItems: NavItem[] = [
   { label: "Master Data", href: "/dashboard/master-data", icon: Database },
   { label: "Clients", href: "/dashboard/admin?tab=clients", icon: Globe, adminOnly: true },
   { label: "Addresses", href: "/dashboard/addresses", icon: MapPin, adminOnly: true },
+  { label: "Hall Tickets", href: "/dashboard/halltickets", icon: Ticket, adminOnly: true },
+  { label: "Email Logs", href: "/dashboard/email-logs", icon: Mail, adminOnly: true },
   { label: "Certified DRA", href: "/dashboard/dra-certified", icon: ClipboardCheck },
   { label: "Outreach Tracking", href: "/dashboard/outreach", icon: Building2, adminOnly: true },
 ];

@@ -58,6 +58,7 @@ model Candidate {
   canReupload      Boolean         @default(false)
   client           Client?         @relation(fields: [clientId], references: [id])
   documents        Document[]
+  emailLogs        EmailLog[]
 }
 
 model Document {
@@ -212,4 +213,40 @@ enum CurrentStep {
   PERSONAL_INFO_DONE
   UPLOADING_DOCS
   COMPLETED
+}
+
+model HallTicketBatch {
+  id           String       @id @default(cuid())
+  name         String
+  totalCount   Int
+  uploadedAt   DateTime     @default(now())
+  hallTickets  HallTicket[]
+}
+
+model HallTicket {
+  id               String          @id @default(cuid())
+  hallTicketNumber String          @unique
+  filePath         String
+  batchId          String
+  createdAt        DateTime        @default(now())
+  batch            HallTicketBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  downloads        HallTicketDownloadLog[]
+}
+
+model HallTicketDownloadLog {
+  id           String     @id @default(cuid())
+  hallTicketId String
+  ipAddress    String?
+  downloadedAt DateTime   @default(now())
+  hallTicket   HallTicket @relation(fields: [hallTicketId], references: [id], onDelete: Cascade)
+}
+
+model EmailLog {
+  id          String   @id @default(cuid())
+  candidateId String
+  type        String   // "REMINDER_DROP", "REMINDER_PARTIAL", "SUCCESS_SUBMIT"
+  status      String   // "SENT", "FAILED"
+  error       String?
+  sentAt      DateTime @default(now())
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 }

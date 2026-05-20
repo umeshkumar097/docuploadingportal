@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { sendSuccessEmail } from "@/lib/email";
 
 export async function POST(
   req: NextRequest,
@@ -37,6 +38,23 @@ export async function POST(
     if (step === "COMPLETED") {
       updateData.status = "READY";
       updateData.currentStep = "COMPLETED";
+
+      // Trigger Success Email
+      if (candidate.employeeId && candidate.clientId) {
+        // Find the MasterEmployee record to get the email
+        // We use findFirst because uploadMonth can be anything
+        const master = await prisma.masterEmployee.findFirst({
+          where: { 
+            employeeId: candidate.employeeId,
+            clientId: candidate.clientId
+          }
+        });
+        
+        if (master && master.email) {
+          // Fire and forget (don't block the UI response)
+          sendSuccessEmail(master.email, candidate.name, candidate.id).catch(console.error);
+        }
+      }
     } else if (step) {
       updateData.currentStep = step;
     }
