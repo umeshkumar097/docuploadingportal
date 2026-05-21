@@ -311,7 +311,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           if (m.bookLanguage) form.setValue("bookLanguage", m.bookLanguage, { shouldValidate: true });
           if (m.trainingLanguage) form.setValue("trainingLanguage", m.trainingLanguage, { shouldValidate: true });
           if (m.examCenter) form.setValue("examCenter", m.examCenter, { shouldValidate: true });
-          if (m.trainingMonth) form.setValue("trainingMonth", m.trainingMonth, { shouldValidate: true });
+          const effectiveMonth = m.trainingMonth || m.uploadMonth;
+          if (effectiveMonth) form.setValue("trainingMonth", effectiveMonth, { shouldValidate: true });
           if (m.phase) form.setValue("phase", m.phase, { shouldValidate: true });
 
           // Prevent re-submission if already completed

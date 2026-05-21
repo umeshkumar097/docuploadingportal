@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Search
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,21 @@ export default async function DraCertifiedPage() {
     
     if (role === "VENDOR") {
       if (vendorName) {
-        whereClause.employer = { contains: vendorName, mode: "insensitive" };
+        const vName = vendorName.toUpperCase();
+        const baseSearch = vendorName.substring(0, 4); 
+
+        whereClause.OR = [
+          { employer: { contains: vendorName, mode: "insensitive" } },
+          { employer: { contains: baseSearch, mode: "insensitive" } }
+        ];
+
+        if (vName.includes("TVS")) {
+          whereClause.OR.push({ employer: { contains: "TVS", mode: "insensitive" } });
+        }
+        if (vName.includes("BOB") || vName.includes("BARODA")) {
+          whereClause.OR.push({ employer: { contains: "BOB", mode: "insensitive" } });
+          whereClause.OR.push({ employer: { contains: "Baroda", mode: "insensitive" } });
+        }
       } else {
         whereClause.id = "force-empty-result-security";
       }
@@ -34,10 +49,20 @@ export default async function DraCertifiedPage() {
       where: whereClause,
       orderBy: { createdAt: "desc" },
       include: { 
+        client: { select: { name: true } },
         documents: true,
         _count: { select: { documents: true } } 
       },
     });
+
+    const clients = await prisma.client.findMany({
+      orderBy: { name: "asc" }
+    });
+
+    // Only show tabs for clients that have DRA candidates
+    const activeClients = clients.filter((client: any) => 
+      candidates.some((c: any) => c.clientId === client.id)
+    );
 
     const certifiedCount = candidates.filter((c: any) => 
         c.documents.some((d: any) => d.type === "DRA_CERTIFICATE")
@@ -56,7 +81,7 @@ export default async function DraCertifiedPage() {
                   Certified <span className="text-primary/80">DRA</span>
                 </h2>
                 <p className="text-muted-foreground mt-1 text-lg font-medium">
-                  Verified Debt Recovery Agents with valid certification uploads.
+                  Verified Debt Recovery Agents organized client-wise.
                 </p>
              </div>
           </div>
@@ -74,7 +99,7 @@ export default async function DraCertifiedPage() {
                 </div>
             </div>
             <div className="glass-card p-8 rounded-[2.5rem] relative overflow-hidden border-emerald-500/20 bg-emerald-500/5 group">
-                <div className="absolute top-0 right-0 p-6 opacity-10 text-emerald-500 group-hover:scale-110 transition-transform text-emerald-500">
+                <div className="absolute top-0 right-0 p-6 opacity-10 text-emerald-500 group-hover:scale-110 transition-transform">
                     <FileText className="h-20 w-20" />
                 </div>
                 <div className="space-y-4">
@@ -94,17 +119,53 @@ export default async function DraCertifiedPage() {
         </div>
 
         {/* Table Section */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center gap-2 px-2">
               <Database className="h-5 w-5 text-primary" />
               <h3 className="text-xl font-bold uppercase tracking-tight">DRA Registry Workspace</h3>
           </div>
 
-          <CandidateTable candidates={candidates} role={role} />
+          {activeClients.length > 0 ? (
+            <Tabs defaultValue="all" className="space-y-6">
+              <TabsList className="bg-accent/30 p-1 rounded-2xl w-fit flex flex-wrap gap-1">
+                <TabsTrigger value="all" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                  All Clients ({candidates.length})
+                </TabsTrigger>
+                {activeClients.map((client: any) => {
+                  const clientCands = candidates.filter((c: any) => c.clientId === client.id);
+                  return (
+                    <TabsTrigger key={client.id} value={client.id} className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                      {client.name} ({clientCands.length})
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+
+              <TabsContent value="all" className="animate-in fade-in duration-300">
+                <div className="bg-card/30 rounded-3xl p-1">
+                  <CandidateTable candidates={candidates} role={role} />
+                </div>
+              </TabsContent>
+              {activeClients.map((client: any) => {
+                const clientCands = candidates.filter((c: any) => c.clientId === client.id);
+                return (
+                  <TabsContent key={client.id} value={client.id} className="animate-in fade-in duration-300">
+                    <div className="bg-card/30 rounded-3xl p-1">
+                      <CandidateTable candidates={clientCands} role={role} />
+                    </div>
+                  </TabsContent>
+                );
+              })}
+            </Tabs>
+          ) : (
+            <div className="bg-card/30 rounded-3xl p-1">
+              <CandidateTable candidates={candidates} role={role} />
+            </div>
+          )}
         </div>
       </div>
     );
   } catch (err: any) {
-    return <div>Error loading DRA Certified data</div>;
+    return <div className="p-8 text-center text-red-500 font-bold">Error loading DRA Certified data</div>;
   }
 }

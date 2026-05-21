@@ -34,7 +34,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   }
 
   const candidates = await prisma.candidate.findMany({
-    where: { clientId: id },
+    where: { 
+      clientId: id,
+      isDraCertified: false
+    },
     include: {
       documents: true,
       _count: {
