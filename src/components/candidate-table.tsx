@@ -41,6 +41,8 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [clientFilter, setClientFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
   const [activeTab, setActiveTab] = useState<"submitted" | "no-submit" | "login">("submitted");
+  const [trainingLanguageFilter, setTrainingLanguageFilter] = useState("all");
+  const [qualificationTypeFilter, setQualificationTypeFilter] = useState("all");
 
   const getEffectiveMonth = (c: any) => {
     return c.trainingMonth || new Date(c.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -78,6 +80,22 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
     return Array.from(new Set(months)).sort();
   }, [candidates]);
 
+  const uniqueTrainingLanguages = useMemo(() => {
+    const languages = candidates.map(c => c.trainingLanguage).filter(Boolean);
+    return Array.from(new Set(languages)).sort();
+  }, [candidates]);
+
+  const uniqueQualifications = useMemo(() => {
+    const quals = candidates.map(c => c.qualificationType?.toUpperCase()).filter(Boolean);
+    return Array.from(new Set(quals)).sort();
+  }, [candidates]);
+
+  const formatQualName = (qual: string) => {
+    if (qual === "GRADUATE") return "Graduate";
+    if (qual === "UNDERGRADUATE" || qual === "UNDER_GRADUATE") return "Undergraduate";
+    return qual.charAt(0).toUpperCase() + qual.slice(1).toLowerCase();
+  };
+
   const filteredForStats = useMemo(() => {
     return candidates.filter((c: any) => {
       // Other Filters
@@ -91,6 +109,9 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const matchesPhase = phaseFilter === "all" || c.phase === phaseFilter;
       const matchesClient = clientFilter === "all" || c.client?.name === clientFilter;
       const matchesMonth = trainingMonthFilter === "all" || getEffectiveMonth(c) === trainingMonthFilter;
+      const matchesLanguage = trainingLanguageFilter === "all" || c.trainingLanguage === trainingLanguageFilter;
+      const matchesQualification = qualificationTypeFilter === "all" || 
+        (c.qualificationType && c.qualificationType.toUpperCase() === qualificationTypeFilter.toUpperCase());
       
       let matchesDate = true;
       if (dateFilter) {
@@ -98,9 +119,9 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         matchesDate = cDate === dateFilter;
       }
       
-      return matchesSearch && matchesCompany && matchesPhase && matchesClient && matchesMonth && matchesDate;
+      return matchesSearch && matchesCompany && matchesPhase && matchesClient && matchesMonth && matchesDate && matchesLanguage && matchesQualification;
     });
-  }, [candidates, searchQuery, companyFilter, phaseFilter, clientFilter, trainingMonthFilter, dateFilter]);
+  }, [candidates, searchQuery, companyFilter, phaseFilter, clientFilter, trainingMonthFilter, dateFilter, trainingLanguageFilter, qualificationTypeFilter]);
 
   const filteredCandidates = useMemo(() => {
     return filteredForStats.filter((c: any) => {
@@ -489,6 +510,34 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
               <option value="all">All Months</option>
               {uniqueTrainingMonths.map(month => (
                 <option key={month as string} value={month as string}>{month as string}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="relative flex-1 min-w-[160px]">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <select
+              className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 w-full"
+              value={trainingLanguageFilter}
+              onChange={(e) => setTrainingLanguageFilter(e.target.value)}
+            >
+              <option value="all">All Languages</option>
+              {uniqueTrainingLanguages.map(lang => (
+                <option key={lang as string} value={lang as string}>{lang as string}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="relative flex-1 min-w-[160px]">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <select
+              className="pl-10 pr-4 h-12 rounded-2xl bg-accent/20 border-accent/30 text-sm font-bold appearance-none hover:bg-accent/40 transition-all cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 w-full"
+              value={qualificationTypeFilter}
+              onChange={(e) => setQualificationTypeFilter(e.target.value)}
+            >
+              <option value="all">All Categories</option>
+              {uniqueQualifications.map(qual => (
+                <option key={qual as string} value={qual as string}>{formatQualName(qual as string)}</option>
               ))}
             </select>
           </div>
