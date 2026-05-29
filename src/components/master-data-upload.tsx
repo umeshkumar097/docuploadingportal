@@ -10,7 +10,9 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export function MasterDataUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -20,6 +22,21 @@ export function MasterDataUpload() {
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
   const [duplicateCount, setDuplicateCount] = useState<number>(0);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+  const [showMapping, setShowMapping] = useState(false);
+
+  const SYSTEM_FIELDS = [
+    { key: "employeeId", label: "Employee ID (Required)", required: true },
+    { key: "employeeName", label: "Employee Name (Required)", required: true },
+    { key: "personalMobileNo", label: "Mobile Number" },
+    { key: "email", label: "Email Address" },
+    { key: "draBatch", label: "DRA Batch" },
+    { key: "addressLine1", label: "Address Line 1" },
+    { key: "city", label: "City" },
+    { key: "state", label: "State" },
+    { key: "pincode", label: "Pincode" },
+  ];
 
   useEffect(() => {
     fetch("/api/clients")
@@ -29,20 +46,68 @@ export function MasterDataUpload() {
       });
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
-    if (!selected) return;
+    if (!selected) {
+      setFile(null);
+      setHeaders([]);
+      setShowMapping(false);
+      return;
+    }
 
     if (!selected.name.match(/\.(xlsx|xls|csv)$/i)) {
       setStatus("error");
       setMessage("Please upload a valid Excel or CSV file.");
       setFile(null);
+      setHeaders([]);
+      setShowMapping(false);
       return;
     }
 
     setFile(selected);
     setStatus("idle");
     setMessage("");
+
+    try {
+      const buffer = await selected.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "buffer" });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const data: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      
+      if (data.length > 0) {
+        const extractedHeaders = data[0] as string[];
+        const validHeaders = extractedHeaders.filter(h => h && typeof h === 'string' && h.trim() !== '');
+        setHeaders(validHeaders);
+        
+        const initialMapping: Record<string, string> = {};
+        const aliases: Record<string, string[]> = {
+          employeeId: ["Employee Id", "Employee ID", "ID", "EmployeeID", "EMP ID NO", "EMP_ID", "EMP ID"],
+          employeeName: ["Employee Name", "Name", "NAME", "Full Name", "First_Name", "CANDIDATE NAME"],
+          personalMobileNo: ["Personal Mobile No", "Contact Number ", "Mobile Number", "Mobile", "Contact Number", "Candidates PERSONAL Mobile No", "Phone"],
+          email: ["Email", "Email id", "Mail id", "Email ID", "Candidates PERSONAL Email"],
+          draBatch: ["DRA Batch", "Batch No", "Batch", "Batch_Code"],
+          addressLine1: ["Address", "Adress line 1", "Address line 1", "Home Address", "Address_Line1"],
+          city: ["City", "CITY", "Location"],
+          state: ["State", "STATE"],
+          pincode: ["Pincode", "Pincode ", "PINCODE", "Zip", "Zipcode"]
+        };
+        
+        SYSTEM_FIELDS.forEach(field => {
+          const fieldAliases = aliases[field.key] || [];
+          const match = validHeaders.find(h => fieldAliases.some(alias => alias.toLowerCase() === h.trim().toLowerCase()));
+          if (match) {
+            initialMapping[field.key] = match;
+          }
+        });
+        
+        setColumnMapping(initialMapping);
+        setShowMapping(true);
+      }
+    } catch (err) {
+      console.error("Failed to parse headers", err);
+      toast.error("Failed to read file headers. Please ensure it's a valid Excel/CSV file.");
+    }
   };
 
   const handleUpload = async () => {
@@ -58,6 +123,7 @@ export function MasterDataUpload() {
     formData.append("file", file);
     formData.append("phase", phase);
     formData.append("clientId", clientId);
+    formData.append("columnMapping", JSON.stringify(columnMapping));
 
     try {
       const response = await fetch("/api/master-data/upload", {
@@ -167,6 +233,37 @@ export function MasterDataUpload() {
           )}
         </div>
 
+        {showMapping && headers.length > 0 && (
+          <div className="space-y-4 p-6 bg-accent/5 rounded-2xl border border-accent/20 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
+            <div>
+              <h3 className="font-bold text-lg text-primary flex items-center gap-2">
+                Map Excel Columns
+              </h3>
+              <p className="text-sm text-muted-foreground">Match your Excel columns to the system fields. We've auto-mapped what we could find.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {SYSTEM_FIELDS.map((field) => (
+                <div key={field.key} className="space-y-1.5">
+                  <Label className="text-xs font-semibold flex items-center justify-between">
+                    {field.label}
+                    {field.required && <span className="text-red-500 text-[10px] uppercase tracking-wider">Required</span>}
+                  </Label>
+                  <select 
+                    className={`flex h-10 w-full rounded-xl border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${field.required && !columnMapping[field.key] ? 'border-red-500/50 bg-red-500/5' : 'border-input'}`}
+                    value={columnMapping[field.key] || ""}
+                    onChange={(e) => setColumnMapping({ ...columnMapping, [field.key]: e.target.value })}
+                  >
+                    <option value="">-- Select Column --</option>
+                    {headers.map(h => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {status === "error" && (
           <div className="bg-destructive/10 text-destructive border border-destructive/20 p-4 rounded-2xl flex items-center gap-3 animate-in shake-in duration-300">
             <AlertCircle className="h-5 w-5" />
@@ -190,7 +287,7 @@ export function MasterDataUpload() {
 
         <Button 
             onClick={handleUpload}
-            disabled={!file || !clientId || status === "uploading"}
+            disabled={!file || !clientId || status === "uploading" || !columnMapping.employeeId || !columnMapping.employeeName}
             className="w-full h-16 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.01] active:scale-[0.99]"
         >
             {status === "uploading" ? (

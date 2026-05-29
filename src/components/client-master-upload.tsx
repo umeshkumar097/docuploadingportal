@@ -13,6 +13,7 @@ import {
   Database
 } from "lucide-react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 interface ClientMasterUploadProps {
   clientId: string;
@@ -24,6 +25,73 @@ export function ClientMasterUpload({ clientId, clientName }: ClientMasterUploadP
   const [isUploading, setIsUploading] = useState(false);
   const [phase, setPhase] = useState("Phase 1");
   const [result, setResult] = useState<any>(null);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+  const [showMapping, setShowMapping] = useState(false);
+
+  const SYSTEM_FIELDS = [
+    { key: "employeeId", label: "Employee ID (Required)", required: true },
+    { key: "employeeName", label: "Employee Name (Required)", required: true },
+    { key: "personalMobileNo", label: "Mobile Number" },
+    { key: "email", label: "Email Address" },
+    { key: "draBatch", label: "DRA Batch" },
+    { key: "addressLine1", label: "Address Line 1" },
+    { key: "city", label: "City" },
+    { key: "state", label: "State" },
+    { key: "pincode", label: "Pincode" },
+  ];
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+    if (!selectedFile) {
+      setHeaders([]);
+      setShowMapping(false);
+      return;
+    }
+
+    try {
+      const buffer = await selectedFile.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "buffer" });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const data: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      
+      if (data.length > 0) {
+        const extractedHeaders = data[0] as string[];
+        const validHeaders = extractedHeaders.filter(h => h && typeof h === 'string' && h.trim() !== '');
+        setHeaders(validHeaders);
+        
+        // Auto-mapping logic
+        const initialMapping: Record<string, string> = {};
+        const aliases: Record<string, string[]> = {
+          employeeId: ["Employee Id", "Employee ID", "ID", "EmployeeID", "EMP ID NO", "EMP_ID", "EMP ID"],
+          employeeName: ["Employee Name", "Name", "NAME", "Full Name", "First_Name", "CANDIDATE NAME"],
+          personalMobileNo: ["Personal Mobile No", "Contact Number ", "Mobile Number", "Mobile", "Contact Number", "Candidates PERSONAL Mobile No", "Phone"],
+          email: ["Email", "Email id", "Mail id", "Email ID", "Candidates PERSONAL Email"],
+          draBatch: ["DRA Batch", "Batch No", "Batch", "Batch_Code"],
+          addressLine1: ["Address", "Adress line 1", "Address line 1", "Home Address", "Address_Line1"],
+          city: ["City", "CITY", "Location"],
+          state: ["State", "STATE"],
+          pincode: ["Pincode", "Pincode ", "PINCODE", "Zip", "Zipcode"]
+        };
+        
+        SYSTEM_FIELDS.forEach(field => {
+          const fieldAliases = aliases[field.key] || [];
+          const match = validHeaders.find(h => fieldAliases.some(alias => alias.toLowerCase() === h.trim().toLowerCase()));
+          if (match) {
+            initialMapping[field.key] = match;
+          }
+        });
+        
+        setColumnMapping(initialMapping);
+        setShowMapping(true);
+      }
+    } catch (err) {
+      console.error("Failed to parse headers", err);
+      toast.error("Failed to read file headers. Please ensure it's a valid Excel/CSV file.");
+    }
+  };
 
   const handleUpload = async () => {
     if (!file) {
@@ -38,6 +106,7 @@ export function ClientMasterUpload({ clientId, clientName }: ClientMasterUploadP
     formData.append("file", file);
     formData.append("clientId", clientId);
     formData.append("phase", phase);
+    formData.append("columnMapping", JSON.stringify(columnMapping));
 
     try {
       const res = await fetch("/api/master-data/upload", {
@@ -93,7 +162,7 @@ export function ClientMasterUpload({ clientId, clientName }: ClientMasterUploadP
               type="file" 
               accept=".xlsx,.xls,.csv" 
               className="hidden" 
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={handleFileChange}
             />
             {file ? (
               <>
@@ -115,9 +184,41 @@ export function ClientMasterUpload({ clientId, clientName }: ClientMasterUploadP
           </div>
         </div>
 
+        {showMapping && headers.length > 0 && (
+          <div className="space-y-4 p-6 bg-accent/5 rounded-2xl border border-accent/20 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div>
+              <h3 className="font-bold text-lg text-primary flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Map Excel Columns
+              </h3>
+              <p className="text-sm text-muted-foreground">Match your Excel columns to the system fields. We've auto-mapped what we could find.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {SYSTEM_FIELDS.map((field) => (
+                <div key={field.key} className="space-y-1.5">
+                  <Label className="text-xs font-semibold flex items-center justify-between">
+                    {field.label}
+                    {field.required && <span className="text-red-500 text-[10px] uppercase tracking-wider">Required</span>}
+                  </Label>
+                  <select 
+                    className={`flex h-10 w-full rounded-xl border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${field.required && !columnMapping[field.key] ? 'border-red-500/50 bg-red-500/5' : 'border-input'}`}
+                    value={columnMapping[field.key] || ""}
+                    onChange={(e) => setColumnMapping({ ...columnMapping, [field.key]: e.target.value })}
+                  >
+                    <option value="">-- Select Column --</option>
+                    {headers.map(h => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Button 
           onClick={handleUpload} 
-          disabled={!file || isUploading}
+          disabled={!file || isUploading || !columnMapping.employeeId || !columnMapping.employeeName}
           className="w-full py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >
           {isUploading ? (

@@ -17,6 +17,16 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File;
     const phaseOverride = formData.get("phase") as string | null;
     const clientIdOverride = formData.get("clientId") as string | null;
+    const columnMappingStr = formData.get("columnMapping") as string | null;
+    
+    let columnMapping: Record<string, string> = {};
+    if (columnMappingStr) {
+      try {
+        columnMapping = JSON.parse(columnMappingStr);
+      } catch (e) {
+        console.warn("Invalid column mapping JSON", e);
+      }
+    }
     
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -35,53 +45,57 @@ export async function POST(req: NextRequest) {
       const data: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
       for (const row of data) {
-        const getVal = (keys: string[]) => {
-          for (const k of keys) {
+        const getVal = (systemKey: string, defaultKeys: string[]) => {
+          const mappedKey = columnMapping[systemKey];
+          if (mappedKey && row[mappedKey] !== undefined && row[mappedKey] !== null && row[mappedKey] !== "") {
+            return String(row[mappedKey]).trim();
+          }
+          for (const k of defaultKeys) {
             if (row[k] !== undefined && row[k] !== null && row[k] !== "") return String(row[k]).trim();
           }
           return "";
         };
 
-        const employeeId = getVal(["Employee Id", "Employee ID", "ID", "EmployeeID", "EMP ID NO"]);
+        const employeeId = getVal("employeeId", ["Employee Id", "Employee ID", "ID", "EmployeeID", "EMP ID NO"]);
         if (!employeeId || seenEmployeeIds.has(employeeId)) continue;
 
         seenEmployeeIds.add(employeeId);
         
         const phaseValue = (phaseOverride && phaseOverride.trim()) 
           ? phaseOverride.trim() 
-          : getVal(["Phase", "Phases"]) || "Phase 1";
+          : getVal("phase", ["Phase", "Phases"]) || "Phase 1";
 
         allFormattedData.push({
           employeeId,
-          employeeName: getVal(["Employee Name", "Name", "NAME", "Full Name", "First_Name"]),
-          state: getVal(["State", "STATE"]),
-          reportingManagerId: getVal(["Reporting Manager ID", "Reporting Manager Id"]),
-          reportingManagerName: getVal(["Reporting Manager Name", "Reporting Manager Name"]),
-          reportingManagerGroup: getVal(["Reporting Manager Group", "Reporting Manager Group"]),
-          skipLevelManagerId: getVal(["Skip Level Manager ID", "Skip Level Manager Id"]),
-          skipLevelManagerName: getVal(["Skip Level Manager Name", "Skip Level Manager Name"]),
-          activeStatus: getVal(["Active Status", "Status"]),
-          email: getVal(["Email", "Email id", "Mail id", "Email ID", "Candidates PERSONAL Email"]),
-          officeMobileNo: getVal(["Office Mobile No", "Office Mobile"]),
-          personalMobileNo: getVal(["Personal Mobile No", "Contact Number ", "Mobile Number", "Mobile", "Contact Number", "Candidates PERSONAL Mobile No"]),
+          employeeName: getVal("employeeName", ["Employee Name", "Name", "NAME", "Full Name", "First_Name"]),
+          state: getVal("state", ["State", "STATE"]),
+          reportingManagerId: getVal("reportingManagerId", ["Reporting Manager ID", "Reporting Manager Id"]),
+          reportingManagerName: getVal("reportingManagerName", ["Reporting Manager Name", "Reporting Manager Name"]),
+          reportingManagerGroup: getVal("reportingManagerGroup", ["Reporting Manager Group", "Reporting Manager Group"]),
+          skipLevelManagerId: getVal("skipLevelManagerId", ["Skip Level Manager ID", "Skip Level Manager Id"]),
+          skipLevelManagerName: getVal("skipLevelManagerName", ["Skip Level Manager Name", "Skip Level Manager Name"]),
+          activeStatus: getVal("activeStatus", ["Active Status", "Status"]),
+          email: getVal("email", ["Email", "Email id", "Mail id", "Email ID", "Candidates PERSONAL Email"]),
+          officeMobileNo: getVal("officeMobileNo", ["Office Mobile No", "Office Mobile"]),
+          personalMobileNo: getVal("personalMobileNo", ["Personal Mobile No", "Contact Number ", "Mobile Number", "Mobile", "Contact Number", "Candidates PERSONAL Mobile No"]),
           whatsappNo: String(row["Whatsapp No"] || "").trim(),
-          vendor: vendorNameLimit ? vendorNameLimit : getVal(["Vendor", "VENDOR"]),
+          vendor: vendorNameLimit ? vendorNameLimit : getVal("vendor", ["Vendor", "VENDOR"]),
           phase: phaseValue,
           region2: String(row["Region 2"] || "").trim(),
           location2: String(row["Location2"] || "").trim(),
-          city: getVal(["City", "CITY", "Location"]),
-          pincode: getVal(["Pincode", "Pincode ", "PINCODE"]),
-          draBatch: getVal(["DRA Batch", "Batch No", "Batch", "Batch_Code"]),
-          qualificationType: getVal(["Qualification Type", "Category", "Qualification", "Qualification ", "Highest Qualification"]).toUpperCase(),
-          trainingMonth: getVal(["Training Month", "Month"]),
+          city: getVal("city", ["City", "CITY", "Location"]),
+          pincode: getVal("pincode", ["Pincode", "Pincode ", "PINCODE"]),
+          draBatch: getVal("draBatch", ["DRA Batch", "Batch No", "Batch", "Batch_Code"]),
+          qualificationType: getVal("qualificationType", ["Qualification Type", "Category", "Qualification", "Qualification ", "Highest Qualification"]).toUpperCase(),
+          trainingMonth: getVal("trainingMonth", ["Training Month", "Month"]),
           uploadMonth: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
           clientId: (clientIdOverride && clientIdOverride.trim()) 
             ? clientIdOverride.trim() 
-            : getVal(["Client ID", "ClientId", "Client"]),
-          addressLine1: getVal(["Address", "Adress line 1", "Address line 1", "Home Address", "Address_Line1"]),
-          addressLine2: getVal(["Address line 2", "Address_Line2"]),
-          highestQualification: getVal(["Qualification", "Qualification ", "Highest Qualification"]),
-          employer: getVal(["Employer", "Company name", "Company"]),
+            : getVal("clientId", ["Client ID", "ClientId", "Client"]),
+          addressLine1: getVal("addressLine1", ["Address", "Adress line 1", "Address line 1", "Home Address", "Address_Line1"]),
+          addressLine2: getVal("addressLine2", ["Address line 2", "Address_Line2"]),
+          highestQualification: getVal("highestQualification", ["Qualification", "Qualification ", "Highest Qualification"]),
+          employer: getVal("employer", ["Employer", "Company name", "Company"]),
         });
       }
     }
