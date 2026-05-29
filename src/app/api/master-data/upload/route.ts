@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
           return "";
         };
 
-        const employeeId = getVal(["Employee Id", "Employee ID", "ID", "EmployeeID"]);
+        const employeeId = getVal(["Employee Id", "Employee ID", "ID", "EmployeeID", "EMP ID NO"]);
         if (!employeeId || seenEmployeeIds.has(employeeId)) continue;
 
         seenEmployeeIds.add(employeeId);
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
         allFormattedData.push({
           employeeId,
-          employeeName: getVal(["Employee Name", "Name", "NAME", "Full Name"]),
+          employeeName: getVal(["Employee Name", "Name", "NAME", "Full Name", "First_Name"]),
           state: getVal(["State", "STATE"]),
           reportingManagerId: getVal(["Reporting Manager ID", "Reporting Manager Id"]),
           reportingManagerName: getVal(["Reporting Manager Name", "Reporting Manager Name"]),
@@ -61,9 +61,9 @@ export async function POST(req: NextRequest) {
           skipLevelManagerId: getVal(["Skip Level Manager ID", "Skip Level Manager Id"]),
           skipLevelManagerName: getVal(["Skip Level Manager Name", "Skip Level Manager Name"]),
           activeStatus: getVal(["Active Status", "Status"]),
-          email: getVal(["Email", "Email id", "Mail id", "Email ID"]),
+          email: getVal(["Email", "Email id", "Mail id", "Email ID", "Candidates PERSONAL Email"]),
           officeMobileNo: getVal(["Office Mobile No", "Office Mobile"]),
-          personalMobileNo: getVal(["Personal Mobile No", "Contact Number ", "Mobile Number", "Mobile", "Contact Number"]),
+          personalMobileNo: getVal(["Personal Mobile No", "Contact Number ", "Mobile Number", "Mobile", "Contact Number", "Candidates PERSONAL Mobile No"]),
           whatsappNo: String(row["Whatsapp No"] || "").trim(),
           vendor: vendorNameLimit ? vendorNameLimit : getVal(["Vendor", "VENDOR"]),
           phase: phaseValue,
@@ -71,14 +71,15 @@ export async function POST(req: NextRequest) {
           location2: String(row["Location2"] || "").trim(),
           city: getVal(["City", "CITY", "Location"]),
           pincode: getVal(["Pincode", "Pincode ", "PINCODE"]),
-          draBatch: getVal(["DRA Batch", "Batch No", "Batch"]),
+          draBatch: getVal(["DRA Batch", "Batch No", "Batch", "Batch_Code"]),
           qualificationType: getVal(["Qualification Type", "Category", "Qualification", "Qualification ", "Highest Qualification"]).toUpperCase(),
           trainingMonth: getVal(["Training Month", "Month"]),
           uploadMonth: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
           clientId: (clientIdOverride && clientIdOverride.trim()) 
             ? clientIdOverride.trim() 
             : getVal(["Client ID", "ClientId", "Client"]),
-          addressLine1: getVal(["Address", "Adress line 1", "Address line 1", "Home Address"]),
+          addressLine1: getVal(["Address", "Adress line 1", "Address line 1", "Home Address", "Address_Line1"]),
+          addressLine2: getVal(["Address line 2", "Address_Line2"]),
           highestQualification: getVal(["Qualification", "Qualification ", "Highest Qualification"]),
           employer: getVal(["Employer", "Company name", "Company"]),
         });
