@@ -27,7 +27,8 @@ import {
   CheckCircle2,
   FileText,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from "lucide-react";
 
 const formSchema = z.object({
@@ -307,8 +308,8 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                   <FormItem className="space-y-3">
                     <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">ID Type <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold text-foreground">
-                        <option value="" disabled>Select</option>
+                      <select {...field} value={field.value || ""} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold text-foreground">
+                        <option value="" disabled>Select ID Type</option>
                         <option value="PAN">PAN</option>
                         <option value="AADHAAR">Aadhaar</option>
                         <option value="DL">DL</option>
@@ -352,16 +353,28 @@ export function CandidateForm({ candidateId, initialData }: CandidateFormProps) 
                 onUploadSuccess={handleUploadSuccess} 
                 subType={form.watch("highestQualification") as any}
               />
-              <FileUpload 
-                candidateId={candidateId} 
-                type="ID_PROOF" 
-                label="Identity Proof" 
-                maxSizeKB={10240} 
-                mandatory={true} 
-                initialSuccess={uploadedDocs.has("ID_PROOF")} 
-                onUploadSuccess={handleUploadSuccess} 
-                subType={form.watch("idType") as any}
-              />
+              {form.watch("idType") ? (
+                <FileUpload 
+                  candidateId={candidateId} 
+                  type="ID_PROOF" 
+                  label="Identity Proof" 
+                  maxSizeKB={10240} 
+                  mandatory={true} 
+                  initialSuccess={uploadedDocs.has("ID_PROOF")} 
+                  onUploadSuccess={handleUploadSuccess} 
+                  subType={form.watch("idType") as any}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center p-12 rounded-[2rem] bg-accent/10 border-2 border-dashed border-accent/30 gap-4 opacity-60">
+                  <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                    <Lock className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Upload Locked</p>
+                    <p className="text-xs font-medium text-muted-foreground/60 mt-1 px-4 italic text-red-500/70">Select ID Type to unlock.</p>
+                  </div>
+                </div>
+              )}
               <FileUpload candidateId={candidateId} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} />
             </div>
           </div>

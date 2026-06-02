@@ -112,7 +112,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       mobileNumber: "",
       employeeId: "",
       phase: "",
-      idType: undefined,
+      idType: "" as any,
       idNumber: "",
       isDraCertified: false,
       originalDegree: false,
@@ -902,8 +902,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     <FormItem className="space-y-3">
                       <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">ID Type <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
-                        <select {...field} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold">
-                          <option value="" disabled>Select</option>
+                        <select {...field} value={field.value || ""} className="w-full h-14 rounded-2xl bg-accent/30 border-none px-6 appearance-none font-semibold text-foreground">
+                          <option value="" disabled>Select ID Type</option>
                           <option value="PAN">PAN</option>
                           <option value="AADHAAR">Aadhaar</option>
                           <option value="DL">DL</option>
@@ -972,20 +972,32 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                         </div>
                       </div>
                     )}
-                    <FileUpload 
-                      key="ID_PROOF"
-                      candidateId={candidateId as string} 
-                      type="ID_PROOF" 
-                      label="Identity Proof" 
-                      maxSizeKB={10240} 
-                      mandatory={true} 
-                      initialSuccess={uploadedDocs.has("ID_PROOF")} 
-                      onUploadSuccess={handleUploadSuccess} 
-                      onOcrSuccess={(val) => form.setValue("idNumber", val, { shouldValidate: true })}
-                      subType={form.watch("idType")}
-                      canReupload={canReupload}
-                      description="Upload official Government ID only. Company IDs or Degree certificates are NOT allowed here."
-                    />
+                    {form.watch("idType") ? (
+                      <FileUpload 
+                        key="ID_PROOF"
+                        candidateId={candidateId as string} 
+                        type="ID_PROOF" 
+                        label="Identity Proof" 
+                        maxSizeKB={10240} 
+                        mandatory={true} 
+                        initialSuccess={uploadedDocs.has("ID_PROOF")} 
+                        onUploadSuccess={handleUploadSuccess} 
+                        onOcrSuccess={(val) => form.setValue("idNumber", val, { shouldValidate: true })}
+                        subType={form.watch("idType")}
+                        canReupload={canReupload}
+                        description="Upload official Government ID only. Company IDs or Degree certificates are NOT allowed here."
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-12 rounded-[2rem] bg-accent/10 border-2 border-dashed border-accent/30 gap-4 opacity-60">
+                        <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                          <Lock className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Upload Locked</p>
+                          <p className="text-xs font-medium text-muted-foreground/60 mt-1 px-4 italic text-red-500/70">Select ID Type to unlock.</p>
+                        </div>
+                      </div>
+                    )}
                     <FileUpload key="SIGNATURE" candidateId={candidateId as string} type="SIGNATURE" label="Signature" maxSizeKB={10240} mandatory={true} initialSuccess={uploadedDocs.has("SIGNATURE")} onUploadSuccess={handleUploadSuccess} canReupload={canReupload} />
                   </>
                 )}
