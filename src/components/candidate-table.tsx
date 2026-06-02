@@ -339,7 +339,11 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         "Candidate Name": c.name || "Anonymous",
         "Phase": c.phase || "Phase 1",
         "Employer": c.employer || "N/A",
+        "Address Line 1": c.addressLine1 || "N/A",
+        "Address Line 2": c.addressLine2 || "N/A",
+        "City": c.city || "N/A",
         "Residential State": c.residentialState || "N/A",
+        "Pincode": c.pincode || "N/A",
         "Mobile": c.mobileNumber || "N/A",
         "Employee ID": c.employeeId || "N/A",
         "ID Type": c.idType || "N/A",
@@ -362,11 +366,17 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       { wch: 25 }, // Name
       { wch: 12 }, // Phase
       { wch: 20 }, // Employer
+      { wch: 30 }, // Addr 1
+      { wch: 30 }, // Addr 2
+      { wch: 20 }, // City
       { wch: 20 }, // State
+      { wch: 10 }, // Pincode
       { wch: 15 }, // Mobile
       { wch: 15 }, // Emp ID
       { wch: 15 }, // ID Type
+      { wch: 20 }, // ID Number
       { wch: 15 }, // Photo
+      { wch: 20 }, // Category
       { wch: 15 }, // Qual
       { wch: 20 }, // ID Proof
       { wch: 15 }, // Sig
