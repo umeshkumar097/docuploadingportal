@@ -350,8 +350,9 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         "ID Type": c.idType || "N/A",
         "ID Number": c.idNumber || "N/A",
         "Photo": getFriendlyStatus(docStatus["PHOTO"]),
-        "Category": c.qualificationType || "N/A",
-        "Qualification": getFriendlyStatus(docStatus["QUALIFICATION"]),
+        "Master Data Category": c.qualificationType || "N/A",
+        "Selected Qualification": c.highestQualification || "N/A",
+        "Qual Document": getFriendlyStatus(docStatus["QUALIFICATION"]),
         "ID Proof": idProofFinal,
         "Signature": getFriendlyStatus(docStatus["SIGNATURE"]),
       };
@@ -378,8 +379,9 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       { wch: 15 }, // ID Type
       { wch: 20 }, // ID Number
       { wch: 15 }, // Photo
-      { wch: 20 }, // Category
-      { wch: 15 }, // Qual
+      { wch: 20 }, // Master Data Category
+      { wch: 20 }, // Selected Qualification
+      { wch: 15 }, // Qual Document
       { wch: 20 }, // ID Proof
       { wch: 15 }, // Sig
     ];

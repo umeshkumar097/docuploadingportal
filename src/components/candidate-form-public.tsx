@@ -297,21 +297,14 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           if (employerVal) form.setValue("employer", employerVal, { shouldValidate: true });
 
           // Qualification mapping: Handle both explicit level and type string
-          let mdLocked = false;
           if (m.highestQualification) {
             form.setValue("highestQualification", m.highestQualification);
-            setIsQualificationLocked(true);
-            mdLocked = true;
           } else if (m.qualificationType) {
             const qType = m.qualificationType.toUpperCase().replace(/\s+/g, '');
             if (qType.includes("GRADUATE") && !qType.includes("UNDER")) {
               form.setValue("highestQualification", "GRADUATE");
-              setIsQualificationLocked(true);
-              mdLocked = true;
             } else if (qType.includes("UNDER") || qType.includes("10TH") || qType.includes("12TH") || qType.includes("UG") || qType.includes("DIPLOMA")) {
               form.setValue("highestQualification", "UNDERGRADUATE");
-              setIsQualificationLocked(true);
-              mdLocked = true;
             }
           }
 
@@ -354,9 +347,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             if (ext.idType) form.setValue("idType", ext.idType, { shouldValidate: true });
             if (ext.idNumber) form.setValue("idNumber", ext.idNumber, { shouldValidate: true });
             if (ext.isDraCertified !== undefined) form.setValue("isDraCertified", ext.isDraCertified, { shouldValidate: true });
-            if (ext.highestQualification && !mdLocked) {
+            if (ext.highestQualification) {
               form.setValue("highestQualification", ext.highestQualification);
-              setIsQualificationLocked(true);
             }
             if (ext.addressLine1) form.setValue("addressLine1", ext.addressLine1);
             if (ext.addressLine2) form.setValue("addressLine2", ext.addressLine2);
