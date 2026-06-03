@@ -92,6 +92,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const [uploadedDocs, setUploadedDocs] = useState<Set<string>>(new Set());
   const [canReupload, setCanReupload] = useState(false);
+  const [isQualificationLocked, setIsQualificationLocked] = useState(false);
 
   const handleUploadSuccess = (type: string) => {
     setUploadedDocs(prev => {
@@ -259,6 +260,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       return;
     }
 
+    setIsQualificationLocked(false);
     setNominationStatus("verifying");
     const abortController = new AbortController();
 
@@ -297,12 +299,15 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           // Qualification mapping: Handle both explicit level and type string
           if (m.highestQualification) {
             form.setValue("highestQualification", m.highestQualification);
+            setIsQualificationLocked(true);
           } else if (m.qualificationType) {
             const qType = m.qualificationType.toUpperCase();
             if (qType.includes("GRADUATE") && !qType.includes("UNDER")) {
               form.setValue("highestQualification", "GRADUATE");
+              setIsQualificationLocked(true);
             } else if (qType.includes("UNDERGRADUATE") || qType.includes("10TH") || qType.includes("12TH") || qType.includes("UG")) {
               form.setValue("highestQualification", "UNDERGRADUATE");
+              setIsQualificationLocked(true);
             }
           }
 
@@ -733,19 +738,22 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 name="highestQualification"
                 render={({ field }) => (
                   <FormItem className="space-y-4">
-                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Highest Qualification Level <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                      Highest Qualification Level <span className="text-red-500">*</span>
+                      {isQualificationLocked && <span className="ml-2 text-[10px] text-amber-500 lowercase">(Locked by HR)</span>}
+                    </FormLabel>
                     <FormControl>
                       <div className="grid grid-cols-2 gap-4">
                         <div 
-                          onClick={() => field.onChange("GRADUATE")}
-                          className={`p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${field.value === "GRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10 hover:border-primary/20"}`}
+                          onClick={() => !isQualificationLocked && field.onChange("GRADUATE")}
+                          className={`p-6 rounded-[1.5rem] border-2 transition-all flex flex-col items-center gap-2 ${field.value === "GRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10"} ${isQualificationLocked ? (field.value === "GRADUATE" ? "cursor-default" : "opacity-40 cursor-not-allowed grayscale") : "cursor-pointer hover:border-primary/20"}`}
                         >
                           <Building2 className={`h-6 w-6 ${field.value === "GRADUATE" ? "text-primary" : "text-muted-foreground"}`} />
                           <span className={`text-sm font-black uppercase tracking-tight ${field.value === "GRADUATE" ? "text-primary" : "text-muted-foreground"}`}>Graduate / PG</span>
                         </div>
                         <div 
-                          onClick={() => field.onChange("UNDERGRADUATE")}
-                          className={`p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${field.value === "UNDERGRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10 hover:border-primary/20"}`}
+                          onClick={() => !isQualificationLocked && field.onChange("UNDERGRADUATE")}
+                          className={`p-6 rounded-[1.5rem] border-2 transition-all flex flex-col items-center gap-2 ${field.value === "UNDERGRADUATE" ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-accent/30 bg-accent/10"} ${isQualificationLocked ? (field.value === "UNDERGRADUATE" ? "cursor-default" : "opacity-40 cursor-not-allowed grayscale") : "cursor-pointer hover:border-primary/20"}`}
                         >
                           <User className={`h-6 w-6 ${field.value === "UNDERGRADUATE" ? "text-primary" : "text-muted-foreground"}`} />
                           <span className={`text-sm font-black uppercase tracking-tight ${field.value === "UNDERGRADUATE" ? "text-primary" : "text-muted-foreground"}`}>10th / 12th / UG</span>

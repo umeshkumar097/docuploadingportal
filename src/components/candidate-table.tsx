@@ -345,6 +345,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         "Residential State": c.residentialState || "N/A",
         "Pincode": c.pincode || "N/A",
         "Mobile": c.mobileNumber || "N/A",
+        "Email": c.email || "N/A",
         "Employee ID": c.employeeId || "N/A",
         "ID Type": c.idType || "N/A",
         "ID Number": c.idNumber || "N/A",
@@ -372,6 +373,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       { wch: 20 }, // State
       { wch: 10 }, // Pincode
       { wch: 15 }, // Mobile
+      { wch: 25 }, // Email
       { wch: 15 }, // Emp ID
       { wch: 15 }, // ID Type
       { wch: 20 }, // ID Number
