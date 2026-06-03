@@ -993,7 +993,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                         onOcrSuccess={(val) => form.setValue("idNumber", val, { shouldValidate: true })}
                         subType={form.watch("idType")}
                         canReupload={canReupload}
-                        description="Upload official Government ID only. Company IDs or Degree certificates are NOT allowed here."
+                        description="Upload Original COLOURED Government ID only. Black & White copies are STRICTLY PROHIBITED."
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center p-12 rounded-[2rem] bg-accent/10 border-2 border-dashed border-accent/30 gap-4 opacity-60">
