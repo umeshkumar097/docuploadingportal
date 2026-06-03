@@ -301,11 +301,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             form.setValue("highestQualification", m.highestQualification);
             setIsQualificationLocked(true);
           } else if (m.qualificationType) {
-            const qType = m.qualificationType.toUpperCase();
+            const qType = m.qualificationType.toUpperCase().replace(/\s+/g, '');
             if (qType.includes("GRADUATE") && !qType.includes("UNDER")) {
               form.setValue("highestQualification", "GRADUATE");
               setIsQualificationLocked(true);
-            } else if (qType.includes("UNDERGRADUATE") || qType.includes("10TH") || qType.includes("12TH") || qType.includes("UG")) {
+            } else if (qType.includes("UNDER") || qType.includes("10TH") || qType.includes("12TH") || qType.includes("UG") || qType.includes("DIPLOMA")) {
               form.setValue("highestQualification", "UNDERGRADUATE");
               setIsQualificationLocked(true);
             }
@@ -350,7 +350,10 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             if (ext.idType) form.setValue("idType", ext.idType, { shouldValidate: true });
             if (ext.idNumber) form.setValue("idNumber", ext.idNumber, { shouldValidate: true });
             if (ext.isDraCertified !== undefined) form.setValue("isDraCertified", ext.isDraCertified, { shouldValidate: true });
-            if (ext.highestQualification) form.setValue("highestQualification", ext.highestQualification);
+            if (ext.highestQualification) {
+              form.setValue("highestQualification", ext.highestQualification);
+              setIsQualificationLocked(true);
+            }
             if (ext.addressLine1) form.setValue("addressLine1", ext.addressLine1);
             if (ext.addressLine2) form.setValue("addressLine2", ext.addressLine2);
             if (ext.bookLanguage) form.setValue("bookLanguage", ext.bookLanguage);
