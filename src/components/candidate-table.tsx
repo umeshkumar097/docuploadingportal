@@ -681,9 +681,9 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
                         {candidate.trainingMonth}
                       </Badge>
                     )}
-                    {candidate.qualificationType && (
-                      <Badge variant="outline" className={`text-[9px] px-2 py-0.5 border-2 font-black uppercase tracking-widest rounded-lg w-fit ${candidate.qualificationType === 'GRADUATE' ? 'border-emerald-500/20 text-emerald-600 bg-emerald-500/5' : 'border-indigo-500/20 text-indigo-600 bg-indigo-500/5'}`}>
-                        {candidate.qualificationType}
+                    {(candidate.highestQualification || candidate.qualificationType) && (
+                      <Badge variant="outline" className={`text-[9px] px-2 py-0.5 border-2 font-black uppercase tracking-widest rounded-lg w-fit ${(candidate.highestQualification || candidate.qualificationType) === 'GRADUATE' ? 'border-emerald-500/20 text-emerald-600 bg-emerald-500/5' : 'border-indigo-500/20 text-indigo-600 bg-indigo-500/5'}`}>
+                        {candidate.highestQualification || candidate.qualificationType}
                       </Badge>
                     )}
                     {candidate.isDraCertified && (
