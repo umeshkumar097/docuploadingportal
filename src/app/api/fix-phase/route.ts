@@ -17,7 +17,7 @@ export async function GET() {
       }
     });
 
-    const updatedMD = await prisma.masterData.updateMany({
+    const updatedMD = await prisma.masterEmployee.updateMany({
       where: { 
         phase: {
           contains: 'jine',
