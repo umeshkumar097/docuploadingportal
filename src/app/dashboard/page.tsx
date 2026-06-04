@@ -62,6 +62,18 @@ export default async function DashboardPage() {
       },
     });
 
+    // Attach emails from MasterEmployee
+    const employeeIds = candidates.map((c: any) => c.employeeId).filter(Boolean) as string[];
+    const masterEmployees = await prisma.masterEmployee.findMany({
+      where: { employeeId: { in: employeeIds } },
+      select: { employeeId: true, email: true }
+    });
+    const emailMap = new Map(masterEmployees.map((me: any) => [me.employeeId, me.email]));
+    const candidatesWithEmail = candidates.map((c: any) => ({
+      ...c,
+      email: c.employeeId ? emailMap.get(c.employeeId) || null : null
+    }));
+
 
     return (
       <div className="space-y-10">
@@ -98,7 +110,7 @@ export default async function DashboardPage() {
               </Button>
           </div>
 
-          <CandidateTable candidates={candidates} role={role} />
+          <CandidateTable candidates={candidatesWithEmail} role={role} />
         </div>
       </div>
     );

@@ -55,6 +55,18 @@ export default async function DraCertifiedPage() {
       },
     });
 
+    // Attach emails from MasterEmployee
+    const employeeIds = candidates.map((c: any) => c.employeeId).filter(Boolean) as string[];
+    const masterEmployees = await prisma.masterEmployee.findMany({
+      where: { employeeId: { in: employeeIds } },
+      select: { employeeId: true, email: true }
+    });
+    const emailMap = new Map(masterEmployees.map((me: any) => [me.employeeId, me.email]));
+    const candidatesWithEmail = candidates.map((c: any) => ({
+      ...c,
+      email: c.employeeId ? emailMap.get(c.employeeId) || null : null
+    }));
+
     const clients = await prisma.client.findMany({
       orderBy: { name: "asc" }
     });
@@ -64,7 +76,7 @@ export default async function DraCertifiedPage() {
       candidates.some((c: any) => c.clientId === client.id)
     );
 
-    const certifiedCount = candidates.filter((c: any) => 
+    const certifiedCount = candidatesWithEmail.filter((c: any) => 
         c.documents.some((d: any) => d.type === "DRA_CERTIFICATE")
     ).length;
 
@@ -95,7 +107,7 @@ export default async function DraCertifiedPage() {
                 </div>
                 <div className="space-y-4">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Total Submissions</p>
-                    <h3 className="text-5xl font-black text-foreground">{candidates.length}</h3>
+                    <h3 className="text-5xl font-black text-foreground">{candidatesWithEmail.length}</h3>
                 </div>
             </div>
             <div className="glass-card p-8 rounded-[2.5rem] relative overflow-hidden border-emerald-500/20 bg-emerald-500/5 group">
@@ -113,7 +125,7 @@ export default async function DraCertifiedPage() {
                 </div>
                 <div className="space-y-4">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Pending Verification</p>
-                    <h3 className="text-5xl font-black text-foreground">{candidates.length - certifiedCount}</h3>
+                    <h3 className="text-5xl font-black text-foreground">{candidatesWithEmail.length - certifiedCount}</h3>
                 </div>
             </div>
         </div>
@@ -129,10 +141,10 @@ export default async function DraCertifiedPage() {
             <Tabs defaultValue="all" className="space-y-6">
               <TabsList className="bg-accent/30 p-1 rounded-2xl w-fit flex flex-wrap gap-1">
                 <TabsTrigger value="all" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
-                  All Clients ({candidates.length})
+                  All Clients ({candidatesWithEmail.length})
                 </TabsTrigger>
                 {activeClients.map((client: any) => {
-                  const clientCands = candidates.filter((c: any) => c.clientId === client.id);
+                  const clientCands = candidatesWithEmail.filter((c: any) => c.clientId === client.id);
                   return (
                     <TabsTrigger key={client.id} value={client.id} className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
                       {client.name} ({clientCands.length})
@@ -143,11 +155,11 @@ export default async function DraCertifiedPage() {
 
               <TabsContent value="all" className="animate-in fade-in duration-300">
                 <div className="bg-card/30 rounded-3xl p-1">
-                  <CandidateTable candidates={candidates} role={role} />
+                  <CandidateTable candidates={candidatesWithEmail} role={role} />
                 </div>
               </TabsContent>
               {activeClients.map((client: any) => {
-                const clientCands = candidates.filter((c: any) => c.clientId === client.id);
+                const clientCands = candidatesWithEmail.filter((c: any) => c.clientId === client.id);
                 return (
                   <TabsContent key={client.id} value={client.id} className="animate-in fade-in duration-300">
                     <div className="bg-card/30 rounded-3xl p-1">
@@ -159,7 +171,7 @@ export default async function DraCertifiedPage() {
             </Tabs>
           ) : (
             <div className="bg-card/30 rounded-3xl p-1">
-              <CandidateTable candidates={candidates} role={role} />
+              <CandidateTable candidates={candidatesWithEmail} role={role} />
             </div>
           )}
         </div>

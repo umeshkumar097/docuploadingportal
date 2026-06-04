@@ -47,6 +47,18 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     orderBy: { createdAt: "desc" }
   });
 
+  // Attach emails from MasterEmployee
+  const employeeIds = candidates.map((c: any) => c.employeeId).filter(Boolean) as string[];
+  const masterEmployees = await prisma.masterEmployee.findMany({
+    where: { employeeId: { in: employeeIds } },
+    select: { employeeId: true, email: true }
+  });
+  const emailMap = new Map(masterEmployees.map((me: any) => [me.employeeId, me.email]));
+  const candidatesWithEmail = candidates.map((c: any) => ({
+    ...c,
+    email: c.employeeId ? emailMap.get(c.employeeId) || null : null
+  }));
+
   return (
     <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
       {/* Breadcrumbs & Header */}
@@ -91,7 +103,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="candidates" className="animate-in slide-in-from-bottom-2 duration-300">
           <div className="bg-card/30 rounded-3xl p-1">
-            <CandidateTable candidates={candidates} role={role || "ADMIN"} />
+            <CandidateTable candidates={candidatesWithEmail} role={role} />
           </div>
         </TabsContent>
 

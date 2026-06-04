@@ -61,9 +61,10 @@ export async function POST(req: NextRequest) {
 
         seenEmployeeIds.add(employeeId);
         
-        const phaseValue = (phaseOverride && phaseOverride.trim()) 
+        const rawPhase = (phaseOverride && phaseOverride.trim()) 
           ? phaseOverride.trim() 
           : getVal("phase", ["Phase", "Phases"]) || "Phase 1";
+        const phaseValue = rawPhase.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
 
         allFormattedData.push({
           employeeId,
