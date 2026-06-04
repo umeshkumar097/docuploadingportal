@@ -96,8 +96,8 @@ export default function FileUpload({
 
       const hasIdPattern = /[A-Z]{5}[0-9]{4}[A-Z]{1}/.test(rawText) || /[2-9][0-9]{3}\s?[0-9]{4}\s?[0-9]{4}/.test(rawText);
       const hasDegreeKeywords = /DEGREE|UNIVERSITY|GRADUATE|BACHELOR|MASTER|CONVOCATION/.test(rawText);
-      const hasProhibitedKeywords = /MARKSHEET|PROVISIONAL|MIGRATION|GRADE|STATEMENT|TRANSCRIPT|MARKS|RESULT|MATRICULATION|SECONDARY|HIGHER|SCHOOL/.test(rawText);
-      const hasEduKeywords = hasDegreeKeywords || hasProhibitedKeywords || /BOARD|CERTIFICATE|PASSED|ROLL NO|EXAMINATION/.test(rawText);
+      const hasProhibitedKeywords = /MARKSHEET|MARK SHEET|PROVISIONAL|MIGRATION|GRADE|STATEMENT|TRANSCRIPT|MARKS|RESULT/.test(rawText);
+      const hasEduKeywords = hasDegreeKeywords || hasProhibitedKeywords || /BOARD|CERTIFICATE|PASSED|ROLL NO|EXAMINATION|MATRICULATION|SECONDARY|SCHOOL/.test(rawText);
       const isGovernmentDoc = /GOVERNMENT|INDIA|INCOME TAX|UNIQUE IDENTIFICATION|AADHAAR|PAN CARD/.test(rawText);
 
       // --- VALIDATION LOGIC ---
@@ -123,8 +123,8 @@ export default function FileUpload({
           const currentLevel = (subType || "").toUpperCase();
 
           if (currentLevel === "GRADUATE") {
-              // Rejection logic for Graduates: Reject if marksheet-specific words are found
-              if (hasProhibitedKeywords && !hasDegreeKeywords) {
+              // Rejection logic for Graduates: Reject if marksheet-specific words are found, EVEN IF degree keywords are present.
+              if (hasProhibitedKeywords) {
                   setStatus("error");
                   setErrorMessage("Marksheet, Provisional or Migration detected. Only Original University Degree is allowed for Graduates.");
                   return;
