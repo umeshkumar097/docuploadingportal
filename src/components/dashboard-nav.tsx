@@ -35,9 +35,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Candidates Workspace", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Master Data", href: "/dashboard/master-data", icon: Database },
   { label: "Clients", href: "/dashboard/admin?tab=clients", icon: Globe, adminOnly: true },
-  { label: "Addresses", href: "/dashboard/addresses", icon: MapPin, adminOnly: true },
   { label: "Hall Tickets", href: "/dashboard/halltickets", icon: Ticket, adminOnly: true },
   { label: "Email Logs", href: "/dashboard/email-logs", icon: Mail, adminOnly: true },
   { label: "Certified DRA", href: "/dashboard/dra-certified", icon: ClipboardCheck },
