@@ -18,7 +18,7 @@ export async function PATCH(
       name, employer, mobileNumber, employeeId, idType, idNumber, 
       residentialState, city, pincode, phase, isDraCertified,
       addressLine1, addressLine2, bookLanguage, trainingLanguage, examCenter, trainingMonth,
-      highestQualification
+      highestQualification, dob
     } = body;
 
     // Validate if candidate exists
@@ -49,6 +49,7 @@ export async function PATCH(
         ...(phase !== undefined && { phase }),
         ...(idType !== undefined && { idType }),
         ...(idNumber !== undefined && { idNumber }),
+        ...(dob !== undefined && { dob }),
         ...(isDraCertified !== undefined && { isDraCertified }),
         ...(addressLine1 !== undefined && { addressLine1 }),
         ...(addressLine2 !== undefined && { addressLine2 }),
@@ -74,6 +75,7 @@ export async function PATCH(
         pincode: true,
         idType: true,
         idNumber: true,
+        dob: true,
         isDraCertified: true,
         addressLine1: true,
         addressLine2: true,

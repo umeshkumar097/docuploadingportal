@@ -58,6 +58,7 @@ const formSchema = z.object({
   }).optional(),
   isDraCertified: z.boolean(),
   idNumber: z.string().optional(),
+  dob: z.string().optional(),
   highestQualification: z.string().min(1, "Please select your highest qualification level"),
   qualificationType: z.string().optional(),
   originalDegree: z.boolean().refine((val) => val === true, {
@@ -115,6 +116,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       phase: "",
       idType: "" as any,
       idNumber: "",
+      dob: "",
       isDraCertified: false,
       originalDegree: false,
       highestQualification: "",
@@ -404,6 +406,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           phase: values.phase || undefined,
           idType: values.idType || undefined,
           idNumber: values.idNumber || undefined,
+          dob: values.dob || undefined,
           isDraCertified: values.isDraCertified ?? undefined,
           addressLine1: values.addressLine1 || undefined,
           addressLine2: values.addressLine2 || undefined,
@@ -841,6 +844,17 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     <FormItem className="space-y-3">
                       <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Employer/Company <span className="text-red-500">*</span></FormLabel>
                       <FormControl><Input className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dob"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Date of Birth</FormLabel>
+                      <FormControl><Input type="date" className="h-14 rounded-2xl bg-accent/30 border-none px-6" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

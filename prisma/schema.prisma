@@ -41,6 +41,7 @@ model Candidate {
   lastActiveAt     DateTime        @default(now())
   idType           IDType?
   idNumber         String?
+  dob              String?
   residentialState String?
   city             String?
   pincode          String?

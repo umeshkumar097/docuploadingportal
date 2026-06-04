@@ -37,6 +37,7 @@ export async function exportToExcel(role?: string, vendorName?: string) {
     Employer: c.employer,
     Mobile: c.mobileNumber,
     "Employee ID": c.employeeId,
+    "Date of Birth": c.dob || "N/A",
     Status: c.status,
     State: c.residentialState,
     City: c.city,

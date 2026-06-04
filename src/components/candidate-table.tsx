@@ -347,6 +347,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         "Mobile": c.mobileNumber || "N/A",
         "Email": c.email || "N/A",
         "Employee ID": c.employeeId || "N/A",
+        "Date of Birth": c.dob || "N/A",
         "ID Type": c.idType || "N/A",
         "ID Number": c.idNumber || "N/A",
         "Photo": getFriendlyStatus(docStatus["PHOTO"]),
