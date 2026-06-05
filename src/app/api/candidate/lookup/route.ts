@@ -36,9 +36,14 @@ export async function GET(req: NextRequest) {
     if (employeeData && employeeData.employeeId) {
         candidates = await prisma.candidate.findMany({
             where: {
-                OR: [
-                    { employeeId: employeeData.employeeId },
-                    employeeData.personalMobileNo ? { mobileNumber: employeeData.personalMobileNo } : { employeeId: "NONE_ID" }
+                AND: [
+                    { clientId: employeeData.clientId },
+                    {
+                        OR: [
+                            { employeeId: employeeData.employeeId },
+                            employeeData.personalMobileNo ? { mobileNumber: employeeData.personalMobileNo } : { employeeId: "NONE_ID" }
+                        ]
+                    }
                 ]
             },
             include: {
