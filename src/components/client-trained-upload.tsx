@@ -27,6 +27,7 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
   const [result, setResult] = useState<any>(null);
   const [headers, setHeaders] = useState<string[]>([]);
   const [employeeIdColumn, setEmployeeIdColumn] = useState<string>("");
+  const [trainingMonth, setTrainingMonth] = useState<string>("");
   const [parsedData, setParsedData] = useState<any[]>([]);
   const router = useRouter();
 
@@ -95,7 +96,7 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ employeeIds }),
+        body: JSON.stringify({ employeeIds, trainingMonth: trainingMonth.trim() }),
       });
 
       const data = await res.json();
@@ -158,6 +159,16 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
               </>
             )}
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Training Month</Label>
+          <Input 
+            value={trainingMonth} 
+            onChange={(e) => setTrainingMonth(e.target.value)} 
+            placeholder="e.g. June 2026"
+            className="rounded-xl border-accent/20 bg-accent/10 focus:ring-primary/20"
+          />
         </div>
 
         {headers.length > 0 && (

@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const { employeeIds } = await req.json();
+    const { employeeIds, trainingMonth } = await req.json();
 
     if (!employeeIds || !Array.isArray(employeeIds) || employeeIds.length === 0) {
         return NextResponse.json({ success: false, error: "No employee IDs provided" }, { status: 400 });
@@ -43,16 +43,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const foundEmployeeIds = new Set(candidates.map((c: any) => c.employeeId));
     const notFoundCount = targetIds.filter((id: string) => !foundEmployeeIds.has(id)).length;
 
-    // Update the status to TRAINED
+    // Update the status to TRAINED and set trainingMonth if provided
+    const updateData: any = { status: "TRAINED" };
+    if (trainingMonth) {
+        updateData.trainingMonth = trainingMonth;
+    }
+
     const updateResult = await prisma.candidate.updateMany({
         where: {
             id: {
                 in: candidateIdsToUpdate
             }
         },
-        data: {
-            status: "TRAINED"
-        }
+        data: updateData
     });
 
     return NextResponse.json({
