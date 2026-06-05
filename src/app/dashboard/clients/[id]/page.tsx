@@ -113,7 +113,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="candidates" className="animate-in slide-in-from-bottom-2 duration-300">
           <div className="bg-card/30 rounded-3xl p-1">
-            <CandidateTable candidates={regularCandidates} role={role} storageKeyPrefix={`client_${id}_candidates_`} />
+            <CandidateTable candidates={regularCandidates} role={role} storageKeyPrefix={`client_${id}_candidates_`} isClientView={true} />
           </div>
         </TabsContent>
 
@@ -136,7 +136,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="dra" className="animate-in slide-in-from-bottom-2 duration-300">
           <div className="bg-card/30 rounded-3xl p-1">
-            <CandidateTable candidates={draCandidates} role={role} storageKeyPrefix={`client_${id}_dra_`} />
+            <CandidateTable candidates={draCandidates} role={role} storageKeyPrefix={`client_${id}_dra_`} isClientView={true} />
           </div>
         </TabsContent>
 
@@ -148,7 +148,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             />
           </div>
           <div className="bg-card/30 rounded-3xl p-1 mt-6">
-            <CandidateTable candidates={trainedCandidates} role={role} storageKeyPrefix={`client_${id}_trained_`} />
+            <CandidateTable candidates={trainedCandidates} role={role} storageKeyPrefix={`client_${id}_trained_`} isClientView={true} />
           </div>
         </TabsContent>
       </Tabs>

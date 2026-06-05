@@ -19,9 +19,10 @@ interface CandidateTableProps {
   candidates: any[];
   role: string;
   storageKeyPrefix?: string;
+  isClientView?: boolean;
 }
 
-export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_" }: CandidateTableProps) {
+export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", isClientView = false }: CandidateTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
@@ -496,8 +497,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_" }:
 
       {/* Filters Bar */}
       <div className="flex flex-col md:flex-row gap-3 items-center justify-start pb-2">
-        <div className="flex flex-wrap gap-3 w-full">
-          {role === "ADMIN" && (
+        <div className="flex flex-wrap items-center gap-3 w-full">
+          {role === "ADMIN" && !isClientView && (
             <div className="relative flex-1 min-w-[180px]">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <select
@@ -513,7 +514,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_" }:
             </div>
           )}
 
-          {role === "ADMIN" && (
+          {role === "ADMIN" && !isClientView && (
             <div className="relative flex-1 min-w-[200px] hidden xl:block">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <select
@@ -578,7 +579,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_" }:
               value={qualificationTypeFilter}
               onChange={(e) => setQualificationTypeFilter(e.target.value)}
             >
-              <option value="all">All Categories</option>
+              <option value="all">All Qualifications</option>
               {uniqueQualifications.map(qual => (
                 <option key={qual as string} value={qual as string}>{formatQualName(qual as string)}</option>
               ))}
