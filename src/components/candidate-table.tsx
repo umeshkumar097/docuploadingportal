@@ -18,9 +18,10 @@ import { Input } from "@/components/ui/input";
 interface CandidateTableProps {
   candidates: any[];
   role: string;
+  storageKeyPrefix?: string;
 }
 
-export function CandidateTable({ candidates, role }: CandidateTableProps) {
+export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_" }: CandidateTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
@@ -51,17 +52,17 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setSearchQuery(sessionStorage.getItem("crux_searchQuery") || "");
-      setCompanyFilter(sessionStorage.getItem("crux_companyFilter") || "all");
-      setPhaseFilter(sessionStorage.getItem("crux_phaseFilter") || "all");
-      setClientFilter(sessionStorage.getItem("crux_clientFilter") || "all");
-      setDateFilter(sessionStorage.getItem("crux_dateFilter") || "");
-      const savedTab = sessionStorage.getItem("crux_activeTab");
+      setSearchQuery(sessionStorage.getItem(`${storageKeyPrefix}searchQuery`) || "");
+      setCompanyFilter(sessionStorage.getItem(`${storageKeyPrefix}companyFilter`) || "all");
+      setPhaseFilter(sessionStorage.getItem(`${storageKeyPrefix}phaseFilter`) || "all");
+      setClientFilter(sessionStorage.getItem(`${storageKeyPrefix}clientFilter`) || "all");
+      setDateFilter(sessionStorage.getItem(`${storageKeyPrefix}dateFilter`) || "");
+      const savedTab = sessionStorage.getItem(`${storageKeyPrefix}activeTab`);
       if (savedTab) setActiveTab(savedTab as any);
-      setTrainingLanguageFilter(sessionStorage.getItem("crux_trainingLanguageFilter") || "all");
-      setQualificationTypeFilter(sessionStorage.getItem("crux_qualificationTypeFilter") || "all");
+      setTrainingLanguageFilter(sessionStorage.getItem(`${storageKeyPrefix}trainingLanguageFilter`) || "all");
+      setQualificationTypeFilter(sessionStorage.getItem(`${storageKeyPrefix}qualificationTypeFilter`) || "all");
       
-      const storedMonth = sessionStorage.getItem("crux_trainingMonthFilter");
+      const storedMonth = sessionStorage.getItem(`${storageKeyPrefix}trainingMonthFilter`);
       if (storedMonth) {
         setTrainingMonthFilter(storedMonth);
       } else if (candidates && candidates.length > 0) {
@@ -71,21 +72,21 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         else setTrainingMonthFilter(getEffectiveMonth(candidates[0]));
       }
     }
-  }, [candidates]);
+  }, [candidates, storageKeyPrefix]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("crux_searchQuery", searchQuery);
-      sessionStorage.setItem("crux_companyFilter", companyFilter);
-      sessionStorage.setItem("crux_phaseFilter", phaseFilter);
-      sessionStorage.setItem("crux_clientFilter", clientFilter);
-      sessionStorage.setItem("crux_dateFilter", dateFilter);
-      sessionStorage.setItem("crux_activeTab", activeTab);
-      sessionStorage.setItem("crux_trainingLanguageFilter", trainingLanguageFilter);
-      sessionStorage.setItem("crux_qualificationTypeFilter", qualificationTypeFilter);
-      sessionStorage.setItem("crux_trainingMonthFilter", trainingMonthFilter);
+      sessionStorage.setItem(`${storageKeyPrefix}searchQuery`, searchQuery);
+      sessionStorage.setItem(`${storageKeyPrefix}companyFilter`, companyFilter);
+      sessionStorage.setItem(`${storageKeyPrefix}phaseFilter`, phaseFilter);
+      sessionStorage.setItem(`${storageKeyPrefix}clientFilter`, clientFilter);
+      sessionStorage.setItem(`${storageKeyPrefix}dateFilter`, dateFilter);
+      sessionStorage.setItem(`${storageKeyPrefix}activeTab`, activeTab);
+      sessionStorage.setItem(`${storageKeyPrefix}trainingLanguageFilter`, trainingLanguageFilter);
+      sessionStorage.setItem(`${storageKeyPrefix}qualificationTypeFilter`, qualificationTypeFilter);
+      sessionStorage.setItem(`${storageKeyPrefix}trainingMonthFilter`, trainingMonthFilter);
     }
-  }, [searchQuery, companyFilter, phaseFilter, clientFilter, dateFilter, activeTab, trainingLanguageFilter, qualificationTypeFilter, trainingMonthFilter]);
+  }, [searchQuery, companyFilter, phaseFilter, clientFilter, dateFilter, activeTab, trainingLanguageFilter, qualificationTypeFilter, trainingMonthFilter, storageKeyPrefix]);
 
   const uniquePhases = useMemo(() => {
     const phases = candidates.map(c => c.phase).filter(Boolean);
