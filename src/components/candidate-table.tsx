@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -43,22 +43,49 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
   const [activeTab, setActiveTab] = useState<"submitted" | "no-submit" | "login">("submitted");
   const [trainingLanguageFilter, setTrainingLanguageFilter] = useState("all");
   const [qualificationTypeFilter, setQualificationTypeFilter] = useState("all");
+  const [trainingMonthFilter, setTrainingMonthFilter] = useState<string>("all");
 
   const getEffectiveMonth = (c: any) => {
     return c.trainingMonth || new Date(c.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' });
   };
 
-  const [trainingMonthFilter, setTrainingMonthFilter] = useState<string>(() => {
-    if (!candidates || candidates.length === 0) return "all";
-    
-    const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
-    const match = candidates.find((c: any) => getEffectiveMonth(c).toLowerCase().includes(currentMonthName.toLowerCase()));
-    
-    if (match) return getEffectiveMonth(match);
-    
-    const mostRecent = candidates[0]; // candidates are ordered by createdAt desc
-    return mostRecent ? getEffectiveMonth(mostRecent) : "all";
-  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSearchQuery(sessionStorage.getItem("crux_searchQuery") || "");
+      setCompanyFilter(sessionStorage.getItem("crux_companyFilter") || "all");
+      setPhaseFilter(sessionStorage.getItem("crux_phaseFilter") || "all");
+      setClientFilter(sessionStorage.getItem("crux_clientFilter") || "all");
+      setDateFilter(sessionStorage.getItem("crux_dateFilter") || "");
+      const savedTab = sessionStorage.getItem("crux_activeTab");
+      if (savedTab) setActiveTab(savedTab as any);
+      setTrainingLanguageFilter(sessionStorage.getItem("crux_trainingLanguageFilter") || "all");
+      setQualificationTypeFilter(sessionStorage.getItem("crux_qualificationTypeFilter") || "all");
+      
+      const storedMonth = sessionStorage.getItem("crux_trainingMonthFilter");
+      if (storedMonth) {
+        setTrainingMonthFilter(storedMonth);
+      } else if (candidates && candidates.length > 0) {
+        const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
+        const match = candidates.find((c: any) => getEffectiveMonth(c).toLowerCase().includes(currentMonthName.toLowerCase()));
+        if (match) setTrainingMonthFilter(getEffectiveMonth(match));
+        else setTrainingMonthFilter(getEffectiveMonth(candidates[0]));
+      }
+    }
+  }, [candidates]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("crux_searchQuery", searchQuery);
+      sessionStorage.setItem("crux_companyFilter", companyFilter);
+      sessionStorage.setItem("crux_phaseFilter", phaseFilter);
+      sessionStorage.setItem("crux_clientFilter", clientFilter);
+      sessionStorage.setItem("crux_dateFilter", dateFilter);
+      sessionStorage.setItem("crux_activeTab", activeTab);
+      sessionStorage.setItem("crux_trainingLanguageFilter", trainingLanguageFilter);
+      sessionStorage.setItem("crux_qualificationTypeFilter", qualificationTypeFilter);
+      sessionStorage.setItem("crux_trainingMonthFilter", trainingMonthFilter);
+    }
+  }, [searchQuery, companyFilter, phaseFilter, clientFilter, dateFilter, activeTab, trainingLanguageFilter, qualificationTypeFilter, trainingMonthFilter]);
 
   const uniquePhases = useMemo(() => {
     const phases = candidates.map(c => c.phase).filter(Boolean);
@@ -132,7 +159,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
         ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
         : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
       
-      const isSubmitted = c.status === "READY" || (isDra ? docCount >= 1 : docCount >= 4);
+      const isSubmitted = c.status === "READY" || c.status === "TRAINED" || (isDra ? docCount >= 1 : docCount >= 4);
       const isNoSubmit = c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
       
       // Login: Status PENDING, No Docs for their mode, has name/ID, and active in last 30 minutes
@@ -156,7 +183,7 @@ export function CandidateTable({ candidates, role }: CandidateTableProps) {
       const docCount = isDra 
         ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
         : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
-      return c.status === "READY" || (isDra ? docCount >= 1 : docCount >= 4);
+      return c.status === "READY" || c.status === "TRAINED" || (isDra ? docCount >= 1 : docCount >= 4);
     }).length;
 
     const partialCount = filteredForStats.filter((c: any) => {

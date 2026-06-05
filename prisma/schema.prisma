@@ -184,6 +184,7 @@ enum CandidateStatus {
   VALIDATED
   REJECTED
   READY
+  TRAINED
 }
 
 enum DocumentType {

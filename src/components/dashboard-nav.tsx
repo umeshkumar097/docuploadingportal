@@ -38,7 +38,6 @@ const navItems: NavItem[] = [
   { label: "Clients", href: "/dashboard/admin?tab=clients", icon: Globe, adminOnly: true },
   { label: "Hall Tickets", href: "/dashboard/halltickets", icon: Ticket, adminOnly: true },
   { label: "Email Logs", href: "/dashboard/email-logs", icon: Mail, adminOnly: true },
-  { label: "Certified DRA", href: "/dashboard/dra-certified", icon: ClipboardCheck },
   { label: "Outreach Tracking", href: "/dashboard/outreach", icon: Building2, adminOnly: true },
 ];
 
