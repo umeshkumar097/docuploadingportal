@@ -20,9 +20,10 @@ interface CandidateTableProps {
   role: string;
   storageKeyPrefix?: string;
   isClientView?: boolean;
+  hideSubTabs?: boolean;
 }
 
-export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", isClientView = false }: CandidateTableProps) {
+export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", isClientView = false, hideSubTabs = false }: CandidateTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
@@ -170,9 +171,11 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       const isActive = lastActive > thirtyMinsAgo;
       const isLogin = c.status === "PENDING" && docCount === 0 && (c.name || c.employeeId) && isActive;
 
-      if (activeTab === "submitted" && !isSubmitted) return false;
-      if (activeTab === "no-submit" && !isNoSubmit) return false;
-      if (activeTab === "login" && !isLogin) return false;
+      if (!hideSubTabs) {
+        if (activeTab === "submitted" && !isSubmitted) return false;
+        if (activeTab === "no-submit" && !isNoSubmit) return false;
+        if (activeTab === "login" && !isLogin) return false;
+      }
 
       return true;
     });
@@ -427,7 +430,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
+      {!hideSubTabs && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
         {stats.map((stat: any, i: number) => (
           <div key={i} className="glass-card p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
             <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} w-fit mb-4 group-hover:scale-110 transition-transform`}>
@@ -439,10 +443,12 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Category Tabs */}
-      <div className="flex flex-wrap gap-2 pb-2">
+      {!hideSubTabs && (
+        <div className="flex flex-wrap gap-2 pb-2">
         <button
           onClick={() => setActiveTab("submitted")}
           className={`px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === "submitted" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-accent/30 text-muted-foreground hover:bg-accent/50"}`}
@@ -462,8 +468,9 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
           Login ({stats[2].value})
         </button>
       </div>
+      )}
 
-      {/* Search Bar - Dedicated Prominent Row */}
+      {/* Search and Filter - Dedicated Prominent Row */}
       <div className="relative group max-w-2xl">
         <div className="absolute left-1.5 top-1/2 -translate-y-1/2 h-11 w-11 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 z-10 transition-transform group-focus-within:scale-105">
           <Search className="h-5 w-5 text-primary-foreground" />

@@ -141,7 +141,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="dra" className="animate-in slide-in-from-bottom-2 duration-300">
           <div className="bg-card/30 rounded-3xl p-1">
-            <CandidateTable candidates={draCandidates} role={role} storageKeyPrefix={`client_${id}_dra_`} isClientView={true} />
+            <CandidateTable candidates={draCandidates} role={role} storageKeyPrefix={`client_${id}_dra_`} isClientView={true} hideSubTabs={true} />
           </div>
         </TabsContent>
 
@@ -153,7 +153,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             />
           </div>
           <div className="bg-card/30 rounded-3xl p-1 mt-6">
-            <CandidateTable candidates={trainedCandidates} role={role} storageKeyPrefix={`client_${id}_trained_`} isClientView={true} />
+            <CandidateTable candidates={trainedCandidates} role={role} storageKeyPrefix={`client_${id}_trained_`} isClientView={true} hideSubTabs={true} />
           </div>
         </TabsContent>
 
@@ -165,7 +165,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             />
           </div>
           <div className="bg-card/30 rounded-3xl p-1 mt-6">
-            <CandidateTable candidates={holdCandidates} role={role} storageKeyPrefix={`client_${id}_hold_`} isClientView={true} />
+            <CandidateTable candidates={holdCandidates} role={role} storageKeyPrefix={`client_${id}_hold_`} isClientView={true} hideSubTabs={true} />
           </div>
         </TabsContent>
       </Tabs>
