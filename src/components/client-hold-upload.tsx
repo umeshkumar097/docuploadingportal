@@ -10,18 +10,18 @@ import {
   Loader2, 
   CheckCircle2, 
   AlertCircle,
-  GraduationCap
+  PauseCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 
-interface ClientTrainedUploadProps {
+interface ClientHoldUploadProps {
   clientId: string;
   clientName: string;
 }
 
-export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploadProps) {
+export function ClientHoldUpload({ clientId, clientName }: ClientHoldUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -91,7 +91,7 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
     }
 
     try {
-      const res = await fetch(`/api/clients/${clientId}/upload-trained`, {
+      const res = await fetch(`/api/clients/${clientId}/upload-hold`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -120,12 +120,12 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
   return (
     <div className="glass-card rounded-[2.5rem] p-8 space-y-8">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-          <GraduationCap className="h-6 w-6" />
+        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <PauseCircle className="h-6 w-6" />
         </div>
         <div>
-          <h2 className="text-xl font-bold">Upload Trained Candidates</h2>
-          <p className="text-muted-foreground text-sm">Upload a list of Employee IDs to mark them as <span className="text-primary font-bold">Trained</span> for {clientName}.</p>
+          <h2 className="text-xl font-bold">Upload Hold Candidates</h2>
+          <p className="text-muted-foreground text-sm">Upload a list of Employee IDs to mark them as <span className="text-amber-500 font-bold">On Hold</span> for {clientName}.</p>
         </div>
       </div>
 
@@ -133,11 +133,11 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
         <div className="space-y-2">
           <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Excel/CSV File</Label>
           <div 
-            className={`border-2 border-dashed rounded-3xl p-10 transition-all flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-accent/10 ${file ? 'border-primary/50 bg-primary/5' : 'border-accent/20'}`}
-            onClick={() => document.getElementById("trained-file-input")?.click()}
+            className={`border-2 border-dashed rounded-3xl p-10 transition-all flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-accent/10 ${file ? 'border-amber-500/50 bg-amber-500/5' : 'border-accent/20'}`}
+            onClick={() => document.getElementById("hold-file-input")?.click()}
           >
             <Input 
-              id="trained-file-input"
+              id="hold-file-input"
               type="file" 
               accept=".xlsx,.xls,.csv" 
               className="hidden" 
@@ -145,7 +145,7 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
             />
             {file ? (
               <>
-                <FileSpreadsheet className="h-12 w-12 text-primary animate-bounce" />
+                <FileSpreadsheet className="h-12 w-12 text-amber-500 animate-bounce" />
                 <div className="text-center">
                   <p className="font-bold text-foreground">{file.name}</p>
                   <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
@@ -153,9 +153,11 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
               </>
             ) : (
               <>
-                <Upload className="h-12 w-12 text-muted-foreground opacity-50" />
-                <div className="text-center">
-                  <p className="font-bold text-muted-foreground">Click to browse or drag & drop</p>
+                <div className="h-16 w-16 rounded-full bg-accent/30 flex items-center justify-center">
+                  <Upload className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="font-bold">Click to select Hold file</p>
                   <p className="text-xs text-muted-foreground mt-1 uppercase tracking-tighter">Only .xlsx or .csv files are supported</p>
                 </div>
               </>
@@ -176,8 +178,8 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
         {headers.length > 0 && (
           <div className="space-y-4 p-6 bg-accent/5 rounded-2xl border border-accent/20 animate-in fade-in slide-in-from-top-4 duration-500">
             <div>
-              <h3 className="font-bold text-lg text-primary flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
+              <h3 className="font-bold text-lg text-amber-500 flex items-center gap-2">
+                <PauseCircle className="h-5 w-5" />
                 Map Employee ID Column
               </h3>
               <p className="text-sm text-muted-foreground">Select which column in your Excel file contains the Employee IDs.</p>
@@ -199,19 +201,16 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
 
         <Button 
           onClick={handleUpload} 
-          disabled={!file || isUploading || !employeeIdColumn}
-          className="w-full py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+          disabled={!file || !employeeIdColumn || isUploading}
+          className="h-12 rounded-2xl w-full bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20"
         >
           {isUploading ? (
             <>
-              <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-              Processing Records...
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
             </>
           ) : (
-            <>
-              <CheckCircle2 className="h-5 w-5 mr-3" />
-              Mark as Trained
-            </>
+            "Upload Hold Candidates"
           )}
         </Button>
       </div>

@@ -185,6 +185,7 @@ enum CandidateStatus {
   REJECTED
   READY
   TRAINED
+  ON_HOLD
 }
 
 enum DocumentType {

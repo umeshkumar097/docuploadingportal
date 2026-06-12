@@ -57,14 +57,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (candidateIdsToUpdate.length === 0) {
         return NextResponse.json({ 
             success: false, 
-            error: "No valid candidates found to mark as Trained.",
+            error: "No valid candidates found to mark as Hold.",
             notFoundIds,
             missingDocsIds
         });
     }
 
-    // Update the status to TRAINED and set trainingMonth if provided
-    const updateData: any = { status: "TRAINED" };
+    // Update the status to ON_HOLD and set trainingMonth if provided
+    const updateData: any = { status: "ON_HOLD" };
     if (trainingMonth) {
         updateData.trainingMonth = trainingMonth;
     }

@@ -15,7 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientFormConfig } from "@/components/client-form-config";
 import { ClientMasterUpload } from "@/components/client-master-upload";
 import { ClientTrainedUpload } from "@/components/client-trained-upload";
-import { Database, ClipboardCheck, GraduationCap } from "lucide-react";
+import { ClientHoldUpload } from "@/components/client-hold-upload";
+import { Database, ClipboardCheck, GraduationCap, PauseCircle } from "lucide-react";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -59,9 +60,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     email: c.employeeId ? emailMap.get(c.employeeId) || null : null
   }));
 
-  const regularCandidates = candidatesWithEmail.filter((c: any) => !c.isDraCertified && c.status !== "TRAINED");
-  const draCandidates = candidatesWithEmail.filter((c: any) => c.isDraCertified && c.status !== "TRAINED");
+  const regularCandidates = candidatesWithEmail.filter((c: any) => !c.isDraCertified && c.status !== "TRAINED" && c.status !== "ON_HOLD");
+  const draCandidates = candidatesWithEmail.filter((c: any) => c.isDraCertified && c.status !== "TRAINED" && c.status !== "ON_HOLD");
   const trainedCandidates = candidatesWithEmail.filter((c: any) => c.status === "TRAINED");
+  const holdCandidates = candidatesWithEmail.filter((c: any) => c.status === "ON_HOLD");
 
   return (
     <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
@@ -109,6 +111,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <TabsTrigger value="trained" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
             <GraduationCap className="h-4 w-4 mr-2" /> Trained
           </TabsTrigger>
+          <TabsTrigger value="hold" className="px-6 py-2.5 rounded-xl font-bold text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+            <PauseCircle className="h-4 w-4 mr-2" /> Hold
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="candidates" className="animate-in slide-in-from-bottom-2 duration-300">
@@ -149,6 +154,18 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           </div>
           <div className="bg-card/30 rounded-3xl p-1 mt-6">
             <CandidateTable candidates={trainedCandidates} role={role} storageKeyPrefix={`client_${id}_trained_`} isClientView={true} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="hold" className="animate-in slide-in-from-bottom-2 duration-300 space-y-6">
+          <div className="max-w-2xl">
+            <ClientHoldUpload 
+              clientId={client.id} 
+              clientName={client.name} 
+            />
+          </div>
+          <div className="bg-card/30 rounded-3xl p-1 mt-6">
+            <CandidateTable candidates={holdCandidates} role={role} storageKeyPrefix={`client_${id}_hold_`} isClientView={true} />
           </div>
         </TabsContent>
       </Tabs>

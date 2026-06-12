@@ -120,10 +120,18 @@ export async function POST(req: NextRequest) {
 
     const existingIdsSet = new Set(existingRecords.map((r: { employeeId: string }) => r.employeeId));
 
-    // Filter out the duplicates to return as a report
-    const duplicateData = allFormattedData.filter((d: any) => existingIdsSet.has(d.employeeId));
+    // Delete existing records for the current month so we can replace them (Upsert behavior)
+    if (existingIdsSet.size > 0) {
+      await prisma.masterEmployee.deleteMany({
+        where: {
+          uploadMonth: currentMonth,
+          employeeId: { in: Array.from(existingIdsSet) },
+          clientId: (clientIdOverride && clientIdOverride.trim()) ? clientIdOverride.trim() : undefined,
+        }
+      });
+    }
 
-    // High-performance batch insertion, skipping existing IDs as requested
+    // High-performance batch insertion
     const result = await prisma.masterEmployee.createMany({
         data: allFormattedData,
         skipDuplicates: true,
@@ -131,8 +139,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ 
         success: true, 
-        message: `Successfully processed ${allFormattedData.length} records. ${result.count} new records added.`,
-        duplicates: duplicateData
+        message: `Successfully processed ${allFormattedData.length} records. (${existingIdsSet.size} existing records were updated).`,
+        duplicates: [] 
     });
 
   } catch (error: any) {
