@@ -48,8 +48,18 @@ export function ClientTrainedUpload({ clientId, clientName }: ClientTrainedUploa
       const worksheet = workbook.Sheets[firstSheetName];
       const data: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       
-      if (data.length > 1) {
-        const extractedHeaders = data[0] as string[];
+      let extractedHeaders: string[] = [];
+      for (const row of data) {
+        if (Array.isArray(row)) {
+          const valid = row.filter(h => h && typeof h === 'string' && h.trim() !== '');
+          if (valid.length > 0) {
+            extractedHeaders = row as string[];
+            break;
+          }
+        }
+      }
+      
+      if (extractedHeaders.length > 0) {
         const validHeaders = extractedHeaders.filter(h => h && typeof h === 'string' && h.trim() !== '');
         setHeaders(validHeaders);
         
