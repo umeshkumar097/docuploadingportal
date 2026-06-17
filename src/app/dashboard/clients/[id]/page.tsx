@@ -48,16 +48,16 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     orderBy: { createdAt: "desc" }
   });
 
-  // Attach emails from MasterEmployee
+  // Attach MasterEmployee data
   const employeeIds = candidates.map((c: any) => c.employeeId).filter(Boolean) as string[];
   const masterEmployees = await prisma.masterEmployee.findMany({
     where: { employeeId: { in: employeeIds } },
-    select: { employeeId: true, email: true }
   });
-  const emailMap = new Map(masterEmployees.map((me: any) => [me.employeeId, me.email]));
+  const masterDataMap = new Map<string, any>(masterEmployees.map((me: any) => [me.employeeId, me]));
   const candidatesWithEmail = candidates.map((c: any) => ({
     ...c,
-    email: c.employeeId ? emailMap.get(c.employeeId) || null : null
+    email: c.employeeId ? masterDataMap.get(c.employeeId)?.email || null : null,
+    masterData: c.employeeId ? masterDataMap.get(c.employeeId) || null : null
   }));
 
   const regularCandidates = candidatesWithEmail.filter((c: any) => !c.isDraCertified && c.status !== "TRAINED" && c.status !== "ON_HOLD");

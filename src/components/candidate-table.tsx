@@ -304,9 +304,9 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
 
       for (const candidate of selectedCandidates) {
         const candidateIdentifier = candidate.employeeId || candidate.id;
-        const candidateZip = isSingle ? zip : new JSZip();
+        const candidateFolder = isSingle ? zip : zip.folder(candidateIdentifier);
         
-        if (!candidate.documents) continue;
+        if (!candidate.documents || !candidateFolder) continue;
 
         for (const doc of candidate.documents) {
           try {
@@ -317,7 +317,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
             const urlParts = doc.fileUrl.split('.');
             const ext = urlParts.length > 1 ? urlParts.pop() : "jpg";
             const fileName = `${doc.type}.${ext}`;
-            candidateZip.file(fileName, blob);
+            candidateFolder.file(fileName, blob);
             
             filesFetched++;
             setExportProgress(Math.round((filesFetched / totalFilesToFetch) * 100));
@@ -326,10 +326,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
           }
         }
 
-        if (!isSingle) {
-            const candidateZipBlob = await candidateZip.generateAsync({ type: "blob" });
-            zip.file(`${candidateIdentifier}.zip`, candidateZipBlob);
-        }
+        // Nested ZIP generation removed - documents are now placed directly in folders
       }
 
       const content = await zip.generateAsync({ type: "blob" });
@@ -366,7 +363,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
         idProofFinal = getFriendlyStatus(primaryStatus, "Aadhaar");
       }
 
-      return {
+      const row: any = {
         "Registration Date": new Date(c.createdAt).toLocaleString(),
         "Candidate Name": c.name || "Anonymous",
         "Phase": c.phase || "Phase 1",
@@ -387,40 +384,33 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
         "Selected Qualification": c.highestQualification || "N/A",
         "Qual Document": getFriendlyStatus(docStatus["QUALIFICATION"]),
         "ID Proof": idProofFinal,
-        "Signature": getFriendlyStatus(docStatus["SIGNATURE"]),
       };
+
+      // Append all available Master Data columns
+      if (c.masterData) {
+        const md = c.masterData;
+        const skipKeys = ['id', 'createdAt', 'updatedAt', 'clientId', 'employeeId'];
+        Object.keys(md).forEach(key => {
+          if (!skipKeys.includes(key) && md[key] !== null && md[key] !== undefined && md[key] !== '') {
+            const formattedKey = "MD_" + key.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase());
+            if (row[formattedKey] === undefined) {
+                row[formattedKey] = md[key];
+            }
+          }
+        });
+      }
+
+      return row;
     });
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
     
-    // Set column widths
-    const wscols = [
-      { wch: 25 }, // Date
-      { wch: 25 }, // Name
-      { wch: 12 }, // Phase
-      { wch: 20 }, // Employer
-      { wch: 30 }, // Addr 1
-      { wch: 30 }, // Addr 2
-      { wch: 20 }, // City
-      { wch: 20 }, // State
-      { wch: 10 }, // Pincode
-      { wch: 15 }, // Mobile
-      { wch: 25 }, // Email
-      { wch: 15 }, // Emp ID
-      { wch: 15 }, // ID Type
-      { wch: 20 }, // ID Number
-      { wch: 15 }, // Photo
-      { wch: 20 }, // Master Data Category
-      { wch: 20 }, // Selected Qualification
-      { wch: 15 }, // Qual Document
-      { wch: 20 }, // ID Proof
-      { wch: 15 }, // Sig
-    ];
-    worksheet["!cols"] = wscols;
-
-    const filename = companyFilter !== "all" 
+    // Let Excel auto-size columns by not setting wscols explicitly since columns are now dynamic
+    // We removed the static wscols array because master data columns can vary
+    
+    const filename = companyFilter !== "all"  
       ? `${companyFilter}-Report-${new Date().toISOString().split('T')[0]}.xlsx`
       : `Candidates-Report-${new Date().toISOString().split('T')[0]}.xlsx`;
 
