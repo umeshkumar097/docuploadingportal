@@ -110,20 +110,33 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
     return Array.from(new Set(months)).sort();
   }, [candidates]);
 
-  const uniqueTrainingLanguages = useMemo(() => {
-    const languages = candidates.map(c => c.trainingLanguage).filter(Boolean);
-    return Array.from(new Set(languages)).sort();
-  }, [candidates]);
+  // Fixed list of 9 languages — shown for ALL clients regardless of candidate data
+  const ALL_TRAINING_LANGUAGES = [
+    "Bengali", "English", "Gujarati", "Hindi",
+    "Kannada", "Malayalam", "Marathi", "Tamil", "Telugu"
+  ];
 
-  const uniqueQualifications = useMemo(() => {
-    const quals = candidates.map(c => c.qualificationType?.toUpperCase()).filter(Boolean);
-    return Array.from(new Set(quals)).sort();
-  }, [candidates]);
+  // Fixed 2 qualification options
+  const QUALIFICATION_OPTIONS = [
+    { value: "GRADUATE", label: "Graduate" },
+    { value: "UNDERGRADUATE", label: "Undergraduate" },
+  ];
 
-  const formatQualName = (qual: string) => {
-    if (qual === "GRADUATE") return "Graduate";
-    if (qual === "UNDERGRADUATE" || qual === "UNDER_GRADUATE") return "Undergraduate";
-    return qual.charAt(0).toUpperCase() + qual.slice(1).toLowerCase();
+  // Normalize any qualification value to GRADUATE or UNDERGRADUATE
+  const normalizeQual = (q: string): string => {
+    const upper = (q || "").toUpperCase().replace(/[\s_-]+/g, '');
+    if (
+      upper.includes('UNDER') ||
+      upper.includes('10TH') ||
+      upper.includes('12TH') ||
+      upper.includes('TWELFTH') ||
+      upper.includes('TENTH') ||
+      upper.includes('DIPLOMA') ||
+      upper === 'UG' ||
+      upper.includes('HIGHSCHOOL') ||
+      upper.includes('SECONDARY')
+    ) return 'UNDERGRADUATE';
+    return 'GRADUATE'; // Graduate, Bachelor of *, Master of *, PG, etc.
   };
 
   const filteredForStats = useMemo(() => {
@@ -140,8 +153,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       const matchesClient = clientFilter === "all" || c.client?.name === clientFilter;
       const matchesMonth = trainingMonthFilter === "all" || getEffectiveMonth(c) === trainingMonthFilter;
       const matchesLanguage = trainingLanguageFilter === "all" || c.trainingLanguage === trainingLanguageFilter;
-      const matchesQualification = qualificationTypeFilter === "all" || 
-        (c.qualificationType && c.qualificationType.toUpperCase() === qualificationTypeFilter.toUpperCase());
+      const matchesQualification = qualificationTypeFilter === "all" ||
+        normalizeQual(c.qualificationType || '') === qualificationTypeFilter.toUpperCase();
       
       let matchesDate = true;
       if (dateFilter) {
@@ -420,7 +433,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
-      {!hideSubTabs && (
+      {!hideSubTabs ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
         {stats.map((stat: any, i: number) => (
           <div key={i} className="glass-card p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
@@ -433,6 +446,18 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
             </div>
           </div>
         ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
+          <div className="glass-card p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+            <div className={`p-3 rounded-2xl bg-primary/10 text-primary w-fit mb-4 group-hover:scale-110 transition-transform`}>
+              <Users className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Candidates</p>
+              <h3 className="text-3xl font-black text-foreground">{filteredCandidates.length}</h3>
+            </div>
+          </div>
         </div>
       )}
 
@@ -552,8 +577,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
               onChange={(e) => setTrainingLanguageFilter(e.target.value)}
             >
               <option value="all">All Languages</option>
-              {uniqueTrainingLanguages.map(lang => (
-                <option key={lang as string} value={lang as string}>{lang as string}</option>
+              {ALL_TRAINING_LANGUAGES.map(lang => (
+                <option key={lang} value={lang}>{lang}</option>
               ))}
             </select>
           </div>
@@ -566,8 +591,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
               onChange={(e) => setQualificationTypeFilter(e.target.value)}
             >
               <option value="all">All Qualifications</option>
-              {uniqueQualifications.map(qual => (
-                <option key={qual as string} value={qual as string}>{formatQualName(qual as string)}</option>
+              {QUALIFICATION_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
