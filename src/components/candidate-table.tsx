@@ -311,12 +311,20 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       }
 
       const isSingle = selectedCandidates.length === 1;
+
+      // Helper: "FirstName_EmployeeID" — safe for folder names
+      const getCandidateLabel = (c: any) => {
+        const firstName = (c.name || "").trim().split(/\s+/)[0] || "";
+        const empId = c.employeeId || c.id;
+        return firstName ? `${firstName}_${empId}` : empId;
+      };
+
       const masterZipName = isSingle 
-        ? `${selectedCandidates[0].employeeId || selectedCandidates[0].id}.zip`
+        ? `${getCandidateLabel(selectedCandidates[0])}.zip`
         : `Export-${new Date().toISOString().split('T')[0]}.zip`;
 
       for (const candidate of selectedCandidates) {
-        const candidateIdentifier = candidate.employeeId || candidate.id;
+        const candidateIdentifier = getCandidateLabel(candidate);
         const candidateFolder = isSingle ? zip : zip.folder(candidateIdentifier);
         
         if (!candidate.documents || !candidateFolder) continue;
