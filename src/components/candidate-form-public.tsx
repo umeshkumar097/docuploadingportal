@@ -94,6 +94,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   const [uploadedDocs, setUploadedDocs] = useState<Set<string>>(new Set());
   const [canReupload, setCanReupload] = useState(false);
   const [isQualificationLocked, setIsQualificationLocked] = useState(false);
+  // Mobile blocking: true when requireEmpIdForLookup mode is on AND phone not in master data
+  const [mobileRequiredBlocking, setMobileRequiredBlocking] = useState(false);
 
   const handleUploadSuccess = (type: string) => {
     setUploadedDocs(prev => {
@@ -249,17 +251,36 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
   // 4. Master Data Auto-Fill Lookup
   const empIdWatch = form.watch("employeeId");
   const mobileWatch = form.watch("mobileNumber");
+
+  // Flag from formConfig: only Employee ID triggers lookup; phone must be filled manually
+  const requireEmpIdForLookup = config?.requireEmpIdForLookup === true;
+
+  // Clear mobile blocking when user enters a valid 10-digit number not starting with 0
+  useEffect(() => {
+    if (!mobileRequiredBlocking) return;
+    const isValid = /^[1-9][0-9]{9}$/.test(mobileWatch || "");
+    if (isValid) setMobileRequiredBlocking(false);
+  }, [mobileWatch, mobileRequiredBlocking]);
   
   useEffect(() => {
     if (!token) return;
     
     const hasEmpId = empIdWatch && empIdWatch.length >= 2;
     const hasMobile = mobileWatch && mobileWatch.length === 10;
-    
-    if (!hasEmpId && !hasMobile) {
-      setNominationStatus("idle");
-      setLookupError(null);
-      return;
+
+    // requireEmpIdForLookup mode: mobile alone cannot trigger lookup
+    if (requireEmpIdForLookup) {
+      if (!hasEmpId) {
+        setNominationStatus("idle");
+        setLookupError(null);
+        return;
+      }
+    } else {
+      if (!hasEmpId && !hasMobile) {
+        setNominationStatus("idle");
+        setLookupError(null);
+        return;
+      }
     }
 
     setIsQualificationLocked(false);
@@ -270,7 +291,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       try {
         let qs = "";
         if (hasEmpId) qs += `employeeId=${encodeURIComponent(empIdWatch)}`;
-        if (hasMobile) qs += `${qs ? "&" : ""}mobileNumber=${encodeURIComponent(mobileWatch)}`;
+        // In requireEmpIdForLookup mode: don't send mobile in lookup query (phone comes from user)
+        if (hasMobile && !requireEmpIdForLookup) qs += `${qs ? "&" : ""}mobileNumber=${encodeURIComponent(mobileWatch)}`;
         if (clientId) qs += `${qs ? "&" : ""}clientId=${encodeURIComponent(clientId)}`;
         
         console.log(`[LOOKUP REQUEST] Emp: ${empIdWatch}, Mobile: ${mobileWatch}, Client: ${clientId}`);
@@ -286,9 +308,16 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           
           // Auto-fill from master data
           if (m.employeeName) form.setValue("name", m.employeeName, { shouldValidate: true });
-          if (m.personalMobileNo) form.setValue("mobileNumber", m.personalMobileNo, { shouldValidate: true });
-          else if (m.whatsappNo) form.setValue("mobileNumber", m.whatsappNo, { shouldValidate: true });
-          else if (m.officeMobileNo) form.setValue("mobileNumber", m.officeMobileNo, { shouldValidate: true });
+          
+          // Phone auto-fill
+          const masterMobile = m.personalMobileNo || m.whatsappNo || m.officeMobileNo || "";
+          if (masterMobile) {
+            form.setValue("mobileNumber", masterMobile, { shouldValidate: true });
+            setMobileRequiredBlocking(false);
+          } else if (requireEmpIdForLookup) {
+            // No phone in master data — block form until user enters phone
+            setMobileRequiredBlocking(true);
+          }
 
           if (m.residentialState || m.state) form.setValue("residentialState", m.residentialState || m.state, { shouldValidate: true });
           if (m.city) form.setValue("city", m.city, { shouldValidate: true });
@@ -341,7 +370,10 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
 
             // Sync form values from existing candidate (prioritizing previously saved candidate updates over master data)
             if (ext.name) form.setValue("name", ext.name, { shouldValidate: true });
-            if (ext.mobileNumber) form.setValue("mobileNumber", ext.mobileNumber, { shouldValidate: true });
+            if (ext.mobileNumber) {
+              form.setValue("mobileNumber", ext.mobileNumber, { shouldValidate: true });
+              setMobileRequiredBlocking(false);
+            }
             if (ext.employer) form.setValue("employer", ext.employer, { shouldValidate: true });
             if (ext.residentialState) form.setValue("residentialState", ext.residentialState, { shouldValidate: true });
             if (ext.city) form.setValue("city", ext.city, { shouldValidate: true });
@@ -374,7 +406,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
       clearTimeout(lookupTimer);
       abortController.abort();
     };
-  }, [empIdWatch, mobileWatch, token, form]);
+  }, [empIdWatch, mobileWatch, token, form, requireEmpIdForLookup]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!token || nominationStatus !== "nominated") return;
@@ -614,9 +646,20 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                 )}
               />
             </div>
+
+            {/* Mobile Required Blocking Banner */}
+            {mobileRequiredBlocking && (
+              <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <span className="text-2xl">📱</span>
+                <div>
+                  <p className="font-black text-amber-600 uppercase tracking-wide text-sm">Phone Number Required</p>
+                  <p className="text-xs text-amber-700/80 font-semibold mt-0.5">Aapka phone number record mein nahi hai. Aage badhne ke liye apna 10-digit mobile number enter karein (0 se shuru nahi hona chahiye).</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className={`space-y-10 transition-all duration-700 ${nominationStatus === "nominated" ? "opacity-100 scale-100" : "opacity-20 blur-sm pointer-events-none scale-[0.98]"}`}>
+          <div className={`space-y-10 transition-all duration-700 ${nominationStatus === "nominated" && !mobileRequiredBlocking ? "opacity-100 scale-100" : "opacity-20 blur-sm pointer-events-none scale-[0.98]"}`}>
             {/* Conditional Address Section */}
             {!isDraCertified && config && (config.addressLine1 !== "DISABLED" || config.addressLine2 !== "DISABLED") && (
               <div className="glass-card p-8 md:p-10 rounded-[2.5rem] space-y-8 animate-in fade-in slide-in-from-bottom-4">

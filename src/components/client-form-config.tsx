@@ -15,7 +15,8 @@ import {
   MapPin,
   Languages,
   BookOpen,
-  Building
+  Building,
+  CreditCard
 } from "lucide-react";
 import { 
   Select,
@@ -139,6 +140,32 @@ export function ClientFormConfig({ clientId, initialConfig, initialCenters }: Cl
           </Card>
         ))}
       </div>
+
+      {/* Employee ID Required toggle */}
+      <Card className="p-5 rounded-3xl border border-primary/5 bg-background shadow-sm space-y-4 hover:border-primary/20 transition-all">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-accent text-primary">
+              <CreditCard className="h-4 w-4" />
+            </div>
+            <div>
+              <span className="font-bold text-sm text-foreground">Employee ID Required for Lookup</span>
+              <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">Sirf Employee ID se lookup hoga. Phone number master data mein nahi hoga toh user manually bharega.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setConfig((prev: any) => ({ ...prev, requireEmpIdForLookup: !prev?.requireEmpIdForLookup }))}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${
+              config?.requireEmpIdForLookup ? "bg-primary" : "bg-muted"
+            }`}
+          >
+            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-300 ${
+              config?.requireEmpIdForLookup ? "translate-x-6" : "translate-x-0"
+            }`} />
+          </button>
+        </div>
+      </Card>
 
       {config.examCenter !== "DISABLED" && (
         <Card className="p-8 rounded-[2.5rem] border border-primary/10 bg-accent/20 space-y-6">
