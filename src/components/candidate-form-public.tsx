@@ -649,11 +649,11 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
 
             {/* Mobile Required Blocking Banner */}
             {mobileRequiredBlocking && (
-              <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="mt-4 p-4 rounded-2xl bg-red-500/10 border-2 border-red-500/40 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <span className="text-2xl">📱</span>
                 <div>
-                  <p className="font-black text-amber-600 uppercase tracking-wide text-sm">Phone Number Required</p>
-                  <p className="text-xs text-amber-700/80 font-semibold mt-0.5">Aapka phone number record mein nahi hai. Aage badhne ke liye apna 10-digit mobile number enter karein (0 se shuru nahi hona chahiye).</p>
+                  <p className="font-black text-red-600 uppercase tracking-wide text-sm">Phone Number Required</p>
+                  <p className="text-xs text-red-700/90 font-semibold mt-0.5">Your phone number is not in our records. To proceed, please enter your 10-digit mobile number (must not start with 0).</p>
                 </div>
               </div>
             )}
