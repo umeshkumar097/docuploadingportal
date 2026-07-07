@@ -397,6 +397,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
         "Selected Qualification": c.highestQualification || "N/A",
         "Qual Document": getFriendlyStatus(docStatus["QUALIFICATION"]),
         "ID Proof": idProofFinal,
+        "Signature": getFriendlyStatus(docStatus["SIGNATURE"]),
       };
 
       // Append all available Master Data columns
