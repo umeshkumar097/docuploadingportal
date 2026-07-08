@@ -364,7 +364,12 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       ? filteredCandidates.filter(c => selectedIds.includes(c.id))
       : filteredCandidates;
 
-    const data = candidatesToExport.map(c => {
+    // Sort chronologically (oldest first) so Excel rows are in proper order of registration
+    const sortedCandidates = [...candidatesToExport].sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+
+    const data = sortedCandidates.map(c => {
       const docStatus: any = {};
       c.documents?.forEach((doc: any) => {
         docStatus[doc.type] = doc.status;
