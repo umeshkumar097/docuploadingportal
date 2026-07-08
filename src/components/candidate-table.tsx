@@ -312,11 +312,9 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
 
       const isSingle = selectedCandidates.length === 1;
 
-      // Helper: "FirstName_EmployeeID" — safe for folder names
+      // Helper: "EmployeeID" — safe for folder names
       const getCandidateLabel = (c: any) => {
-        const firstName = (c.name || "").trim().split(/\s+/)[0] || "";
-        const empId = c.employeeId || c.id;
-        return firstName ? `${firstName}_${empId}` : empId;
+        return c.employeeId || c.id;
       };
 
       const masterZipName = isSingle 
@@ -385,7 +383,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       }
 
       const row: any = {
-        "Registration Date": new Date(c.createdAt).toLocaleString(),
+        "Registration Date": new Date(c.createdAt).toISOString().replace('T', ' ').substring(0, 19),
         "Candidate Name": c.name || "Anonymous",
         "Phase": c.phase || "Phase 1",
         "Employer": c.employer || "N/A",
