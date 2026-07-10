@@ -30,8 +30,27 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid token" }, { status: 404 });
     }
 
-    // Block updates if already completed AND re-upload not explicitly allowed
-    if (candidate.status === "READY" && !candidate.canReupload) {
+    // Fetch client to check if correction window is active
+    let isCorrectionActive = false;
+    if (candidate.clientId) {
+      const client = await prisma.client.findUnique({
+        where: { id: candidate.clientId }
+      });
+      if (client && client.formConfig) {
+        const config = client.formConfig as any;
+        if (config.correctionUntil === "ALWAYS") {
+          isCorrectionActive = true;
+        } else if (config.correctionUntil) {
+          const until = new Date(config.correctionUntil);
+          if (until.getTime() > Date.now()) {
+            isCorrectionActive = true;
+          }
+        }
+      }
+    }
+
+    // Block updates if already completed AND re-upload not explicitly allowed AND correction window not active
+    if (candidate.status === "READY" && !candidate.canReupload && !isCorrectionActive) {
       return NextResponse.json({ error: "Candidate session already finalised" }, { status: 403 });
     }
 

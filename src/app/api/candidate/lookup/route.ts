@@ -52,8 +52,26 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    const completedCandidate = candidates.find((c: any) => c.status === "READY");
-    const pendingCandidate = candidates.find((c: any) => c.status === "PENDING") || candidates.find((c: any) => c.canReupload);
+    // Fetch client to check if correction window is active
+    const client = await prisma.client.findUnique({
+      where: { id: employeeData.clientId }
+    });
+    
+    let isCorrectionActive = false;
+    if (client && client.formConfig) {
+      const config = client.formConfig as any;
+      if (config.correctionUntil === "ALWAYS") {
+        isCorrectionActive = true;
+      } else if (config.correctionUntil) {
+        const until = new Date(config.correctionUntil);
+        if (until.getTime() > Date.now()) {
+          isCorrectionActive = true;
+        }
+      }
+    }
+
+    const completedCandidate = candidates.find((c: any) => c.status === "READY" && !c.canReupload && !isCorrectionActive);
+    const pendingCandidate = candidates.find((c: any) => c.status === "PENDING") || candidates.find((c: any) => c.canReupload || isCorrectionActive);
 
     let existingCandidate = null;
     if (pendingCandidate) {
@@ -75,7 +93,8 @@ export async function GET(req: NextRequest) {
       found: true, 
       data: employeeData,
       alreadySubmitted: !!completedCandidate,
-      existingCandidate
+      existingCandidate,
+      isCorrectionActive
     });
 
   } catch (error: any) {

@@ -26,8 +26,28 @@ export async function POST(
       return NextResponse.json({ error: "Invalid token" }, { status: 404 });
     }
 
+    // Fetch client to check if correction window is active
+    let isCorrectionActive = false;
+    if (candidate.clientId) {
+      const client = await prisma.client.findUnique({
+        where: { id: candidate.clientId }
+      });
+      if (client && client.formConfig) {
+        const config = client.formConfig as any;
+        if (config.correctionUntil === "ALWAYS") {
+          isCorrectionActive = true;
+        } else if (config.correctionUntil) {
+          const until = new Date(config.correctionUntil);
+          if (until.getTime() > Date.now()) {
+            isCorrectionActive = true;
+          }
+        }
+      }
+    }
+
     // Only update active status if not completed
-    if (candidate.status === "READY") {
+    // (allow update if correction window or canReupload is active)
+    if (candidate.status === "READY" && !candidate.canReupload && !isCorrectionActive) {
       return NextResponse.json({ message: "Candidate already completed" }, { status: 200 });
     }
 

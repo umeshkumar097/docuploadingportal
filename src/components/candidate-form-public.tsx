@@ -348,8 +348,8 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
           if (effectiveMonth) form.setValue("trainingMonth", effectiveMonth, { shouldValidate: true });
           if (m.phase) form.setValue("phase", m.phase, { shouldValidate: true });
 
-          // Prevent re-submission if already completed
-          if (result.alreadySubmitted) {
+          // Prevent re-submission if already completed (unless correction window is active)
+          if (result.alreadySubmitted && !result.isCorrectionActive) {
             setNominationStatus("blocked");
             setLookupError("YOUR DOCUMENTS ALREADY SUBMITTED");
             return;
@@ -360,7 +360,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
             const ext = result.existingCandidate;
             setToken(ext.token);
             setCandidateId(ext.id);
-            setCanReupload(ext.canReupload || false);
+            setCanReupload(ext.canReupload || result.isCorrectionActive || false);
             localStorage.setItem("cruxdoc_token", ext.token);
             localStorage.setItem("cruxdoc_id", ext.id);
             
@@ -1006,6 +1006,7 @@ export function CandidateFormPublic({ clientId, clientName }: CandidateFormPubli
                     mandatory={true} 
                     initialSuccess={uploadedDocs.has("DRA_CERTIFICATE")} 
                     onUploadSuccess={handleUploadSuccess} 
+                    canReupload={canReupload}
                     description="Upload your original DRA Certification document"
                   />
                 ) : (

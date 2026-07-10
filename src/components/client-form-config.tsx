@@ -16,7 +16,9 @@ import {
   Languages,
   BookOpen,
   Building,
-  CreditCard
+  CreditCard,
+  Clock,
+  RotateCw
 } from "lucide-react";
 import { 
   Select,
@@ -49,6 +51,63 @@ export function ClientFormConfig({ clientId, initialConfig, initialCenters }: Cl
   const [centers, setCenters] = useState<string[]>(initialCenters || []);
   const [newCenter, setNewCenter] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [time, setTime] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(Date.now()), 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getCorrectionValue = () => {
+    if (!config.correctionUntil) return "DISABLED";
+    if (config.correctionUntil === "ALWAYS") return "ALWAYS";
+    
+    const until = new Date(config.correctionUntil);
+    if (until.getTime() <= Date.now()) {
+      return "DISABLED";
+    }
+    
+    return "ACTIVE";
+  };
+
+  const handleCorrectionWindowChange = (val: string) => {
+    if (val === "DISABLED") {
+      setConfig((prev: any) => {
+        const next = { ...prev };
+        delete next.correctionUntil;
+        return next;
+      });
+    } else if (val === "ALWAYS") {
+      setConfig((prev: any) => ({
+        ...prev,
+        correctionUntil: "ALWAYS"
+      }));
+    } else {
+      let durationMs = 0;
+      if (val === "1H") durationMs = 60 * 60 * 1000;
+      else if (val === "2H") durationMs = 2 * 60 * 60 * 1000;
+      else if (val === "12H") durationMs = 12 * 60 * 60 * 1000;
+      else if (val === "24H") durationMs = 24 * 60 * 60 * 1000;
+
+      setConfig((prev: any) => ({
+        ...prev,
+        correctionUntil: new Date(Date.now() + durationMs).toISOString()
+      }));
+    }
+  };
+
+  const formatRemainingTime = (isoString: string) => {
+    const until = new Date(isoString).getTime();
+    const diffMs = until - Date.now();
+    if (diffMs <= 0) return "Expired";
+    
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins}m`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    const remainingMins = diffMins % 60;
+    return `${diffHours}h ${remainingMins}m`;
+  };
 
   const handleStatusChange = (fieldId: string, status: string) => {
     setConfig((prev: any) => ({
@@ -165,6 +224,54 @@ export function ClientFormConfig({ clientId, initialConfig, initialCenters }: Cl
             }`} />
           </button>
         </div>
+      </Card>
+
+      {/* Global Correction Window Setting */}
+      <Card className="p-5 rounded-3xl border border-primary/5 bg-background shadow-sm space-y-4 hover:border-primary/20 transition-all">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-accent text-primary">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div>
+              <span className="font-bold text-sm text-foreground">Global Correction Window</span>
+              <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+                Enable a temporary window for all submitted candidates of this client to re-upload documents.
+              </p>
+            </div>
+          </div>
+          
+          <div className="w-full md:w-60">
+            <Select 
+              value={getCorrectionValue()} 
+              onValueChange={handleCorrectionWindowChange}
+            >
+              <SelectTrigger className="w-full h-11 rounded-xl bg-accent/30 border-none font-semibold text-xs transition-all">
+                <SelectValue placeholder="Select Duration" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-primary/10 shadow-xl">
+                <SelectItem value="DISABLED">Disabled (Default)</SelectItem>
+                {getCorrectionValue() === "ACTIVE" && (
+                  <SelectItem value="ACTIVE">Currently Active</SelectItem>
+                )}
+                <SelectItem value="1H">1 Hour</SelectItem>
+                <SelectItem value="2H">2 Hours</SelectItem>
+                <SelectItem value="12H">12 Hours</SelectItem>
+                <SelectItem value="24H">24 Hours</SelectItem>
+                <SelectItem value="ALWAYS">Always Enabled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {config.correctionUntil && config.correctionUntil !== "ALWAYS" && new Date(config.correctionUntil).getTime() > Date.now() && (
+          <div className="flex items-center gap-2 text-xs text-amber-600 font-bold bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+            <RotateCw className="h-4 w-4 shrink-0 animate-spin" />
+            <span>
+              Active until: {new Date(config.correctionUntil).toLocaleString()} (Remaining: {formatRemainingTime(config.correctionUntil)})
+            </span>
+          </div>
+        )}
       </Card>
 
       {config.examCenter !== "DISABLED" && (
