@@ -160,7 +160,7 @@ export function ClientMasterUpload({ clientId, clientName }: ClientMasterUploadP
             <Input 
               id="master-file-input"
               type="file" 
-              accept=".xlsx,.xls,.csv" 
+              accept=".xlsx,.xls,.xlsb,.csv" 
               className="hidden" 
               onChange={handleFileChange}
             />
@@ -177,7 +177,7 @@ export function ClientMasterUpload({ clientId, clientName }: ClientMasterUploadP
                 <Upload className="h-12 w-12 text-muted-foreground opacity-50" />
                 <div className="text-center">
                   <p className="font-bold text-muted-foreground">Click to browse or drag & drop</p>
-                  <p className="text-xs text-muted-foreground mt-1 uppercase tracking-tighter">Only .xlsx or .csv files are supported</p>
+                  <p className="text-xs text-muted-foreground mt-1 uppercase tracking-tighter">Only .xlsx, .xlsb or .csv files are supported</p>
                 </div>
               </>
             )}

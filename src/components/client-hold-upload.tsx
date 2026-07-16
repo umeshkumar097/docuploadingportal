@@ -149,7 +149,7 @@ export function ClientHoldUpload({ clientId, clientName }: ClientHoldUploadProps
             <Input 
               id="hold-file-input"
               type="file" 
-              accept=".xlsx,.xls,.csv" 
+              accept=".xlsx,.xls,.xlsb,.csv" 
               className="hidden" 
               onChange={handleFileChange}
             />
@@ -168,7 +168,7 @@ export function ClientHoldUpload({ clientId, clientName }: ClientHoldUploadProps
                 </div>
                 <div className="text-center space-y-1">
                   <p className="font-bold">Click to select Hold file</p>
-                  <p className="text-xs text-muted-foreground mt-1 uppercase tracking-tighter">Only .xlsx or .csv files are supported</p>
+                  <p className="text-xs text-muted-foreground mt-1 uppercase tracking-tighter">Only .xlsx, .xlsb or .csv files are supported</p>
                 </div>
               </>
             )}
