@@ -560,7 +560,9 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
               value={phaseFilter}
               onChange={(e) => setPhaseFilter(e.target.value)}
             >
-              <option value="all">All Phases</option>
+              <option value="all">
+                {uniquePhases.some(p => p.toLowerCase().includes("batch")) ? "All Batches" : "All Phases"}
+              </option>
               {uniquePhases.map(phase => (
                 <option key={phase} value={phase}>{phase}</option>
               ))}
