@@ -92,7 +92,12 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
 
   const uniquePhases = useMemo(() => {
     const phases = candidates.map(c => c.phase).filter(Boolean);
-    return Array.from(new Set(phases)).sort();
+    const rawUnique = Array.from(new Set(phases)).sort();
+    const hasBatches = rawUnique.some(p => p.toLowerCase().includes("batch"));
+    if (hasBatches) {
+      return rawUnique.filter(p => p.toLowerCase().includes("batch"));
+    }
+    return rawUnique;
   }, [candidates]);
 
   const uniqueCompanies = useMemo(() => {
