@@ -95,8 +95,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
     const rawUnique = Array.from(new Set(phases)).sort();
     const hasBatches = rawUnique.some(p => p.toLowerCase().includes("batch"));
     if (hasBatches) {
-      // Hide legacy "Phase X" style entries but keep all batch-related phases (e.g. "South", "Hindi Batch - 1")
-      return rawUnique.filter(p => !p.toLowerCase().match(/^phase\s+\d/i) && !p.toLowerCase().match(/^phase\s+[a-z]/i));
+      // Hide any legacy "Phase" entries (e.g. "Phase 1 August", "June Phase 5") when batch data exists
+      return rawUnique.filter(p => !p.toLowerCase().includes("phase"));
     }
     return rawUnique;
   }, [candidates]);
