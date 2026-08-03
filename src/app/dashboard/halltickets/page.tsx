@@ -27,36 +27,74 @@ export default function AdminHallTicketsPage() {
     }
   };
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState("");
+
   const handleUpload = async () => {
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
+    setUploadProgress(0);
+    setUploadStage("Getting upload URL...");
 
     try {
-      const res = await fetch("/api/dashboard/halltickets/upload-zip", {
+      // Step 1: Get presigned URL from server
+      const urlRes = await fetch("/api/dashboard/halltickets/presigned-url", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name }),
+      });
+      const urlJson = await urlRes.json();
+      if (!urlRes.ok) throw new Error(urlJson.error || "Failed to get upload URL");
+
+      const { presignedUrl, r2Key } = urlJson;
+
+      // Step 2: Upload ZIP directly to R2 (bypasses Vercel size limit)
+      setUploadStage("Uploading ZIP to storage...");
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", presignedUrl, true);
+        xhr.setRequestHeader("Content-Type", "application/zip");
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setUploadProgress(Math.round((e.loaded / e.total) * 80));
+          }
+        };
+        xhr.onload = () => (xhr.status === 200 ? resolve() : reject(new Error(`Upload failed: ${xhr.status}`)));
+        xhr.onerror = () => reject(new Error("Network error during upload"));
+        xhr.send(file);
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Upload failed");
+      // Step 3: Tell server to process the ZIP from R2
+      setUploadStage("Processing PDFs...");
+      setUploadProgress(85);
+      const processRes = await fetch("/api/dashboard/halltickets/process-zip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ r2Key, originalFilename: file.name }),
+      });
+      const processJson = await processRes.json();
+      if (!processRes.ok) throw new Error(processJson.error || "Processing failed");
 
-      toast.success(json.message);
+      setUploadProgress(100);
+      toast.success(processJson.message);
       setFile(null);
-      
-      // Reset the file input visually
+      setUploadProgress(0);
+      setUploadStage("");
+
       const fileInput = document.getElementById("zip-upload") as HTMLInputElement;
       if (fileInput) fileInput.value = "";
 
-      mutate(); // Refresh data
+      mutate();
     } catch (err: any) {
       toast.error(err.message || "Failed to process ZIP file");
+      setUploadProgress(0);
+      setUploadStage("");
     } finally {
       setIsUploading(false);
     }
   };
+
 
   const handleDeleteBatch = async (id: string) => {
     if (!confirm("Are you sure you want to delete this batch and all its hall tickets? This cannot be undone.")) return;
@@ -152,7 +190,7 @@ export default function AdminHallTicketsPage() {
             {isUploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                {uploadStage || "Processing..."}
               </>
             ) : (
               <>
@@ -162,6 +200,20 @@ export default function AdminHallTicketsPage() {
             )}
           </Button>
         </div>
+        {isUploading && uploadProgress > 0 && (
+          <div className="mt-4">
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+              <span>{uploadStage}</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
         <p className="text-xs text-muted-foreground mt-3">
           Note: PDFs should be named like "802913734_1036_802913734.pdf". The first 9 digits will be used as the Hall Ticket Number.
         </p>
