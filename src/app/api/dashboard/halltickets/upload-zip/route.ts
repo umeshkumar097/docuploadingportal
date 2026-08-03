@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import JSZip from "jszip";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-export const maxDuration = 60; // Allow 60 seconds for execution
+export const maxDuration = 300; // Allow 5 minutes for large ZIP processing
 
 const s3 = new S3Client({
   region: "auto",
