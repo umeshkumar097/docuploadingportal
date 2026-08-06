@@ -231,33 +231,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ── */}
-      <section className="relative z-10 w-full max-w-6xl px-6 py-16">
-        <div className="text-center mb-16">
-          <p className="text-blue-600 text-xs font-black uppercase tracking-[0.3em] mb-3">Customer Stories</p>
-          <h2 className="text-4xl md:text-5xl font-black text-[#001341] mb-4">Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Operations Teams</span></h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {testimonials.map((t, i) => (
-            <div key={i} className="bg-white p-8 rounded-[2rem] border border-slate-100 hover:border-blue-100 hover:shadow-md transition-all duration-300 shadow-sm">
-              <div className="flex gap-1 mb-5">
-                {Array(t.rating).fill(0).map((_, j) => <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />)}
-              </div>
-              <p className="text-slate-600 text-sm leading-relaxed mb-6 italic">&ldquo;{t.text}&rdquo;</p>
-              <div className="flex items-center gap-3 border-t border-slate-100 pt-5">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center font-black text-white text-sm shadow-md">
-                  {t.name[0]}
-                </div>
-                <div>
-                  <p className="text-[#001341] font-bold text-sm">{t.name}</p>
-                  <p className="text-slate-400 text-xs">{t.role}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── FAQ ── */}
       <section className="relative z-10 w-full bg-white py-16">
         <div className="max-w-3xl mx-auto px-6">
