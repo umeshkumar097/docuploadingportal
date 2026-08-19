@@ -11,7 +11,7 @@ export default async function VendorsPage() {
   const session = await auth();
   const role = session?.user?.role;
 
-  if (!session || (role !== "SUPERADMIN" && role !== "ADMIN")) {
+  if (!session || (role !== "SUPERADMIN" && role !== "ADMIN" && role !== "DEMO")) {
     redirect("/dashboard");
   }
 

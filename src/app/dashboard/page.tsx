@@ -47,9 +47,15 @@ export default async function DashboardPage() {
           whereClause.OR.push({ employer: { contains: "Baroda", mode: "insensitive" } });
         }
       } else {
-        // Immediate failure block if vendorName isn't in session to prevent leakage
         whereClause.id = "force-empty-result-security";
       }
+    } else if (role === "DEMO") {
+      whereClause.client = {
+        name: {
+          contains: "demo",
+          mode: "insensitive"
+        }
+      };
     }
 
     const candidates = await prisma.candidate.findMany({

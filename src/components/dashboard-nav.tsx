@@ -84,7 +84,7 @@ export function DashboardNav({ email, role, vendorName }: { email: string; role:
 
         <nav className="flex-1 p-6 space-y-2 mt-4">
           {navItems.map((item) => {
-            if (item.adminOnly && role !== "ADMIN" && role !== "SUPERADMIN") return null;
+            if (item.adminOnly && role !== "ADMIN" && role !== "SUPERADMIN" && role !== "DEMO") return null;
             if (item.superAdminOnly && role !== "SUPERADMIN") return null;
             if (item.hideFromVendor && role === "VENDOR") return null;
             const isActive = pathname === item.href;

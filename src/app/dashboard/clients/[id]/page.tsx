@@ -23,7 +23,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const session = await auth();
   const role = session?.user?.role;
 
-  if (!session || (role !== "ADMIN" && role !== "SUPERADMIN")) {
+  if (!session || (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "DEMO")) {
     redirect("/dashboard");
   }
 
@@ -35,7 +35,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     redirect("/dashboard/admin?tab=clients");
   }
 
-  const candidates = await prisma.candidate.findMany({
+  let candidates = await prisma.candidate.findMany({
     where: { 
       clientId: id
     },
@@ -54,11 +54,15 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     where: { employeeId: { in: employeeIds } },
   });
   const masterDataMap = new Map<string, any>(masterEmployees.map((me: any) => [me.employeeId, me]));
-  const candidatesWithEmail = candidates.map((c: any) => ({
+  let candidatesWithEmail = candidates.map((c: any) => ({
     ...c,
     email: c.employeeId ? masterDataMap.get(c.employeeId)?.email || null : null,
     masterData: c.employeeId ? masterDataMap.get(c.employeeId) || null : null
   }));
+
+  if (role === "DEMO" && !client.name.toLowerCase().includes("demo")) {
+    candidatesWithEmail = [];
+  }
 
   const regularCandidates = candidatesWithEmail.filter((c: any) => !c.isDraCertified && c.status !== "TRAINED" && c.status !== "ON_HOLD");
   const draCandidates = candidatesWithEmail.filter((c: any) => c.isDraCertified && c.status !== "TRAINED" && c.status !== "ON_HOLD");
@@ -124,19 +128,20 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="master" className="animate-in slide-in-from-bottom-2 duration-300">
           <div className="max-w-2xl">
-            <ClientMasterUpload 
-              clientId={client.id} 
-              clientName={client.name} 
-            />
+            {role === "DEMO" ? (
+              <div className="p-8 text-center bg-accent/30 rounded-3xl border border-dashed border-primary/20"><p className="text-muted-foreground font-bold">Actions disabled in Demo mode.</p></div>
+            ) : (
+              <ClientMasterUpload clientId={client.id} clientName={client.name} />
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="settings" className="animate-in slide-in-from-bottom-2 duration-300">
-          <ClientFormConfig 
-            clientId={client.id} 
-            initialConfig={client.formConfig} 
-            initialCenters={client.examCenters} 
-          />
+          {role === "DEMO" ? (
+             <div className="p-8 text-center bg-accent/30 rounded-3xl border border-dashed border-primary/20"><p className="text-muted-foreground font-bold">Settings disabled in Demo mode.</p></div>
+          ) : (
+            <ClientFormConfig clientId={client.id} initialConfig={client.formConfig} initialCenters={client.examCenters} />
+          )}
         </TabsContent>
 
         <TabsContent value="dra" className="animate-in slide-in-from-bottom-2 duration-300">
@@ -147,10 +152,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="trained" className="animate-in slide-in-from-bottom-2 duration-300 space-y-6">
           <div className="max-w-2xl">
-            <ClientTrainedUpload 
-              clientId={client.id} 
-              clientName={client.name} 
-            />
+            {role !== "DEMO" && <ClientTrainedUpload clientId={client.id} clientName={client.name} />}
           </div>
           <div className="bg-card/30 rounded-3xl p-1 mt-6">
             <CandidateTable candidates={trainedCandidates} role={role} storageKeyPrefix={`client_${id}_trained_`} isClientView={true} hideSubTabs={true} />
@@ -159,10 +161,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="hold" className="animate-in slide-in-from-bottom-2 duration-300 space-y-6">
           <div className="max-w-2xl">
-            <ClientHoldUpload 
-              clientId={client.id} 
-              clientName={client.name} 
-            />
+            {role !== "DEMO" && <ClientHoldUpload clientId={client.id} clientName={client.name} />}
           </div>
           <div className="bg-card/30 rounded-3xl p-1 mt-6">
             <CandidateTable candidates={holdCandidates} role={role} storageKeyPrefix={`client_${id}_hold_`} isClientView={true} hideSubTabs={true} />
