@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CandidateForm } from "@/components/candidate-form";
 import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
+import prisma from "@/lib/prisma";
 
 export default async function SubmitPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
