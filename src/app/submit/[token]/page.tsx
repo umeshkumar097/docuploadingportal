@@ -12,7 +12,33 @@ export default async function SubmitPage({ params }: { params: Promise<{ token: 
     notFound();
   }
 
-  const isAlreadySubmitted = candidate.status === "READY" || candidate.status === "READY_FOR_BATCH";
+  // Global Correction Window: Until Sept 24, 2026, 23:59:59 IST
+  const globalCorrectionDeadline = new Date("2026-09-24T23:59:59+05:30");
+  const isGlobalCorrectionActive = Date.now() <= globalCorrectionDeadline.getTime();
+
+  let isCorrectionActive = isGlobalCorrectionActive;
+
+  if (!isCorrectionActive && candidate.clientId) {
+    const client = await prisma.client.findUnique({
+      where: { id: candidate.clientId }
+    });
+    if (client && client.formConfig) {
+      const config = client.formConfig as any;
+      if (config.correctionUntil === "ALWAYS") {
+        isCorrectionActive = true;
+      } else if (config.correctionUntil) {
+        const until = new Date(config.correctionUntil);
+        if (until.getTime() > Date.now()) {
+          isCorrectionActive = true;
+        }
+      }
+    }
+  }
+
+  const submittedStatuses = ["READY", "READY_FOR_BATCH", "TRAINED", "ON_HOLD"];
+  const isAlreadySubmitted = submittedStatuses.includes(candidate.status) 
+    && !candidate.canReupload 
+    && !isCorrectionActive;
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">

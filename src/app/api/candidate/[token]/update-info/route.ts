@@ -31,7 +31,9 @@ export async function PATCH(
     }
 
     // Fetch client to check if correction window is active
-    let isCorrectionActive = false;
+    // Global Correction Window: Until Sept 24, 2026, 23:59:59 IST
+    const globalCorrectionDeadline = new Date("2026-09-24T23:59:59+05:30");
+    let isCorrectionActive = Date.now() <= globalCorrectionDeadline.getTime();
     if (candidate.clientId) {
       const client = await prisma.client.findUnique({
         where: { id: candidate.clientId }
@@ -50,7 +52,8 @@ export async function PATCH(
     }
 
     // Block updates if already completed AND re-upload not explicitly allowed AND correction window not active
-    if (candidate.status === "READY" && !candidate.canReupload && !isCorrectionActive) {
+    const submittedStatuses = ["READY", "READY_FOR_BATCH", "TRAINED", "ON_HOLD"];
+    if (submittedStatuses.includes(candidate.status) && !candidate.canReupload && !isCorrectionActive) {
       return NextResponse.json({ error: "Candidate session already finalised" }, { status: 403 });
     }
 

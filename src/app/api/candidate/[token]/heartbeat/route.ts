@@ -26,8 +26,9 @@ export async function POST(
       return NextResponse.json({ error: "Invalid token" }, { status: 404 });
     }
 
-    // Fetch client to check if correction window is active
-    let isCorrectionActive = false;
+    // Global Correction Window: Until Sept 24, 2026, 23:59:59 IST
+    const globalCorrectionDeadline = new Date("2026-09-24T23:59:59+05:30");
+    let isCorrectionActive = Date.now() <= globalCorrectionDeadline.getTime();
     if (candidate.clientId) {
       const client = await prisma.client.findUnique({
         where: { id: candidate.clientId }
@@ -47,7 +48,8 @@ export async function POST(
 
     // Only update active status if not completed
     // (allow update if correction window or canReupload is active)
-    if (candidate.status === "READY" && !candidate.canReupload && !isCorrectionActive) {
+    const submittedStatuses = ["READY", "READY_FOR_BATCH", "TRAINED", "ON_HOLD"];
+    if (submittedStatuses.includes(candidate.status) && !candidate.canReupload && !isCorrectionActive) {
       return NextResponse.json({ message: "Candidate already completed" }, { status: 200 });
     }
 
