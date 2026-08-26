@@ -75,7 +75,10 @@ export async function GET(req: NextRequest) {
 
     const submittedStatuses = ["READY", "READY_FOR_BATCH", "TRAINED", "ON_HOLD"];
     const completedCandidate = candidates.find((c: any) => submittedStatuses.includes(c.status) && !c.canReupload && !isCorrectionActive);
-    const pendingCandidate = candidates.find((c: any) => c.status === "PENDING") || candidates.find((c: any) => c.canReupload || isCorrectionActive);
+    
+    // Prioritize finding a candidate eligible for reupload/correction, then fallback to any PENDING session
+    const pendingCandidate = candidates.find((c: any) => c.canReupload || (isCorrectionActive && submittedStatuses.includes(c.status))) 
+                          || candidates.find((c: any) => c.status === "PENDING");
 
     let existingCandidate = null;
     if (pendingCandidate) {
