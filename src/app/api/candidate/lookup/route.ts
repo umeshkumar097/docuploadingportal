@@ -57,7 +57,10 @@ export async function GET(req: NextRequest) {
       where: { id: employeeData.clientId }
     });
     
-    let isCorrectionActive = false;
+    // Global Correction Window: Until Sept 24, 2026, 23:59:59 IST
+    const globalCorrectionDeadline = new Date("2026-09-24T23:59:59+05:30");
+    let isCorrectionActive = Date.now() <= globalCorrectionDeadline.getTime();
+
     if (client && client.formConfig) {
       const config = client.formConfig as any;
       if (config.correctionUntil === "ALWAYS") {
@@ -70,7 +73,8 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const completedCandidate = candidates.find((c: any) => c.status === "READY" && !c.canReupload && !isCorrectionActive);
+    const submittedStatuses = ["READY", "READY_FOR_BATCH", "TRAINED", "ON_HOLD"];
+    const completedCandidate = candidates.find((c: any) => submittedStatuses.includes(c.status) && !c.canReupload && !isCorrectionActive);
     const pendingCandidate = candidates.find((c: any) => c.status === "PENDING") || candidates.find((c: any) => c.canReupload || isCorrectionActive);
 
     let existingCandidate = null;
