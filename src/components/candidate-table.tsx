@@ -21,9 +21,10 @@ interface CandidateTableProps {
   storageKeyPrefix?: string;
   isClientView?: boolean;
   hideSubTabs?: boolean;
+  availableBatches?: string[];
 }
 
-export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", isClientView = false, hideSubTabs = false }: CandidateTableProps) {
+export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", isClientView = false, hideSubTabs = false, availableBatches = [] }: CandidateTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
@@ -92,14 +93,14 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
 
   const uniquePhases = useMemo(() => {
     const phases = candidates.map(c => c.phase).filter(Boolean);
-    const rawUnique = Array.from(new Set(phases)).sort();
+    const rawUnique = Array.from(new Set([...phases, ...availableBatches])).sort();
     const hasBatches = rawUnique.some(p => p.toLowerCase().includes("batch"));
     if (hasBatches) {
       // Hide any legacy "Phase" entries (e.g. "Phase 1 August", "June Phase 5") when batch data exists
       return rawUnique.filter(p => !p.toLowerCase().includes("phase"));
     }
     return rawUnique;
-  }, [candidates]);
+  }, [candidates, availableBatches]);
 
   const uniqueCompanies = useMemo(() => {
     const companies = candidates.map(c => c.employer).filter(Boolean);

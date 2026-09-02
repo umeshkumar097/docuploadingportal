@@ -54,6 +54,17 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     where: { employeeId: { in: employeeIds } },
   });
   const masterDataMap = new Map<string, any>(masterEmployees.map((me: any) => [me.employeeId, me]));
+
+  // Fetch all available draBatch values from MasterEmployee for this client (for batch filter dropdown)
+  const allMasterBatchRecords = await prisma.masterEmployee.findMany({
+    where: { clientId: id, draBatch: { not: "" } },
+    select: { draBatch: true },
+    distinct: ["draBatch"]
+  });
+  const availableBatches = allMasterBatchRecords
+    .map((m: any) => m.draBatch)
+    .filter((b: any) => b && b.toLowerCase().includes("batch"))
+    .sort();
   let candidatesWithEmail = candidates.map((c: any) => ({
     ...c,
     email: c.employeeId ? masterDataMap.get(c.employeeId)?.email || null : null,
@@ -122,7 +133,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
         <TabsContent value="candidates" className="animate-in slide-in-from-bottom-2 duration-300">
           <div className="bg-card/30 rounded-3xl p-1">
-            <CandidateTable candidates={regularCandidates} role={role} storageKeyPrefix={`client_${id}_candidates_`} isClientView={true} />
+            <CandidateTable candidates={regularCandidates} role={role} storageKeyPrefix={`client_${id}_candidates_`} isClientView={true} availableBatches={availableBatches} />
           </div>
         </TabsContent>
 
