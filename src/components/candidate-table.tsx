@@ -114,10 +114,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
 
   const uniqueTrainingMonths = useMemo(() => {
     const months = candidates.map(c => getEffectiveMonth(c)).filter(Boolean);
-    const allMonths = Array.from(new Set(months)).sort();
-    // Only show current month (August 2026) — hide all older months
-    const currentMonth = new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
-    return allMonths.filter(m => (m as string) === currentMonth);
+    // Show all months that have candidate data (including future months like October 2026)
+    return Array.from(new Set(months)).sort();
   }, [candidates]);
 
   // Fixed list of 9 languages — shown for ALL clients regardless of candidate data
