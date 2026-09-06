@@ -94,12 +94,17 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
   const uniquePhases = useMemo(() => {
     const phases = candidates.map(c => c.phase).filter(Boolean);
     const rawUnique = Array.from(new Set([...phases, ...availableBatches])).sort();
-    const hasBatches = rawUnique.some(p => p.toLowerCase().includes("batch"));
+
+    // Exclude month-year values (e.g. "October 2026", "September 2026") — they belong in Months filter only
+    const isMonthYear = (p: string) => /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/i.test(p);
+    const filtered = rawUnique.filter(p => !isMonthYear(p as string));
+
+    const hasBatches = filtered.some(p => (p as string).toLowerCase().includes("batch"));
     if (hasBatches) {
       // Hide any legacy "Phase" entries (e.g. "Phase 1 August", "June Phase 5") when batch data exists
-      return rawUnique.filter(p => !p.toLowerCase().includes("phase"));
+      return filtered.filter(p => !(p as string).toLowerCase().includes("phase"));
     }
-    return rawUnique;
+    return filtered;
   }, [candidates, availableBatches]);
 
   const uniqueCompanies = useMemo(() => {
@@ -113,9 +118,15 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
   }, [candidates]);
 
   const uniqueTrainingMonths = useMemo(() => {
-    const months = candidates.map(c => getEffectiveMonth(c)).filter(Boolean);
-    // Show all months that have candidate data (including future months like October 2026)
-    return Array.from(new Set(months)).sort();
+    const months = candidates.map(c => getEffectiveMonth(c)).filter(Boolean) as string[];
+    const allUnique = Array.from(new Set(months)).sort();
+
+    // Only show months from September 2026 onwards (hide old months like April, May, June, July, August etc.)
+    const cutoffDate = new Date("2026-09-01");
+    return allUnique.filter(m => {
+      const parsed = new Date(m as string);
+      return !isNaN(parsed.getTime()) && parsed >= cutoffDate;
+    });
   }, [candidates]);
 
   // Fixed list of 9 languages — shown for ALL clients regardless of candidate data
