@@ -50,6 +50,10 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
   const [trainingMonthFilter, setTrainingMonthFilter] = useState<string>("all");
 
   const getEffectiveMonth = (c: any) => {
+    // If phase is a month-year (e.g. "October 2026"), use it directly as the training month
+    if (c.phase && /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/i.test(c.phase)) {
+      return c.phase;
+    }
     return c.trainingMonth || new Date(c.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' });
   };
 
