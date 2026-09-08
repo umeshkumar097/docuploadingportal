@@ -84,9 +84,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     candidatesWithEmail = [];
   }
 
-  // Candidates tab = all submitted non-DRA: READY + ON_HOLD + TRAINED (full history)
-  // DRA certified stay in their own tab only
-  const regularCandidates = candidatesWithEmail.filter((c: any) => !c.isDraCertified);
+  // Candidates tab = READY + ON_HOLD only (not TRAINED, not DRA)
+  const regularCandidates = candidatesWithEmail.filter((c: any) => !c.isDraCertified && c.status !== "TRAINED");
   const draCandidates = candidatesWithEmail.filter((c: any) => c.isDraCertified && c.status !== "TRAINED" && c.status !== "ON_HOLD");
   const trainedCandidates = candidatesWithEmail.filter((c: any) => c.status === "TRAINED");
   const holdCandidates = candidatesWithEmail.filter((c: any) => c.status === "ON_HOLD");
