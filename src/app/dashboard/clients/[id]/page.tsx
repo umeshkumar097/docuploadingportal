@@ -35,7 +35,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     redirect("/dashboard/admin?tab=clients");
   }
 
-  let candidates = await prisma.candidate.findMany({
+  const candidatesRaw = await prisma.candidate.findMany({
     where: { 
       clientId: id
     },
@@ -46,6 +46,15 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       }
     },
     orderBy: { createdAt: "desc" }
+  });
+
+  // Deduplicate: keep only the latest record per employeeId
+  const seenEmpIds = new Set<string>();
+  let candidates = candidatesRaw.filter((c: any) => {
+    if (!c.employeeId) return true; // keep anonymous records
+    if (seenEmpIds.has(c.employeeId)) return false;
+    seenEmpIds.add(c.employeeId);
+    return true;
   });
 
   // Attach MasterEmployee data
