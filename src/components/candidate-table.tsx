@@ -174,7 +174,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       const matchesCompany = companyFilter === "all" || c.employer === companyFilter;
       const matchesPhase = phaseFilter === "all" || c.phase === phaseFilter;
       const matchesClient = clientFilter === "all" || c.client?.name === clientFilter;
-      const matchesMonth = trainingMonthFilter === "all" || getEffectiveMonth(c) === trainingMonthFilter;
+      const matchesMonth = trainingMonthFilter === "all" || c.phase === trainingMonthFilter;
       const matchesLanguage = trainingLanguageFilter === "all" || c.trainingLanguage === trainingLanguageFilter;
       const matchesQualification = qualificationTypeFilter === "all" ||
         normalizeQual(c.qualificationType || '') === qualificationTypeFilter.toUpperCase();
