@@ -195,6 +195,9 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       const isDra = c.isDraCertified;
       const docs = c.documents || [];
       const docCount = isDra 
+        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
+        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
+      
       // Submitted = ANY status but MUST have complete docs (4/4)
       const isSubmitted = (c.status === "READY" || c.status === "TRAINED" || c.status === "ON_HOLD") && (isDra ? docCount >= 1 : docCount >= 4);
       const isNoSubmit = c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
