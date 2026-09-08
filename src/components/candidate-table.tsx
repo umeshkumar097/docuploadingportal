@@ -194,7 +194,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
         ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
         : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
       
-      const isSubmitted = c.status !== "ON_HOLD" && (c.status === "READY" || c.status === "TRAINED" || (isDra ? docCount >= 1 : docCount >= 4));
+      // Submitted = any candidate who has ever submitted (not PENDING)
+      const isSubmitted = c.status !== "PENDING";
       const isNoSubmit = c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
       
       // Login: Status PENDING, No Docs for their mode, has name/ID, and active in last 30 minutes
@@ -214,14 +215,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
   }, [filteredForStats, activeTab]);
 
   const stats = useMemo(() => {
-    const submittedCount = filteredForStats.filter((c: any) => {
-      const isDra = c.isDraCertified;
-      const docs = c.documents || [];
-      const docCount = isDra 
-        ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
-        : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
-      return c.status !== "ON_HOLD" && (c.status === "READY" || c.status === "TRAINED" || (isDra ? docCount >= 1 : docCount >= 4));
-    }).length;
+    // Submitted count = all non-PENDING (READY + TRAINED + ON_HOLD)
+    const submittedCount = filteredForStats.filter((c: any) => c.status !== "PENDING").length;
 
     const partialCount = filteredForStats.filter((c: any) => {
       const isDra = c.isDraCertified;
