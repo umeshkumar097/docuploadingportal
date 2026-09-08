@@ -48,14 +48,27 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     orderBy: { createdAt: "desc" }
   });
 
-  // Deduplicate: keep only the latest record per employeeId
-  const seenEmpIds = new Set<string>();
-  let candidates = candidatesRaw.filter((c: any) => {
-    if (!c.employeeId) return true; // keep anonymous records
-    if (seenEmpIds.has(c.employeeId)) return false;
-    seenEmpIds.add(c.employeeId);
-    return true;
-  });
+  // Deduplicate: keep the record with the most documents per employeeId
+  const empIdMap = new Map<string, any>();
+  const anonymous = [];
+  
+  for (const c of candidatesRaw) {
+    if (!c.employeeId) {
+      anonymous.push(c);
+      continue;
+    }
+    const existing = empIdMap.get(c.employeeId);
+    if (!existing) {
+      empIdMap.set(c.employeeId, c);
+    } else {
+      // If we already have one, keep the one with MORE documents.
+      // (Since candidatesRaw is already sorted by createdAt desc, this naturally prefers newer records in case of a tie)
+      if (c._count.documents > existing._count.documents) {
+        empIdMap.set(c.employeeId, c);
+      }
+    }
+  }
+  let candidates = [...anonymous, ...empIdMap.values()];
 
   // Attach MasterEmployee data
   const employeeIds = candidates.map((c: any) => c.employeeId).filter(Boolean) as string[];
