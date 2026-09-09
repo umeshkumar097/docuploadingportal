@@ -97,9 +97,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     candidatesWithEmail = [];
   }
 
-  // Candidates tab = ALL submitted non-DRA (READY + ON_HOLD + TRAINED)
-  // Month filter now uses c.phase directly, so TRAINED (Phase 1 August) won't appear in October 2026 filter
-  const regularCandidates = candidatesWithEmail.filter((c: any) => !c.isDraCertified);
+  // Candidates tab = READY + ON_HOLD only (non-Excel candidates were set to TRAINED, so they won't appear)
+  const regularCandidates = candidatesWithEmail.filter((c: any) => !c.isDraCertified && c.status !== "TRAINED");
   const draCandidates = candidatesWithEmail.filter((c: any) => c.isDraCertified && c.status !== "TRAINED" && c.status !== "ON_HOLD");
   const trainedCandidates = candidatesWithEmail.filter((c: any) => c.status === "TRAINED");
   const holdCandidates = candidatesWithEmail.filter((c: any) => c.status === "ON_HOLD");

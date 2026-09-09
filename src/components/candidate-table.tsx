@@ -198,8 +198,8 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
         ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
         : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
       
-      // Submitted = ANY status but MUST have complete docs (4/4)
-      const isSubmitted = (c.status === "READY" || c.status === "TRAINED" || c.status === "ON_HOLD") && (isDra ? docCount >= 1 : docCount >= 4);
+      // Submitted = READY with all docs complete (4/4)
+      const isSubmitted = c.status === "READY" && (isDra ? docCount >= 1 : docCount >= 4);
       const isNoSubmit = c.status === "PENDING" && docCount > 0 && (isDra ? docCount < 1 : docCount < 4);
       
       // Login: Status PENDING, No Docs for their mode, has name/ID, and active in last 30 minutes
@@ -226,7 +226,7 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       const docCount = isDra
         ? docs.filter((d: any) => d.type === "DRA_CERTIFICATE" && d.status !== "REJECTED").length
         : docs.filter((d: any) => d.type !== "DRA_CERTIFICATE" && d.status !== "REJECTED").length;
-      return (c.status === "READY" || c.status === "TRAINED" || c.status === "ON_HOLD") && (isDra ? docCount >= 1 : docCount >= 4);
+      return c.status === "READY" && (isDra ? docCount >= 1 : docCount >= 4);
     }).length;
 
     const partialCount = filteredForStats.filter((c: any) => {
