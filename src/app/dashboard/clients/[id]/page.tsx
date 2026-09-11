@@ -48,10 +48,11 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     orderBy: { createdAt: "desc" }
   });
 
-  // Deduplicate: keep the record with the most documents per employeeId
+  // Deduplicate: one record per employeeId.
+  // Priority: READY/ON_HOLD with docs > READY/ON_HOLD no docs > most docs > latest
   const empIdMap = new Map<string, any>();
-  const anonymous = [];
-  
+  const anonymous: any[] = [];
+
   for (const c of candidatesRaw) {
     if (!c.employeeId) {
       anonymous.push(c);
@@ -61,14 +62,20 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     if (!existing) {
       empIdMap.set(c.employeeId, c);
     } else {
-      // If we already have one, keep the one with MORE documents.
-      // (Since candidatesRaw is already sorted by createdAt desc, this naturally prefers newer records in case of a tie)
-      if (c._count.documents > existing._count.documents) {
+      const cIsSubmitted = c.status === "READY" || c.status === "ON_HOLD";
+      const exIsSubmitted = existing.status === "READY" || existing.status === "ON_HOLD";
+      // Prefer submitted (READY/ON_HOLD) over PENDING
+      if (cIsSubmitted && !exIsSubmitted) {
+        empIdMap.set(c.employeeId, c);
+      } else if (cIsSubmitted === exIsSubmitted && c._count.documents > existing._count.documents) {
+        // Same submitted-ness → prefer more docs
         empIdMap.set(c.employeeId, c);
       }
+      // else keep existing (it's better or equal)
     }
   }
   let candidates = [...anonymous, ...empIdMap.values()];
+
 
   // Attach MasterEmployee data
   const employeeIds = candidates.map((c: any) => c.employeeId).filter(Boolean) as string[];
