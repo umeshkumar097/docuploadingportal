@@ -131,6 +131,16 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
     });
   }, [candidates]);
 
+  // If the restored month filter doesn't exist in this client's available months, reset to "all"
+  useEffect(() => {
+    if (trainingMonthFilter !== "all" && uniqueTrainingMonths.length > 0 && !uniqueTrainingMonths.includes(trainingMonthFilter)) {
+      setTrainingMonthFilter("all");
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(`${storageKeyPrefix}trainingMonthFilter`, "all");
+      }
+    }
+  }, [uniqueTrainingMonths, trainingMonthFilter, storageKeyPrefix]);
+
   // Fixed list of 9 languages — shown for ALL clients regardless of candidate data
   const ALL_TRAINING_LANGUAGES = [
     "Bengali", "English", "Gujarati", "Hindi",
