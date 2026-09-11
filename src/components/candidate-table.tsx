@@ -70,16 +70,14 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
       setQualificationTypeFilter(sessionStorage.getItem(`${storageKeyPrefix}qualificationTypeFilter`) || "all");
       
       const storedMonth = sessionStorage.getItem(`${storageKeyPrefix}trainingMonthFilter`);
+      // Only restore if it's explicitly "all" or a valid non-empty stored value
+      // Never auto-select a month — always default to "all" to show all candidates
       if (storedMonth) {
         setTrainingMonthFilter(storedMonth);
-      } else if (candidates && candidates.length > 0) {
-        const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
-        const match = candidates.find((c: any) => getEffectiveMonth(c).toLowerCase().includes(currentMonthName.toLowerCase()));
-        if (match) setTrainingMonthFilter(getEffectiveMonth(match));
-        else setTrainingMonthFilter(getEffectiveMonth(candidates[0]));
       }
+      // else: stays as "all" (the useState default)
     }
-  }, [candidates, storageKeyPrefix]);
+  }, [storageKeyPrefix]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
