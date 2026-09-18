@@ -132,11 +132,15 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
   }, [candidates]);
 
   // If the restored month filter doesn't exist in this client's available months, reset to "all"
+  // Also reset if there are NO months available at all (empty list)
   useEffect(() => {
-    if (trainingMonthFilter !== "all" && uniqueTrainingMonths.length > 0 && !uniqueTrainingMonths.includes(trainingMonthFilter)) {
-      setTrainingMonthFilter("all");
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(`${storageKeyPrefix}trainingMonthFilter`, "all");
+    if (trainingMonthFilter !== "all") {
+      const isInvalid = uniqueTrainingMonths.length === 0 || !uniqueTrainingMonths.includes(trainingMonthFilter);
+      if (isInvalid) {
+        setTrainingMonthFilter("all");
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(`${storageKeyPrefix}trainingMonthFilter`, "all");
+        }
       }
     }
   }, [uniqueTrainingMonths, trainingMonthFilter, storageKeyPrefix]);
