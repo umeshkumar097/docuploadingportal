@@ -184,7 +184,10 @@ export function CandidateTable({ candidates, role, storageKeyPrefix = "crux_", i
         (c.mobileNumber?.includes(searchQuery));
       
       const matchesCompany = companyFilter === "all" || c.employer === companyFilter;
-      const matchesPhase = phaseFilter === "all" || c.phase === phaseFilter;
+      // Batch filter: check masterData.draBatch (batch stored in MasterEmployee), phase filter checks c.phase
+      const isBatchFilter = phaseFilter !== "all" && phaseFilter.toLowerCase().includes("batch");
+      const matchesPhase = phaseFilter === "all" || 
+        (isBatchFilter ? c.masterData?.draBatch === phaseFilter : c.phase === phaseFilter);
       const matchesClient = clientFilter === "all" || c.client?.name === clientFilter;
       const matchesMonth = trainingMonthFilter === "all" || c.phase === trainingMonthFilter;
       const matchesLanguage = trainingLanguageFilter === "all" || c.trainingLanguage === trainingLanguageFilter;
